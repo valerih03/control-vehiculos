@@ -1,0 +1,101 @@
+/* Estilo básico para el título */
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Estilo para el botón Show */
+p-button {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #85abd4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+p-button:hover {
+  background-color: #9cbde0;
+}
+
+/* Estilo del cuadro de diálogo */
+p-dialog {
+  font-family: Arial, sans-serif;
+}
+
+/* Estilo del contenido dentro del diálogo */
+.p-dialog-header {
+  background-color: #9cbde0;
+  color: white;
+  font-size: 1.2rem;
+  padding: 12px 20px;
+}
+
+.p-dialog-content {
+  padding: 20px;
+}
+
+.p-inputtext {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.p-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+}
+
+/* Estilo para los campos de formulario dentro del diálogo */
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.flex .w-24 {
+  width: 120px;
+  font-weight: 600;
+}
+
+.flex-auto {
+  flex: 1;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mb-4 {
+  margin-bottom: 4px;
+}
+
+.block {
+  display: block;
+}
+
+.p-text-secondary {
+  color: #6c757d;
+}
+
+/* Estilo para los botones dentro del diálogo */
+.p-button {
+  width: 80px;
+  margin: 0 5px;
+}
+
+.p-button.secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.p-button.secondary:hover {
+  background-color: #5a636a;
+}
