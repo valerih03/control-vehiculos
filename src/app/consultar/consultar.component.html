@@ -1,0 +1,43 @@
+<p-dialog
+  header="Consulta de Vehículos"
+  [visible]="true"
+  [modal]="true"
+  [style]="{ width: '75vw' }"
+  [contentStyle]="{ 'max-height': '400px', overflow: 'auto' }"
+>
+  <p-table
+    [value]="vehiculos"
+    [scrollable]="true"
+    scrollHeight="flex"
+    [tableStyle]="{ 'min-width': '60rem' }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Consignatario</th>
+        <th>NIT</th>
+        <th>Fecha</th>
+        <th>VIN</th>
+        <th>Año</th>
+        <th>Marca</th>
+        <th>Estilo</th>
+        <th>Color</th>
+        <th>Abandono</th>
+        <th>Despacho</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-v>
+      <tr>
+        <td>{{ v.consignatario }}</td>
+        <td>{{ v.nit }}</td>
+        <td>{{ v.fecha }}</td>
+        <td>{{ v.vin }}</td>
+        <td>{{ v.anio?.getFullYear?.() || v.anio }}</td>
+        <td>{{ v.marca }}</td>
+        <td>{{ v.estilo }}</td>
+        <td>{{ v.color }}</td>
+        <td>{{ v.abandono }}</td>
+        <td>{{ v.despacho }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>

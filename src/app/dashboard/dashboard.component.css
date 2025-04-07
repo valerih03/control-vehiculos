@@ -3,7 +3,7 @@ h1 {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 20px;
-  color: #333;
+  color: #000000;
 }
 
 /* Estilo para el botón Show */
@@ -12,7 +12,7 @@ p-button {
   margin: 10px;
   padding: 10px 20px;
   font-size: 14px;
-  background-color: #85abd4;
+
   color: white;
   border: none;
   border-radius: 4px;
@@ -82,7 +82,7 @@ p-dialog {
 }
 
 .p-text-secondary {
-  color: #6c757d;
+  color: #000000;
 }
 
 /* Estilo para los botones dentro del diálogo */
