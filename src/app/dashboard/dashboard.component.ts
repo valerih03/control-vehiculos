@@ -11,11 +11,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { VehiculoService } from '../services/vehiculo.service';
 import { TableModule } from 'primeng/table';
+import { RadioButtonModule } from 'primeng/radiobutton';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, FormsModule, ConsultarComponent,
-    ToastModule, ConfirmDialogModule, TableModule
+    ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './dashboard.component.html',
@@ -36,10 +38,11 @@ export class DashboardComponent {
     estilo: '',
     color: '',
     abandono: '',
+    fechares: '',
     despacho: ''
   };
   anio!: number;
-
+  realizararescate: string = '';
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
