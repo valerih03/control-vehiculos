@@ -9,24 +9,14 @@
 
 <!-- consulta de vehículos -->
 <p-dialog
-  header="Consulta de Vehículos"
-  [(visible)]="dialogConsultaVisible"
-  [modal]="true"
-  [closable]="true"
-  [style]="{ width: '100vw' }"
-  [contentStyle]="{ 'max-height': '400px', overflow: 'auto' }"
->
-  <p-table
-    [value]="vehiculos"
-    [scrollable]="true"
-    scrollHeight="flex"
-    [tableStyle]="{ 'min-width': '60rem' }"
-  >
+  header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [closable]="true" [style]="{ width: '100vw' }"
+  [contentStyle]="{ 'max-height': '400px', overflow: 'auto' }" >
+<p-table [value]="vehiculos" [scrollable]="true" scrollHeight="flex" [tableStyle]="{ 'min-width': '60rem' }" >
     <ng-template pTemplate="header">
       <tr>
         <th>Consignatario</th>
         <th>NIT</th>
-        <th>Fecha Actual</th>
+        <th>Fecha</th>
         <th>VIN</th>
         <th>Año</th>
         <th>Marca</th>
@@ -58,7 +48,6 @@
     <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
   </ng-template>
 </p-dialog>
-
 <!-- campos para ingresar vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="visible" [style]="{ width: '60rem' }">
   <span class="p-text-secondary block mb-8">Ingrese los datos correspondientes.</span>
@@ -71,7 +60,7 @@
     <input pInputText id="nit" [(ngModel)]="nuevoVehiculo.nit" class="flex-auto" autocomplete="off" />
   </div>
   <div class="flex items-center gap-4 mb-4">
-    <label for="fecha" class="font-semibold w-24">Fecha Actual</label>
+    <label for="fecha" class="font-semibold w-24">Fecha</label>
     <input pInputText type="date" id="fecha" [(ngModel)]="nuevoVehiculo.fecha" class="flex-auto" autocomplete="off" />
   </div>
   <div class="flex items-center gap-4 mb-8">

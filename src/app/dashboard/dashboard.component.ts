@@ -5,20 +5,18 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
-import { ConsultarComponent } from "../consultar/consultar.component";
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { VehiculoService } from '../services/vehiculo.service';
 import { TableModule } from 'primeng/table';
 import { RadioButtonModule } from 'primeng/radiobutton';
-
+import { SplitButtonModule } from 'primeng/splitbutton';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, FormsModule, ConsultarComponent,
-    ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule
-  ],
+  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, FormsModule,
+    ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule],
   providers: [ConfirmationService, MessageService],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -72,7 +70,6 @@ export class DashboardComponent {
       }
     });
   }
-
   //Confirmación de cancelación
   confirmCancel() {
     this.confirmationService.confirm({
@@ -90,11 +87,11 @@ export class DashboardComponent {
       }
     });
   }
-
+  //Guardar datos
   guardarDatos() {
     this.vehiculoService.agregarVehiculo({ ...this.nuevoVehiculo });
     this.nuevoVehiculo = { ...this.nuevoVehiculo, anio: null };
     this.visible = false;
-    this.vehiculos = this.vehiculoService.obtenerVehiculos();  // Actualizar la lista de vehículos
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
 }
