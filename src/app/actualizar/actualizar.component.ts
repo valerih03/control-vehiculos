@@ -1,77 +1,63 @@
 import { Component, OnInit } from '@angular/core';
 import { VehiculoService } from '../services/vehiculo.service';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
+import { TableModule } from 'primeng/table';
+import { CalendarModule } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { CalendarModule } from 'primeng/calendar';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
-
 @Component({
   selector: 'app-actualizar',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    InputTextModule,
-    CalendarModule,
-    RadioButtonModule,
-    TableModule,
-    DialogModule
-  ],
+  imports: [TableModule, CalendarModule, FormsModule, CommonModule, ButtonModule, InputTextModule],
   templateUrl: './actualizar.component.html',
   styleUrls: ['./actualizar.component.css']
 })
 export class ActualizarComponent implements OnInit {
   vehiculos: any[] = [];
-  vehiculoSeleccionado: any = null;
-  dialogVisible: boolean = false;
-  realizararescate: string = '';
+  clonedVehicles: { [s: string]: any } = {}; //copia temporal del vehículo antes de editarlo (por si se cancela la edición)
 
   constructor(
     private vehiculoService: VehiculoService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
     this.cargarVehiculos();
   }
-
-  cargarVehiculos() {
+  cargarVehiculos() { //obtiene los vehículos del servicio
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
 
-  seleccionarVehiculo(vehiculo: any) {
-    this.vehiculoSeleccionado = { ...vehiculo };
-    this.realizararescate = vehiculo.fechares ? 'Si' : 'No';
-    this.dialogVisible = true;
+  onRowEditInit(vehiculo: any) { //guarda una copia del vehículo antes de editarlo
+    this.clonedVehicles[vehiculo.vin] = {...vehiculo};
   }
 
-  actualizarVehiculo() {
-    this.confirmationService.confirm({
-      message: '¿Está seguro de actualizar este vehículo?',
-      header: 'Confirmación',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.vehiculoService.actualizarVehiculo(this.vehiculoSeleccionado);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Éxito',
-          detail: 'Vehículo actualizado correctamente'
-        });
-        this.dialogVisible = false;
-        this.cargarVehiculos();
-      }
-    });
+  onRowEditSave(vehiculo: any) { //guarda los cambios
+    if (!vehiculo.consignatario || !vehiculo.vin) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Consignatario y VIN son requeridos'
+      });
+      return;
+    }
+    const actualizado = this.vehiculoService.actualizarVehiculo(vehiculo);
+    if (actualizado) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Vehículo actualizado correctamente'
+      });
+      delete this.clonedVehicles[vehiculo.vin];
+    }
   }
-
-  cancelarActualizacion() {
-    this.dialogVisible = false;
-    this.vehiculoSeleccionado = null;
+  onRowEditCancel(vehiculo: any, index: number) { //cancela la edición
+    const original = this.clonedVehicles[vehiculo.vin];
+    if (original) {
+      this.vehiculos[index] = {...original};
+      delete this.clonedVehicles[vehiculo.vin];
+    }
   }
 }

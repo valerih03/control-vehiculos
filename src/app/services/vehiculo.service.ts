@@ -4,20 +4,24 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class VehiculoService {
-  // Usamos un arreglo local para almacenar los vehículos
   private vehiculos: any[] = [];
 
   agregarVehiculo(vehiculo: any) {
-    this.vehiculos.push(vehiculo);  // Agregar el vehículo al arreglo
+    this.vehiculos.push({...vehiculo});
   }
+
   obtenerVehiculos() {
-    return this.vehiculos;  // Retornar los vehículos almacenados
+    return [...this.vehiculos]; // Retorna copia del arreglo
   }
-  // Actualizar un vehículo en el arreglo
   actualizarVehiculo(vehiculoActualizado: any) {
     const index = this.vehiculos.findIndex(v => v.vin === vehiculoActualizado.vin);
     if (index !== -1) {
-      this.vehiculos[index] = vehiculoActualizado;
+      this.vehiculos[index] = {...vehiculoActualizado};
+      return true;
     }
+    return false;
+  }
+  obtenerPorVin(vin: string) {
+    return this.vehiculos.find(v => v.vin === vin);
   }
 }

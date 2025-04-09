@@ -1,65 +1,130 @@
 <div class="p-4">
-  <h2>Actualizar Vehículos</h2>
+  <h2>Editar Vehículos</h2>
 
-  <p-table [value]="vehiculos" [paginator]="true" [rows]="5">
+  <p-table
+    [value]="vehiculos"
+    editMode="row"
+    dataKey="vin"
+    [tableStyle]="{ 'min-width': '75rem' }"
+  >
     <ng-template pTemplate="header">
       <tr>
-        <th>Consignatario</th>
         <th>VIN</th>
-        <th>Marca</th>
+        <th>Consignatario</th>
+        <th>NIT</th>
+        <th>Fecha</th>
         <th>Acciones</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-vehiculo>
-      <tr>
-        <td>{{ vehiculo.consignatario }}</td>
-        <td>{{ vehiculo.vin }}</td>
-        <td>{{ vehiculo.marca }}</td>
+    <ng-template pTemplate="body" let-vehiculo let-editing="editing" let-index="rowIndex">
+      <tr [pEditableRow]="vehiculo">
+
         <td>
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success"
-                  (click)="seleccionarVehiculo(vehiculo)"></button>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText [(ngModel)]="vehiculo.vin" required>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ vehiculo.vin }}
+            </ng-template>
+          </p-cellEditor>
         </td>
-      </tr>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText [(ngModel)]="vehiculo.consignatario" required>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ vehiculo.consignatario }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText [(ngModel)]="vehiculo.nit">
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ vehiculo.nit }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText [(ngModel)]="vehiculo.marca">
     </ng-template>
-  </p-table>
-
-  <!-- Diálogo de actualización -->
-  <p-dialog header="Editar Vehículo" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '50vw' }">
-    <div *ngIf="vehiculoSeleccionado" class="p-fluid">
-      <div class="p-field">
-        <label for="consignatario">Consignatario</label>
-        <input id="consignatario" pInputText [(ngModel)]="vehiculoSeleccionado.consignatario">
-      </div>
-
-      <div class="p-field">
-        <label for="vin">VIN</label>
-        <input id="vin" pInputText [(ngModel)]="vehiculoSeleccionado.vin">
-      </div>
-
-      <!-- Agrega aquí los demás campos del formulario -->
-      <!-- ... -->
-
-      <div class="p-field">
-        <label>¿Realizará rescate?</label>
-        <div class="p-d-flex">
-          <p-radioButton name="rescate" value="Si" label="Sí" [(ngModel)]="realizararescate"></p-radioButton>
-          <p-radioButton name="rescate" value="No" label="No" [(ngModel)]="realizararescate"
-                        class="p-ml-2"></p-radioButton>
-        </div>
-      </div>
-
-      <div class="p-field">
-        <label for="fechares">Fecha de rescate</label>
-        <input id="fechares" type="date" pInputText [(ngModel)]="vehiculoSeleccionado.fechares"
-               [disabled]="realizararescate === 'No'">
-      </div>
-    </div>
-
-    <ng-template pTemplate="footer">
-      <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
-              (click)="cancelarActualizacion()"></button>
-      <button pButton label="Guardar" icon="pi pi-check"
-              (click)="actualizarVehiculo()"></button>
+    <ng-template pTemplate="output">
+      {{ vehiculo.marca }}
     </ng-template>
-  </p-dialog>
+  </p-cellEditor>
+</td>
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText [(ngModel)]="vehiculo.estilo">
+    </ng-template>
+    <ng-template pTemplate="output">
+      {{ vehiculo.estilo }}
+    </ng-template>
+  </p-cellEditor>
+</td>
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText [(ngModel)]="vehiculo.color">
+    </ng-template>
+    <ng-template pTemplate="output">
+      {{ vehiculo.color }}
+    </ng-template>
+  </p-cellEditor>
+</td>
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText type="number" [(ngModel)]="vehiculo.abandono">
+    </ng-template>
+    <ng-template pTemplate="output">
+      {{ vehiculo.abandono }}
+    </ng-template>
+  </p-cellEditor>
+</td>
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText [(ngModel)]="vehiculo.despacho">
+    </ng-template>
+    <ng-template pTemplate="output">
+      {{ vehiculo.despacho }}
+    </ng-template>
+  </p-cellEditor>
+</td>
+<td>
+  <div class="flex gap-2">
+    <button
+      *ngIf="!editing"
+      pButton
+      icon="pi pi-pencil"
+      class="p-button-rounded p-button-success"
+      (click)="onRowEditInit(vehiculo)">
+    </button>
+    <button
+      *ngIf="editing"
+      pButton
+      icon="pi pi-check"
+      class="p-button-rounded p-button-primary"
+      (click)="onRowEditSave(vehiculo)">
+    </button>
+    <button
+      *ngIf="editing"
+      pButton
+      icon="pi pi-times"
+      class="p-button-rounded p-button-danger"
+      (click)="onRowEditCancel(vehiculo, index)">
+    </button>
+  </div>
+</td>
+</tr>
+</ng-template>
+</p-table>
 </div>

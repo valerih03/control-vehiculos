@@ -3,14 +3,17 @@
 
 <h1>CONTROL DE VEHÍCULOS</h1>
 
-<p-button (click)="showDialog()" label="Ingresar Datos" icon="pi pi-user" class="ml-2"></p-button>
-<p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="ml-2"></p-button>
-<!-- consulta de vehículos -->
-<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [closable]="true" [style]="{ width: '100vw' }"
-  [contentStyle]="{ 'max-height': '400px', overflow: 'auto' }" >
-<p-table [value]="vehiculos" [scrollable]="true" scrollHeight="flex" [tableStyle]="{ 'min-width': '75rem' }" >
+<div class="flex gap-2 mb-4">
+  <p-button (click)="showDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
+  <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
+</div>
+
+<!-- Diálogo de Consulta -->
+<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
+  <p-table [value]="vehiculos" selectionMode="single" [(selection)]="vehiculoSeleccionado" dataKey="vin">
     <ng-template pTemplate="header">
       <tr>
+        <th style="width: 3rem"></th>
         <th>Consignatario</th>
         <th>NIT</th>
         <th>Fecha</th>
@@ -20,35 +23,74 @@
         <th>Estilo</th>
         <th>Color</th>
         <th>Abandono</th>
-        <th>Fecha de rescate</th>
+        <th>Fecha Rescate</th>
         <th>Despacho</th>
+        <th>Acciones</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-carro>
-      <tr>
-        <td>{{ carro.consignatario }}</td>
-        <td>{{ carro.nit }}</td>
-        <td>{{ carro.fecha }}</td>
-        <td>{{ carro.vin }}</td>
-        <td>{{ carro.anio }}</td>
-        <td>{{ carro.marca }}</td>
-        <td>{{ carro.estilo }}</td>
-        <td>{{ carro.color }}</td>
-        <td>{{ carro.abandono }}</td>
-        <td>{{ carro.fechares }}</td>
-        <td>{{ carro.despacho }}</td>
+    <ng-template pTemplate="body" let-vehiculo>
+      <tr [pSelectableRow]="vehiculo">
+        <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
+        <td>{{ vehiculo.consignatario }}</td>
+        <td>{{ vehiculo.nit }}</td>
+        <td>{{ vehiculo.fecha | date:'dd/MM/yyyy' }}</td>
+        <td>{{ vehiculo.vin }}</td>
+        <td>{{ vehiculo.anio | date:'yyyy' }}</td>
+        <td>{{ vehiculo.marca }}</td>
+        <td>{{ vehiculo.estilo }}</td>
+        <td>{{ vehiculo.color }}</td>
+        <td>{{ vehiculo.abandono }}</td>
+        <td>{{ vehiculo.fechares || 'N/A' }}</td>
+        <td>{{ vehiculo.despacho }}</td>
+        <td>
+        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success" (click)="editarVehiculo(vehiculo); $event.stopPropagation()"></button>
+        </td>
       </tr>
     </ng-template>
   </p-table>
-  <ng-template pTemplate="footer">
-    <!-- botones -->
-    <p-button (click)="mostrarActualizar()" label="Actualizar Datos" icon="pi pi-pencil" class="ml-2"></p-button>
+
+  <div class="flex justify-between mt-4">
     <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
-    <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
+    <div class="flex gap-2">
+      <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Diálogo de Edición -->
+<p-dialog header="Editar Vehículo" [(visible)]="dialogEdicionVisible" [modal]="true" [style]="{ width: '50rem' }">
+  <div *ngIf="vehiculoEditado" class="p-fluid">
+    <div class="grid">
+      <div class="col-12 md:col-6">
+        <label>Consignatario</label>
+        <input pInputText [(ngModel)]="vehiculoEditado.consignatario">
+      </div>
+      <div class="col-12 md:col-6">
+        <label>Marca</label>
+        <input pInputText [(ngModel)]="vehiculoEditado.marca">
+      </div>
+      <div class="col-12 md:col-6">
+        <label>Estilo</label>
+        <input pInputText [(ngModel)]="vehiculoEditado.estilo">
+      </div>
+      <div class="col-12 md:col-6">
+        <label>Color</label>
+        <input pInputText [(ngModel)]="vehiculoEditado.color">
+      </div>
+      <div class="col-12 md:col-6">
+        <label>Despacho</label>
+        <input pInputText [(ngModel)]="vehiculoEditado.despacho">
+      </div>
+
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" icon="pi pi-times" (click)="dialogEdicionVisible = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (click)="guardarEdicion()"></p-button>
   </ng-template>
 </p-dialog>
 <!-- campos para ingresar vehiculos -->
-<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="visible" [style]="{ width: '60rem' }">
+<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogIngresoVisible" [style]="{ width: '60rem' }">
   <span class="p-text-secondary block mb-8">Ingrese los datos correspondientes.</span>
   <div class="flex items-center gap-4 mb-4">
     <label for="consignatario" class="font-semibold w-24">Consignatario</label>

@@ -24,10 +24,12 @@ import { Router } from '@angular/router';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
-  dialogConsultaVisible: boolean = false;
-  visible: boolean = false;
+  dialogIngresoVisible = false;
+  dialogConsultaVisible = false;
+  dialogEdicionVisible = false;
   vehiculos: any[] = [];
-
+  vehiculoSeleccionado: any;
+  vehiculoEditado: any;
   nuevoVehiculo = {
     consignatario: '',
     nit: '',
@@ -50,11 +52,25 @@ export class DashboardComponent {
     private router: Router
   ) {}
 // Primera declaración (correcta)
-mostrarActualizar() {
-  this.router.navigate(['/actualizar']);
+editarVehiculo(vehiculo: any) {
+  this.vehiculoEditado = { ...vehiculo };
+  this.dialogEdicionVisible = true;
+}
+
+guardarEdicion() {
+  if (this.vehiculoEditado) {
+    this.vehiculoService.actualizarVehiculo(this.vehiculoEditado);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Actualizado',
+      detail: 'Vehículo actualizado correctamente'
+    });
+    this.dialogEdicionVisible = false;
+    this.vehiculos = [...this.vehiculoService.obtenerVehiculos()];
+  }
 }
   showDialog() {
-    this.visible = true;
+    this.dialogIngresoVisible  = true;
   }
   ngOnInit() {
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
@@ -100,7 +116,7 @@ mostrarActualizar() {
           despacho: ''
         };
         this.realizararescate = '';
-        this.visible = false;
+        this.dialogIngresoVisible  = false;
         this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Operación cancelada.' });
       },
       reject: () => {
@@ -127,7 +143,7 @@ guardarDatos() {
   };
   // Resetear el radio button
   this.realizararescate = '';
-  this.visible = false;
+  this.dialogIngresoVisible  = false;
   this.vehiculos = this.vehiculoService.obtenerVehiculos();
 }
 exportarPDF() {
