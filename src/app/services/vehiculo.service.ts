@@ -10,8 +10,14 @@ export class VehiculoService {
   agregarVehiculo(vehiculo: any) {
     this.vehiculos.push(vehiculo);  // Agregar el vehículo al arreglo
   }
-
   obtenerVehiculos() {
     return this.vehiculos;  // Retornar los vehículos almacenados
+  }
+  // Actualizar un vehículo en el arreglo
+  actualizarVehiculo(vehiculoActualizado: any) {
+    const index = this.vehiculos.findIndex(v => v.vin === vehiculoActualizado.vin);
+    if (index !== -1) {
+      this.vehiculos[index] = vehiculoActualizado;
+    }
   }
 }

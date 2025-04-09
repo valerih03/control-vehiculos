@@ -1,17 +1,14 @@
 <p-toast></p-toast>
-
 <p-confirmDialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmDialog>
 
 <h1>CONTROL DE VEHÍCULOS</h1>
 
-<p-button (click)="showDialog()" label="Ingresar Datos"></p-button>
+<p-button (click)="showDialog()" label="Ingresar Datos" icon="pi pi-user" class="ml-2"></p-button>
 <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="ml-2"></p-button>
-
 <!-- consulta de vehículos -->
-<p-dialog
-  header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [closable]="true" [style]="{ width: '100vw' }"
+<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [closable]="true" [style]="{ width: '100vw' }"
   [contentStyle]="{ 'max-height': '400px', overflow: 'auto' }" >
-<p-table [value]="vehiculos" [scrollable]="true" scrollHeight="flex" [tableStyle]="{ 'min-width': '60rem' }" >
+<p-table [value]="vehiculos" [scrollable]="true" scrollHeight="flex" [tableStyle]="{ 'min-width': '75rem' }" >
     <ng-template pTemplate="header">
       <tr>
         <th>Consignatario</th>
@@ -43,8 +40,10 @@
       </tr>
     </ng-template>
   </p-table>
-
   <ng-template pTemplate="footer">
+    <!-- botones -->
+    <p-button (click)="mostrarActualizar()" label="Actualizar Datos" icon="pi pi-pencil" class="ml-2"></p-button>
+    <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
     <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
   </ng-template>
 </p-dialog>
@@ -108,7 +107,8 @@
     <input pInputText id="despacho" [(ngModel)]="nuevoVehiculo.despacho" class="flex-auto" autocomplete="off" />
   </div>
   <div class="flex justify-end gap-2">
-    <p-button label="Cancel" severity="danger" (click)="confirmCancel()"></p-button>
-    <p-button label="Save" (click)="confirmSave()"></p-button>
+    <p-button label="Cancelar" severity="danger" (click)="confirmCancel()"></p-button>
+    <p-button label="Guardar" (click)="confirmSave()"></p-button>
   </div>
 </p-dialog>
+

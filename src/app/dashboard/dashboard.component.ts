@@ -12,6 +12,8 @@ import { VehiculoService } from '../services/vehiculo.service';
 import { TableModule } from 'primeng/table';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { Router } from '@angular/router';
+//import { TagModule } from 'primeng/tag';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -44,9 +46,13 @@ export class DashboardComponent {
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private vehiculoService: VehiculoService
+    private vehiculoService: VehiculoService,
+    private router: Router
   ) {}
-
+// Primera declaración (correcta)
+mostrarActualizar() {
+  this.router.navigate(['/actualizar']);
+}
   showDialog() {
     this.visible = true;
   }
@@ -79,6 +85,21 @@ export class DashboardComponent {
       acceptLabel: 'Sí',
       rejectLabel: 'No',
       accept: () => {
+        // Limpiar el formulario al cancelar
+        this.nuevoVehiculo = {
+          consignatario: '',
+          nit: '',
+          fecha: '',
+          vin: '',
+          anio: null,
+          marca: '',
+          estilo: '',
+          color: '',
+          abandono: '',
+          fechares: '',
+          despacho: ''
+        };
+        this.realizararescate = '';
         this.visible = false;
         this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Operación cancelada.' });
       },
@@ -87,11 +108,30 @@ export class DashboardComponent {
       }
     });
   }
-  //Guardar datos
-  guardarDatos() {
-    this.vehiculoService.agregarVehiculo({ ...this.nuevoVehiculo });
-    this.nuevoVehiculo = { ...this.nuevoVehiculo, anio: null };
-    this.visible = false;
-    this.vehiculos = this.vehiculoService.obtenerVehiculos();
-  }
+ //Guardar datos
+guardarDatos() {
+  this.vehiculoService.agregarVehiculo({ ...this.nuevoVehiculo });
+  // Limpiar el formulario
+  this.nuevoVehiculo = {
+    consignatario: '',
+    nit: '',
+    fecha: '',
+    vin: '',
+    anio: null,
+    marca: '',
+    estilo: '',
+    color: '',
+    abandono: '',
+    fechares: '',
+    despacho: ''
+  };
+  // Resetear el radio button
+  this.realizararescate = '';
+  this.visible = false;
+  this.vehiculos = this.vehiculoService.obtenerVehiculos();
+}
+exportarPDF() {
+  // Aquí implementas la lógica de exportación, por ejemplo usando jsPDF o alguna librería
+  console.log('Exportando a PDF...');
+}
 }
