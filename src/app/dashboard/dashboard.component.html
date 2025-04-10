@@ -43,7 +43,7 @@
         <td>{{ vehiculo.fechares || 'N/A' }}</td>
         <td>{{ vehiculo.despacho }}</td>
         <td>
-        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success" (click)="editarVehiculo(vehiculo); $event.stopPropagation()"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm" (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
         </td>
       </tr>
     </ng-template>
