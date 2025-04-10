@@ -33,7 +33,6 @@ export class ActualizarComponent implements OnInit {
   onRowEditInit(vehiculo: any) { //guarda una copia del vehículo antes de editarlo
     this.clonedVehicles[vehiculo.vin] = {...vehiculo};
   }
-
   onRowEditSave(vehiculo: any) { //guarda los cambios
     if (!vehiculo.consignatario || !vehiculo.vin) {
       this.messageService.add({

@@ -99,6 +99,17 @@
     </ng-template>
   </p-cellEditor>
 </td>
+<!-- campos para editar fecha de rescate -->
+<td>
+  <p-cellEditor>
+    <ng-template pTemplate="input">
+      <input pInputText type="date" [(ngModel)]="vehiculo.fechares">
+    </ng-template>
+    <ng-template pTemplate="output">
+      {{ vehiculo.fechares }}
+    </ng-template>
+  </p-cellEditor>
+</td>
 <td>
   <div class="flex gap-2">
     <button

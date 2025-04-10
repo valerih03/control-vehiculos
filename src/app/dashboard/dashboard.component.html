@@ -81,7 +81,11 @@
         <label>Despacho</label>
         <input pInputText [(ngModel)]="vehiculoEditado.despacho">
       </div>
-
+      <!-- campo para editar fecha de rescate -->
+      <div class="col-12 md:col-6">
+        <label>Fecha de rescate</label>
+        <input pInputText type="date" [(ngModel)]="vehiculoEditado.fechares" [disabled]="realizararescate === 'No'">
+      </div>
     </div>
   </div>
   <ng-template pTemplate="footer">
@@ -153,4 +157,3 @@
     <p-button label="Guardar" (click)="confirmSave()"></p-button>
   </div>
 </p-dialog>
-
