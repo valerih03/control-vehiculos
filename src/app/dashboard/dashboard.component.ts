@@ -69,29 +69,29 @@ guardarEdicion() {
     this.vehiculos = [...this.vehiculoService.obtenerVehiculos()];
   }
 }
-  showDialog() {
-    this.dialogIngresoVisible  = true;
-  }
-  ngOnInit() {
-    this.vehiculos = this.vehiculoService.obtenerVehiculos();
-  }
-  //Confirmación de guardado
-  confirmSave() {
-    this.confirmationService.confirm({
-      message: '¿Desea guardar los datos?',
-      header: 'Confirmación',
-      icon: 'pi pi-question-circle',
-      acceptLabel: 'Sí',
-      rejectLabel: 'No',
-      accept: () => {
-        this.guardarDatos();
-        this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Datos guardados correctamente.' });
-      },
-      reject: () => {
-        this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Guardado cancelado.' });
-      }
-    });
-  }
+showDialog() {
+  this.dialogIngresoVisible  = true;
+}
+ngOnInit() {
+  this.vehiculos = this.vehiculoService.obtenerVehiculos();
+}
+//Confirmación de guardado
+confirmSave() {
+  this.confirmationService.confirm({
+    message: '¿Desea guardar los datos?',
+    header: 'Confirmación',
+    icon: 'pi pi-question-circle',
+    acceptLabel: 'Sí',
+    rejectLabel: 'No',
+    accept: () => {
+      this.guardarDatos();
+      this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Datos guardados correctamente.' });
+    },
+    reject: () => {
+      this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Guardado cancelado.' });
+    }
+  });
+}
   //Confirmación de cancelación
   confirmCancel() {
     this.confirmationService.confirm({
