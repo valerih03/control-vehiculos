@@ -80,3 +80,18 @@ p-dialog {
 .p-button.secondary:hover {
   background-color: #5a636a;
 }
+/* dashboard.component.css */
+.p-dialog-content .p-button {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.field {
+  margin-bottom: 1.5rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
