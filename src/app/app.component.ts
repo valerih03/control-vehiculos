@@ -6,8 +6,8 @@ import { TableModule } from 'primeng/table';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ RouterModule, DashboardComponent, TableModule],
-  template: `<app-dashboard></app-dashboard>`,
+  imports: [ RouterModule, TableModule],
+  templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
