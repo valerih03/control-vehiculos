@@ -4,13 +4,57 @@
 <h1>CONTROL DE VEHÍCULOS</h1>
 
 <div class="flex gap-2 mb-4">
-  <p-button (click)="showDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
+  <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
+  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"></p-button>
 </div>
-
+<!-- Diálogo de Opciones de Despacho -->
+<p-dialog header="Despachar Vehículo" [(visible)]="dialogOpcionesDespachoVisible" [modal]="true" [style]="{ width: '80vw' }">
+  <app-despachar></app-despachar>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times" (click)="dialogOpcionesDespachoVisible = false"></p-button>
+  </ng-template>
+</p-dialog>
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
-  <p-table [value]="vehiculos" selectionMode="single" [(selection)]="vehiculoSeleccionado" dataKey="vin">
+  <!-- Filtro por autocomplete -->
+  <div class="p-fluid p-mb-4">
+    <div class="flex items-center gap-2">
+      <p-autoComplete
+        [(ngModel)]="selectedVehiculo"
+        [suggestions]="filteredVehiculos"
+        (completeMethod)="search($event)"
+        (onSelect)="onVehiculoSelect($event)"
+        field="vin"
+        [multiple]="false"
+        [dropdown]="true"
+        placeholder="Buscar vehículo por VIN, consignatario, marca..."
+        [minLength]="1"
+        [forceSelection]="false"
+        [inputStyle]="{width: '100%'}"
+      >
+        <ng-template let-vehiculo pTemplate="item">
+          <div class="vehicle-item">
+            <div><strong>VIN:</strong> {{vehiculo.vin || 'N/A'}}</div>
+            <div><strong>Consignatario:</strong> {{vehiculo.consignatario || 'N/A'}}</div>
+            <div><strong>Marca/Estilo:</strong> {{vehiculo.marca || 'N/A'}} {{vehiculo.estilo || ''}}</div>
+          </div>
+        </ng-template>
+      </p-autoComplete>
+      <button *ngIf="selectedVehiculo"
+              pButton
+              icon="pi pi-times"
+              class="p-button-rounded p-button-text"
+              (click)="clearSearch()"
+              pTooltip="Limpiar búsqueda">
+      </button>
+    </div>
+  </div>
+  <!-- Tabla de Vehículos -->
+  <p-table [value]="selectedVehiculo ? [selectedVehiculo] : vehiculos"
+           selectionMode="multiple"
+           [(selection)]="vehiculoSeleccionado"
+           dataKey="vin">
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 3rem"></th>
@@ -43,12 +87,16 @@
         <td>{{ vehiculo.fechares || 'N/A' }}</td>
         <td>{{ vehiculo.despacho }}</td>
         <td>
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm" (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
+          <button pButton icon="pi pi-pencil"
+                  class="p-button-rounded p-button-success p-button-sm"
+                  (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+                  style="width: 1rem;">
+          </button>
         </td>
       </tr>
     </ng-template>
-  </p-table>
 
+  </p-table>
   <div class="flex justify-between mt-4">
     <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
     <div class="flex gap-2">
@@ -57,103 +105,13 @@
   </div>
 </p-dialog>
 
-<!-- Diálogo de Edición -->
-<p-dialog header="Editar Vehículo" [(visible)]="dialogEdicionVisible" [modal]="true" [style]="{ width: '50rem' }">
-  <div *ngIf="vehiculoEditado" class="p-fluid">
-    <div class="grid">
-      <div class="col-12 md:col-6">
-        <label>Consignatario</label>
-        <input pInputText [(ngModel)]="vehiculoEditado.consignatario">
-      </div>
-      <div class="col-12 md:col-6">
-        <label>Marca</label>
-        <input pInputText [(ngModel)]="vehiculoEditado.marca">
-      </div>
-      <div class="col-12 md:col-6">
-        <label>Estilo</label>
-        <input pInputText [(ngModel)]="vehiculoEditado.estilo">
-      </div>
-      <div class="col-12 md:col-6">
-        <label>Color</label>
-        <input pInputText [(ngModel)]="vehiculoEditado.color">
-      </div>
-      <div class="col-12 md:col-6">
-        <label>Despacho</label>
-        <input pInputText [(ngModel)]="vehiculoEditado.despacho">
-      </div>
-      <!-- campo para editar fecha de rescate -->
-      <div class="col-12 md:col-6">
-        <label>Fecha de rescate</label>
-        <input pInputText type="date" [(ngModel)]="vehiculoEditado.fechares" [disabled]="realizararescate === 'No'">
-      </div>
-    </div>
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button label="Cancelar" icon="pi pi-times" (click)="dialogEdicionVisible = false"></p-button>
-    <p-button label="Guardar" icon="pi pi-check" (click)="guardarEdicion()"></p-button>
-  </ng-template>
-</p-dialog>
-<!-- campos para ingresar vehiculos -->
-<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogIngresoVisible" [style]="{ width: '60rem' }">
-  <span class="p-text-secondary block mb-8">Ingrese los datos correspondientes.</span>
-  <div class="flex items-center gap-4 mb-4">
-    <label for="consignatario" class="font-semibold w-24">Consignatario</label>
-    <input pInputText id="consignatario" [(ngModel)]="nuevoVehiculo.consignatario" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex items-center gap-4 mb-4">
-    <label for="nit" class="font-semibold w-24">NIT</label>
-    <input pInputText id="nit" [(ngModel)]="nuevoVehiculo.nit" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex items-center gap-4 mb-4">
-    <label for="fecha" class="font-semibold w-24">Fecha</label>
-    <input pInputText type="date" id="fecha" [(ngModel)]="nuevoVehiculo.fecha" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="vin" class="font-semibold w-24">VIN</label>
-    <input pInputText id="vin" [(ngModel)]="nuevoVehiculo.vin" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="año" class="font-semibold w-24">Año</label>
-    <p-calendar [(ngModel)]="nuevoVehiculo.anio" view="year" dateFormat="yy" [yearNavigator]="true" yearRange="1990:2050" inputId="año" class="flex-auto" />
-  </div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="marca" class="font-semibold w-24">Marca</label>
-    <input pInputText id="marca" [(ngModel)]="nuevoVehiculo.marca" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="estilo" class="font-semibold w-24">Estilo</label>
-    <input pInputText id="estilo" [(ngModel)]="nuevoVehiculo.estilo" class="flex-auto" autocomplete="off" />
-  </div>
-
-  <div class="flex items-center gap-4 mb-8">
-    <label for="color" class="font-semibold w-24">Color</label>
-    <input pInputText id="color" [(ngModel)]="nuevoVehiculo.color" class="flex-auto" autocomplete="off" />
-  </div>
-  <!-- Pregunta: ¿Realizará rescate? -->
-<div class="flex items-center gap-4 mb-4">
-  <label class="font-semibold w-24">¿Realizará rescate? </label>
-  <div class="flex items-center gap-4">
-    <p-radioButton name="realizaraRescate" value="Si" label="Sí" [(ngModel)]="realizararescate"></p-radioButton>
-    <p-radioButton name="realizaraRescate" value="No" label="No" [(ngModel)]="realizararescate" (ngModelChange)="nuevoVehiculo.fechares = ''">
-    </p-radioButton>
-  </div>
-</div>
-<!-- Campo de rescate -->
-<div class="flex items-center gap-4 mb-8">
-  <label for="fechares" class="font-semibold w-24">Fecha de rescate</label>
-  <input pInputText type="date" id="fechares" [(ngModel)]="nuevoVehiculo.fechares" class="flex-auto" [disabled]="realizararescate === 'No'"
-    autocomplete="off" />
-</div>
-<div class="flex items-center gap-4 mb-8">
-  <label for="abandono" class="font-semibold w-24">Abandono</label>
-  <input pInputText id="abandono" [(ngModel)]="nuevoVehiculo.abandono" class="flex-auto" autocomplete="off" />
-</div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="despacho" class="font-semibold w-24">Despacho</label>
-    <input pInputText id="despacho" [(ngModel)]="nuevoVehiculo.despacho" class="flex-auto" autocomplete="off" />
-  </div>
-  <div class="flex justify-end gap-2">
-    <p-button label="Cancelar" severity="danger" (click)="confirmCancel()"></p-button>
-    <p-button label="Guardar" (click)="confirmSave()"></p-button>
-  </div>
+<!-- Dialog para insertar y actualizar -->
+<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible" [style]="{ width: '60rem' }">
+  <!-- Usa el componente de formulario, pasándole el objeto y el modo -->
+  <app-vehiculoform
+    [vehiculo]="vehiculoActual"
+    [modo]="modoFormulario"
+    (guardar)="handleGuardar($event)"
+    (cancelar)="handleCancelar()">
+  </app-vehiculoform>
 </p-dialog>
