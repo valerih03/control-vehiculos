@@ -15,11 +15,12 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router } from '@angular/router';
 import { ValidacionService } from '../services/validacion.service';
 import {CheckboxModule} from 'primeng/checkbox';
+import {VehiculoformComponent} from '../forms/vehiculoform/vehiculoform.component';
 //import { TagModule } from 'primeng/tag';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule,
+  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, VehiculoformComponent,
     ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule, FormsModule],
   providers: [ConfirmationService, MessageService],
   templateUrl: './dashboard.component.html',
@@ -30,9 +31,12 @@ export class DashboardComponent {
   dialogIngresoVisible = false;
   dialogConsultaVisible = false;
   dialogEdicionVisible = false;
-  vehiculos: any[] = [];
   vehiculoSeleccionado: any;
   vehiculoEditado: any;
+  dialogVehiculoVisible = false;
+  vehiculos: any[] = [];
+  vehiculoActual: any = {};
+  modoFormulario: 'crear' | 'editar' = 'crear';
 
   nuevoVehiculo = {
     consignatario: '',
@@ -47,8 +51,7 @@ export class DashboardComponent {
     fechares: '',
     despacho: ''
   };
-  anio!: number;
-  realizarRescate: boolean = false; //para el checkbox
+
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -57,38 +60,57 @@ export class DashboardComponent {
     private router: Router
   ) {}
 
-//METODOS PARA VALIDACIONES
-//metodo para menejar cambios en el checkbox
-onRescateChange(){
-  if(!this.realizarRescate){
-    this.nuevoVehiculo.fechares=''; // Limpiar el campo de fecha de rescate si el checkbox no está seleccionado
+  ngOnInit() {
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
-}
 
-private resetForm() {
-  this.nuevoVehiculo = {
-    consignatario: '',
-    nit: '',
-    fecha: '',
-    vin: '',
-    anio: null,
-    marca: '',
-    estilo: '',
-    color: '',
-    abandono: '',
-    fechares: '',
-    despacho: ''
-  };
-  this.realizarRescate = false; // Reiniciar el checkbox al cancelar
-  this.dialogIngresoVisible = false;
-}
+   // Método para abrir el diálogo en modo creación
+   showCrearDialog() {
+    this.modoFormulario = 'crear';
+    this.vehiculoActual = {
+      consignatario: '',
+      nit: '',
+      fecha: '',
+      vin: '',
+      anio: null,
+      marca: '',
+      estilo: '',
+      color: '',
+      abandono: '',
+      fechares: '',
+      despacho: ''
+    };
+    this.dialogVehiculoVisible = true;
+  }
 
+  // Método para editar: asigna el vehículo seleccionado y cambia el modo
+  editarVehiculo(vehiculo: any) {
+    this.modoFormulario = 'editar';
+    this.vehiculoActual = { ...vehiculo };
+    this.dialogVehiculoVisible = true;
+  }
 
-// Primera declaración (correcta)
-editarVehiculo(vehiculo: any) {
-  this.vehiculoEditado = { ...vehiculo };
-  this.dialogEdicionVisible = true;
-}
+  // Maneja el evento del componente de formulario al guardar
+  handleGuardar(vehiculo: any) {
+    if (this.modoFormulario === 'crear') {
+      // Para creación se agrega el vehículo
+      this.vehiculoService.agregarVehiculo(vehiculo);
+      this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Vehículo guardado correctamente.' });
+    } else {
+      // Para edición se actualiza el vehículo
+      this.vehiculoService.actualizarVehiculo(vehiculo);
+      this.messageService.add({ severity: 'success', summary: 'Actualizado', detail: 'Vehículo actualizado correctamente.' });
+    }
+    this.dialogVehiculoVisible = false;
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
+  }
+
+  // Maneja la cancelación: cierra el diálogo
+  handleCancelar() {
+    this.dialogVehiculoVisible = false;
+    this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Operación cancelada.' });
+  }
+
 
 guardarEdicion() {
   if (this.vehiculoEditado) {
@@ -102,79 +124,7 @@ guardarEdicion() {
     this.vehiculos = [...this.vehiculoService.obtenerVehiculos()];
   }
 }
-showDialog() {
-  this.dialogIngresoVisible  = true;
-  this.realizarRescate = false; // Reiniciar el checkbox al abrir el diálogo
-  this.nuevoVehiculo.fechares = ''; // Reiniciar el campo de fecha de rescate al abrir el diálogo
-}
 
-ngOnInit() {
-  this.vehiculos = this.vehiculoService.obtenerVehiculos();
-}
-
-//Confirmación de guardado + VALIDACIONES
-confirmSave() {
-   // Validar antes de mostrar confirmación
-   const validacion = this.validacionService.validarVehiculo({
-    ...this.nuevoVehiculo,
-    realizarRescate: this.realizarRescate
-  });
-
-  if (!validacion.isValid) {
-    validacion.errors.forEach(error => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: error
-      });
-    });
-    return;
-  }
-
-  this.confirmationService.confirm({
-    message: '¿Desea guardar los datos?',
-    header: 'Confirmación',
-    icon: 'pi pi-question-circle',
-    acceptLabel: 'Sí',
-    rejectLabel: 'No',
-    accept: () => {
-      this.guardarDatos();
-      this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Datos guardados correctamente.' });
-    },
-    reject: () => {
-      this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Guardado cancelado.' });
-    }
-  });
-}
-  //Confirmación de cancelación
-  confirmCancel() {
-    this.confirmationService.confirm({
-      message: '¿Desea cancelar?',
-      header: 'Confirmación',
-      icon: 'pi pi-question-circle',
-      acceptLabel: 'Sí',
-      rejectLabel: 'No',
-      accept: () => {
-        // Limpiar el formulario al cancelar
-        this.resetForm();
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Cancelado',
-          detail: 'Operación cancelada.'
-        });
-      },
-      reject: () => {
-        this.messageService.add({ severity: 'info', summary: 'Continuar', detail: 'Operación continuada.' });
-      }
-    });
-  }
- //Guardar datos
-guardarDatos() {
-  this.vehiculoService.agregarVehiculo({ ...this.nuevoVehiculo });
-  // Limpiar el formulario
-  this.resetForm();
-  this.vehiculos = this.vehiculoService.obtenerVehiculos();
-}
 exportarPDF() {
   // Aquí implementas la lógica de exportación, por ejemplo usando jsPDF o alguna librería
   console.log('Exportando a PDF...');
