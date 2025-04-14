@@ -36,7 +36,7 @@ export class DashboardComponent {
   //filrtrar
   filteredVehiculos: any[] = [];
   selectedVehiculo: any = null;
-  selectedVehiculos: any[] = []; // Inicializado como array vacío
+  selectedVehiculos: any[] = [];
 vehiculosParaExportar: any[] = [];
   searchQuery: string = '';
   //despachar
@@ -203,14 +203,9 @@ guardarDatos() {
              estilo.includes(query);
     });
   }
-
-  // Método cuando se selecciona un vehículo
   onVehiculoSelect(event: any) {
     this.vehiculoSeleccionado = event;
-    // Aquí puedes agregar lógica adicional
   }
-
-  // Método para limpiar búsqueda
   clearSearch() {
     this.selectedVehiculo = null;
     this.filteredVehiculos = [];
@@ -218,15 +213,13 @@ guardarDatos() {
     this.vehiculoSeleccionado = null;
   }
   exportarPDF() {
-    
+
     const vehiculosParaExportar =
   Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
     ? this.vehiculoSeleccionado
     : this.selectedVehiculo
       ? [this.selectedVehiculo]
       : this.vehiculos;
-
-
     if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
       this.messageService.add({
         severity: 'warn',
@@ -235,7 +228,6 @@ guardarDatos() {
       });
       return;
     }
-
     try {
       import('jspdf').then((jsPDFModule) => {
         import('jspdf-autotable').then((autoTableModule) => {
@@ -266,7 +258,6 @@ guardarDatos() {
             v.fechares || 'N/A',
             v.despacho || 'N/A'
           ]);
-
           autoTableModule.default(doc, {
             head: [headers],
             body: data,
@@ -301,7 +292,6 @@ guardarDatos() {
               8: { cellWidth: 18 }
             }
           });
-
           const pageCount = doc.getNumberOfPages();
           for(let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
@@ -312,8 +302,7 @@ guardarDatos() {
               doc.internal.pageSize.getHeight() - 5
             );
           }
-
-          const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
+         const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
           doc.save(fileName);
 
           this.messageService.add({
@@ -335,7 +324,6 @@ guardarDatos() {
 private handlePdfError(error: Error) {
   console.error('Error al generar PDF:', error);
   const errorMessage = error.message || 'Error desconocido al generar PDF';
-
   this.messageService.add({
     severity: 'error',
     summary: 'Error',
