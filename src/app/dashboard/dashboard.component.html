@@ -6,11 +6,55 @@
 <div class="flex gap-2 mb-4">
   <p-button (click)="showDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
+  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"></p-button>
 </div>
-
+<!-- Diálogo de Opciones de Despacho -->
+<p-dialog header="Despachar Vehículo" [(visible)]="dialogOpcionesDespachoVisible" [modal]="true" [style]="{ width: '80vw' }">
+  <app-despachar></app-despachar>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times" (click)="dialogOpcionesDespachoVisible = false"></p-button>
+  </ng-template>
+</p-dialog>
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
-  <p-table [value]="vehiculos" selectionMode="single" [(selection)]="vehiculoSeleccionado" dataKey="vin">
+  <!-- Filtro por autocomplete -->
+  <div class="p-fluid p-mb-4">
+    <div class="flex items-center gap-2">
+      <p-autoComplete
+        [(ngModel)]="selectedVehiculo"
+        [suggestions]="filteredVehiculos"
+        (completeMethod)="search($event)"
+        (onSelect)="onVehiculoSelect($event)"
+        field="vin"
+        [multiple]="false"
+        [dropdown]="true"
+        placeholder="Buscar vehículo por VIN, consignatario, marca..."
+        [minLength]="1"
+        [forceSelection]="false"
+        [inputStyle]="{width: '100%'}"
+      >
+        <ng-template let-vehiculo pTemplate="item">
+          <div class="vehicle-item">
+            <div><strong>VIN:</strong> {{vehiculo.vin || 'N/A'}}</div>
+            <div><strong>Consignatario:</strong> {{vehiculo.consignatario || 'N/A'}}</div>
+            <div><strong>Marca/Estilo:</strong> {{vehiculo.marca || 'N/A'}} {{vehiculo.estilo || ''}}</div>
+          </div>
+        </ng-template>
+      </p-autoComplete>
+      <button *ngIf="selectedVehiculo"
+              pButton
+              icon="pi pi-times"
+              class="p-button-rounded p-button-text"
+              (click)="clearSearch()"
+              pTooltip="Limpiar búsqueda">
+      </button>
+    </div>
+  </div>
+  <!-- Tabla de Vehículos -->
+  <p-table [value]="selectedVehiculo ? [selectedVehiculo] : vehiculos"
+           selectionMode="multiple"
+           [(selection)]="vehiculoSeleccionado"
+           dataKey="vin">
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 3rem"></th>
@@ -43,12 +87,16 @@
         <td>{{ vehiculo.fechares || 'N/A' }}</td>
         <td>{{ vehiculo.despacho }}</td>
         <td>
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm" (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
+          <button pButton icon="pi pi-pencil"
+                  class="p-button-rounded p-button-success p-button-sm"
+                  (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+                  style="width: 1rem;">
+          </button>
         </td>
       </tr>
     </ng-template>
-  </p-table>
 
+  </p-table>
   <div class="flex justify-between mt-4">
     <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
     <div class="flex gap-2">
@@ -56,7 +104,6 @@
     </div>
   </div>
 </p-dialog>
-
 <!-- Diálogo de Edición -->
 <p-dialog header="Editar Vehículo" [(visible)]="dialogEdicionVisible" [modal]="true" [style]="{ width: '50rem' }">
   <div *ngIf="vehiculoEditado" class="p-fluid">
