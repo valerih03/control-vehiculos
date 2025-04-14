@@ -1,12 +1,16 @@
 <!--vh: altura, vw: ancho --->
-<p-dialog header="Despacho DM" [(visible)]="mostrarDM" [modal]="true" [style]="{ width: '50vw' }" [contentStyle]="{ 'min-height': '20vh'}">
+<p-dialog header="Despacho DM" [(visible)]="mostrarDM" [modal]="true" [style]="{ width: '50vw' }" [contentStyle]="{ 'min-height': '30vh'}">
   <div class="p-fluid" style="padding-bottom: 2rem;">
+  <div class="p-field">
+    <label for="vin">VIN</label>
+    <input id="vin " pInputText [(ngModel)]="despachoDM.vin" required>
+  </div>
     <div class="field">
-      <label for="bl">N° de BL</label>
+      <label for="bl">N° de BL </label>
       <input id="bl" pInputText [(ngModel)]="despachoDM.bl" required>
     </div>
     <div class="field">
-      <label for="duca">DUCA</label>
+      <label for="duca">DUCA </label>
       <input id="duca" pInputText [(ngModel)]="despachoDM.duca" required>
     </div>
   </div>
@@ -18,7 +22,10 @@
 <!-- Diálogo TRANSITO -->
 <p-dialog header="Despacho TRANSITO" [(visible)]="mostrarTransito" [modal]="true" [style]="{ width: '50vw' }" [contentStyle]="{ 'min-height': '30vh'}">
   <div class="p-fluid" style="padding-bottom: 2rem;">
-  <div class="p-fluid">
+    <div class="p-field">
+      <label for="vin">VIN</label>
+      <input id="vin " pInputText [(ngModel)]="despachoDM.vin" required>
+    </div>
     <div class="field">
       <label for="copiaBL">Copia de BL</label>
       <input id="copiaBL" pInputText [(ngModel)]="despachoTransito.copiaBL" required>
@@ -30,7 +37,6 @@
     <div class="field">
       <label for="tarja">Copia de Tarja</label>
       <input id="tarja" pInputText [(ngModel)]="despachoTransito.tarja" required>
-    </div>
   </div>
   </div>
   <ng-template pTemplate="footer">
@@ -40,9 +46,12 @@
 </p-dialog>
 <!-- Botones principales -->
 <div class="flex flex-column gap-3 p-4">
+  <div class="mr-2">
   <p-button label="DM" icon="pi pi-file" (click)="seleccionarTipo('DM')"
-            styleClass="p-button-outlined"></p-button>
+            styleClass="p-button-outlined mr-2"></p-button>
   <p-button label="TRANSITO" icon="pi pi-sync" (click)="seleccionarTipo('TRANSITO')"
-            styleClass="p-button-outlined"></p-button>
-
+            styleClass="p-button-outlined mr-2"></p-button>
+  <p-button label="Ver registros" icon="pi pi-eye" (click)="registros"
+            styleClass="p-button-outlined mr-2"></p-button>
+</div>
 </div>

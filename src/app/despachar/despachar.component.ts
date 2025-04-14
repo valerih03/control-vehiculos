@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -17,12 +17,15 @@ export class DespacharComponent {
   // Variables para mostrar formularios
   mostrarDM = false;
   mostrarTransito = false;
+  registros = false;
 
   despachoDM = {
+    vin: '',
     bl: '',
     duca: ''
   };
   despachoTransito = {
+    vin: '',
     copiaBL: '',
     duca: '',
     tarja: ''
@@ -58,8 +61,8 @@ export class DespacharComponent {
     this.cerrar.emit();
   }
   limpiarFormularios() {
-    this.despachoDM = { bl: '', duca: '' };
-    this.despachoTransito = { copiaBL: '', duca: '', tarja: '' };
+    this.despachoDM = {  vin: '', bl: '', duca: '' };
+    this.despachoTransito = { vin: '', copiaBL: '', duca: '', tarja: '' };
   }
   cancelar() {
     this.limpiarFormularios();
