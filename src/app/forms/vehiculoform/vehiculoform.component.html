@@ -2,20 +2,30 @@
   <div class="p-text-secondary block mb-8">
     Ingrese los datos del vehículo.
   </div>
-
+  <!-- CONSIGNATARIO -->
   <div class="flex items-center gap-4 mb-4">
     <label for="consignatario" class="font-semibold w-24">Consignatario</label>
-    <input pInputText formControlName="consignatario" class="flex-auto" />
+    <input pInputText formControlName="consignatario" class="flex-auto"/>
   </div>
 
+  <!-- NIT -->
   <div class="flex items-center gap-4 mb-4">
-    <label for="nit" class="font-semibold w-24">NIT</label>
-    <input pInputText formControlName="nit" class="flex-auto" />
-    <small *ngIf="vehiculoForm.get('nit')!.hasError('pattern')">
-      Formato inválido: debe ser 8 dígitos o 7 dígitos-1
-    </small>
+    <label class="font-semibold w-24">NIT</label>
+    <p-inputMask
+    formControlName="nit"
+    mask="9999-999999-999-9"
+    [autoClear]= "false"
+    slotChar=" "
+    class="flex-auto"
+  ></p-inputMask>
+    <div class="p-error text-sm mt-1" *ngIf="vehiculoForm.get('nit')?.touched">
+      <ng-container *ngFor="let msg of getErrores('nit')">
+        <small>{{ msg }}</small>
+      </ng-container>
+    </div>
   </div>
 
+  <!-- Fecha Ingreso -->
   <div class="flex items-center gap-4 mb-4">
     <label for="fecha" class="font-semibold w-24">Fecha</label>
     <input pInputText type="date" id="fecha" formControlName="fecha" class="flex-auto" autocomplete="off"/>
@@ -29,39 +39,46 @@
     </div>
   </div>
 
+  <!-- VIN -->
   <div class="flex items-center gap-4 mb-8">
-    <label for="vin" class="font-semibold w-24">VIN</label>
-    <input pInputText id="vin" formControlName="vin" class="flex-auto" autocomplete="off" />
+    <label class="font-semibold w-24">VIN</label>
+    <input pInputText formControlName="vin" class="flex-auto" autocomplete="off" [attr.minlength]="VIN_LENGTH" [attr.maxlength]="VIN_LENGTH"/>
     <div class="p-error text-sm mt-1" *ngIf="vehiculoForm.get('vin')?.touched">
-      <small *ngIf="vehiculoForm.get('vin')?.hasError('required')">
-        VIN es requerido
-      </small>
-      <small *ngIf="vehiculoForm.get('vin')?.hasError('pattern')">
-        Formato de VIN inválido (17 caracteres alfanumérico excluyendo I, O, Q)
-      </small>
+      <ng-container *ngFor="let msg of getErrores('vin')">
+        <small>{{ msg }}</small>
+      </ng-container>
     </div>
   </div>
 
+  <!-- anio -->
   <div class="flex items-center gap-4 mb-8">
     <label for="año" class="font-semibold w-24">Año</label>
     <p-calendar formControlName="anio" view="year" dateFormat="yy" [yearNavigator]="true" yearRange="1990:2050" inputId="año" class="flex-auto" />
     <div class="p-error text-sm mt-1"
     *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
       <small>El año está fuera del rango permitido (1990–2050)</small>
-</div>
+    </div>
   </div>
+
+  <!-- marca -->
   <div class="flex items-center gap-4 mb-8">
     <label for="marca" class="font-semibold w-24">Marca</label>
-    <input pInputText formControlName="marca" class="flex-auto" />
+    <input pInputText formControlName="marca" class="flex-auto"  />
   </div>
+
+  <!-- estilo -->
   <div class="flex items-center gap-4 mb-8">
     <label for="estilo" class="font-semibold w-24">Estilo</label>
     <input pInputText formControlName="estilo" class="flex-auto" />
   </div>
+
+  <!-- colors -->
   <div class="flex items-center gap-4 mb-8">
     <label for="color" class="font-semibold w-24">Color</label>
-    <input pInputText formControlName="color" class="flex-auto"/>
+    <input pInputText formControlName="color" class="flex-auto" />
   </div>
+
+  <!-- RESCATE -->
   <div class="flex items-center gap-4 mb-4">
     <label class="font-semibold w-24">Realizar rescate</label>
     <p-checkbox formControlName="realizarRescate" [binary]="true"></p-checkbox>
@@ -71,11 +88,13 @@
     <input pInputText type="date" formControlName="fechares" class="flex-auto" />
   </div>
 
+  <!-- Dias abandono -->
   <div class="flex items-center gap-4 mb-8">
     <label for="abandono" class="font-semibold w-24">Abandono</label>
-    <input pInputText formControlName="abandono"  class="flex-auto" />
+    <input pInputText formControlName="abandono"  class="flex-auto"  />
   </div>
 
+  <!-- despacho -->
   <div class="flex items-center gap-4 mb-8">
     <label for="despacho" class="font-semibold w-24">Despacho</label>
     <input pInputText formControlName="despacho" class="flex-auto" />

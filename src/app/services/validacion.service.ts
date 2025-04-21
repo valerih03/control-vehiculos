@@ -1,11 +1,92 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl, ValidationErrors,ValidatorFn } from '@angular/forms';
+import { AbstractControl, ValidationErrors,ValidatorFn, Validators } from '@angular/forms';
 @Injectable({
   providedIn: 'root'
 })
 export class ValidacionService {
 
+
+  //para los patrones de nit y vin
+  private patterns={
+    nit: /^\d{4}-\d{6}-\d{3}-\d$/,
+    vin: /^[A-HJ-NPR-Z0-9]{17}$/i
+  };
+
+  //para las etiquetas
+  private labels: Record<string, string>={
+    consignatario: 'Consignatario',
+    nit:            'NIT',
+    fecha:          'Fecha',
+    vin:            'VIN',
+    anio:           'Año',
+    fechares:       'Fecha de rescate',
+    marca:          'Marca',
+    estilo:         'Estilo',
+    color:          'Color',
+    abandono:       'Abandono',
+    despacho:       'Despacho'
+  };
+
   constructor() { }
+
+  getValidators(field: keyof typeof this.labels): ValidatorFn[]{
+    switch(field){
+      case 'nit':
+        return [
+          Validators.required,
+          Validators.pattern(this.patterns.nit),
+        ];
+      case 'vin':
+        return [
+          Validators.required,
+          Validators.pattern(this.patterns.vin),
+          Validators.minLength(17),
+          Validators.maxLength(17)
+        ];
+      case 'fecha':
+        return [
+          Validators.required,
+          this.validarFechaPasada.bind(this)
+        ];
+      case 'anio':
+        return [
+          this.validarAnio(1990, 2050)
+        ];
+      case 'fechares':
+        // required lo añadiremos dinámicamente cuando el checkbox esté activo
+        return [
+          this.validarFechaRescate('fecha').bind(this)
+        ];
+      default:
+        return [];
+    }
+  }
+
+  getErrorMessages(field: keyof typeof this.labels, control: AbstractControl): string[]{
+    if(!control.errors) return[];
+    const label = this.labels[field] || field;
+    return Object.keys(control.errors).map(errorKey =>
+      this.getMensajeError(label, errorKey, control.errors![errorKey])
+    );
+  }
+  private getMensajeError(
+    campo: string,
+    errorType: string,
+    errorValue?: any
+  ): string {
+    const msgs: Record<string,string> = {
+      required:             `${campo} es requerido`,
+      minlength:            `${campo} debe tener al menos ${errorValue.requiredLength} caracteres`,
+      maxlength:            `${campo} no puede tener más de ${errorValue.requiredLength} caracteres`,
+      pattern:              `${campo} tiene un formato inválido`,
+      nitInvalido:          `Formato inválido. Ej: 1234-051180-001-2`,
+      vinInvalido:          `Formato inválido (17 caracteres alfanumérico sin I, O, Q)`,
+      anioInvalido:         `El año está fuera del rango permitido`,
+      fechaFutura:          `La fecha no puede ser futura`,
+      fechaRescateAnterior: `La fecha de rescate no puede ser anterior a la fecha de ingreso`
+    };
+    return msgs[errorType] || `Error en ${campo}`;
+  }
 
 
   // Método nuevo para validar el vehículo completo
@@ -87,55 +168,27 @@ export class ValidacionService {
     return (control: AbstractControl): ValidationErrors | null => {
       const v = control.value;
       if (!v) return null;
-
-      // Si viene un Date, usa getFullYear(); si es un número o string, conviértelo
-      let year: number;
-      if (v instanceof Date) {
-        year = v.getFullYear();
-      } else if (typeof v === 'string' || typeof v === 'number') {
-        year = +v;
-      } else {
-        return null;
-      }
-
-      return year >= minYear && year <= maxYear
-        ? null
-        : { anioInvalido: true };
-    }
+      const year = v instanceof Date ? v.getFullYear() : +v;
+      return year >= minYear && year <= maxYear ? null : { anioInvalido: true };
+    };
   }
 
   validarFechaPasada(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Date(value) > today ? { fechaFutura: true } : null;
+    const v = control.value;
+    if (!v) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    return new Date(v) > today ? { fechaFutura: true } : null;
   }
 
   validarFechaRescate(fechaControlName: string): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.parent) return null;
-
-      const fechaIngreso = control.parent.get(fechaControlName)?.value;
-      const fechaRescate = control.value;
-
-      if (!fechaIngreso || !fechaRescate) return null;
-      return new Date(fechaRescate) >= new Date(fechaIngreso) ? null : { fechaRescateAnterior: true };
+      const ingreso = control.parent.get(fechaControlName)?.value;
+      const rescate = control.value;
+      if (!ingreso || !rescate) return null;
+      return new Date(rescate) >= new Date(ingreso)
+        ? null
+        : { fechaRescateAnterior: true };
     };
   }
-
-  getMensajeError(campo: string, errorType: string): string {
-    const mensajes: Record<string, string> = {
-      'required': `${campo} es requerido`,
-      'minlength': `${campo} debe tener al menos 3 caracteres`,
-      'maxlength': `${campo} no puede tener más de 20 caracteres`,
-      'nitInvalido': `Formato de NIT inválido (8 dígitos o 7-1)`,
-      'vinInvalido': `Formato de VIN inválido (17 caracteres alfanumérico excluyendo I, O, Q)`,
-      'anioInvalido': `El año esta fuera del rango permitido`,
-      'fechaFutura': `La fecha no puede ser futura`,
-      'fechaRescateAnterior': `La fecha de rescate no puede ser anterior a la fecha de ingreso`,
-    };
-    return mensajes[errorType] || `Error de validación en ${campo}`;
-  }
-
 }

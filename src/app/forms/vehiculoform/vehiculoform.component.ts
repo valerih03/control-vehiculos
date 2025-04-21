@@ -8,11 +8,13 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
+import { InputMaskModule } from 'primeng/inputmask';
 
 @Component({
   selector: 'app-vehiculoform',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule, CalendarModule, CheckboxModule],
+  imports: [CommonModule, ReactiveFormsModule, DialogModule, ButtonModule, InputTextModule,
+            CalendarModule, CheckboxModule, InputMaskModule],
   templateUrl: './vehiculoform.component.html',
   styleUrl: './vehiculoform.component.css'
 })
@@ -59,29 +61,27 @@ export class VehiculoformComponent implements OnInit, OnChanges{
     private messageService: MessageService,
   ){}
 
+  readonly VIN_LENGTH = 17;
+
+
   ngOnInit(){
     this.vehiculoForm = this.fb.group({
-      consignatario: [this.vehiculo.consignatario || '', Validators.required],
-      nit: [this.vehiculo.nit || '', Validators.pattern(/^(\d{8}|\d{7}-\d)$/)],
-      fecha: [this.vehiculo.fecha || '',[
-        Validators.required,
-        this.validacionService.validarFechaPasada.bind(this.validacionService)
-      ]],
-      vin: [this.vehiculo.vin || '', [
-        Validators.required,
-        Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)
-      ]],
-      anio: [this.vehiculo.anio || null, this.validacionService.validarAnio(1990,2050)],
-      marca: [this.vehiculo.marca || '', Validators.required],
-      estilo: [this.vehiculo.estilo || '', Validators.required],
-      color: [this.vehiculo.color || '', Validators.required],
-      abandono: [this.vehiculo.abandono || ''],
-      despacho: [this.vehiculo.despacho || ''],
-      realizarRescate: [!!this.vehiculo.fechares],
-      fechares: this.fb.control(
-        {value: this.vehiculo.fechares || null, disabled: !this.vehiculo.fechares},
-        [this.validacionService.validarFechaRescate('fecha').bind(this.validacionService)]
-      )
+      consignatario:  [this.vehiculo.consignatario || '', Validators.required],
+      nit:           [this.vehiculo.nit          || '', this.validacionService.getValidators('nit')],
+      fecha:         [this.vehiculo.fecha        || '', this.validacionService.getValidators('fecha')],
+      vin:           [this.vehiculo.vin          || '', this.validacionService.getValidators('vin')],
+      anio:          [this.vehiculo.anio         || null, this.validacionService.getValidators('anio')],
+      marca:         [this.vehiculo.marca        || '', Validators.required],
+      estilo:        [this.vehiculo.estilo       || '', Validators.required],
+      color:         [this.vehiculo.color        || '', Validators.required],
+      abandono:      [this.vehiculo.abandono     || ''],
+      despacho:      [this.vehiculo.despacho     || ''],
+      realizarRescate:[!!this.vehiculo.fechares],
+      fechares:      this.fb.control(
+                       { value: this.vehiculo.fechares || null,
+                         disabled: !this.vehiculo.fechares },
+                       this.validacionService.getValidators('fechares')
+                     )
     });
 
     // Por si acaso el subscription no dispara antes:
@@ -90,23 +90,26 @@ export class VehiculoformComponent implements OnInit, OnChanges{
     }
 
     //esto sincroniza el chackbox en el habilitado
-    this.vehiculoForm.get('realizarRescate')!
-      .valueChanges
-      .subscribe(checked => {
-        const ctrl = this.vehiculoForm.get('fechares')!;
-        if(checked){
-          ctrl.enable();
-          ctrl.setValidators([
-            Validators.required,
-            this.validacionService.validarFechaRescate('fecha').bind(this.validacionService)
-          ]);
-        }else{
-          ctrl.setValue(null); // Limpiar el valor del campo
-          ctrl.disable();
-          ctrl.clearValidators();
-        }
-        ctrl.updateValueAndValidity();
-      });
+    this.vehiculoForm.get('realizarRescate')!.valueChanges.subscribe(checked => {
+      const ctrl = this.vehiculoForm.get('fechares')!;
+      if (checked) {
+        const vFn = this.validacionService.getValidators('fechares');
+        ctrl.setValidators([ Validators.required, ...vFn ]);
+        ctrl.enable();
+      } else {
+        ctrl.clearValidators();
+        ctrl.setValue(null);
+        ctrl.disable();
+      }
+      ctrl.updateValueAndValidity();
+    });
+  }
+   //para los mensajes de error
+   getErrores(campo: string): string[] {
+    const ctrl = this.vehiculoForm.get(campo);
+    return ctrl
+      ? this.validacionService.getErrorMessages(campo as any, ctrl)
+      : [];
   }
 
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
@@ -138,12 +141,13 @@ export class VehiculoformComponent implements OnInit, OnChanges{
       Object.entries(this.vehiculoForm.controls).forEach(([name, ctrl])=>{
         if(ctrl.invalid){
           Object.keys(ctrl.errors!).forEach(errorKey => {
-            this.messageService.add({
+            this.getErrores(name).forEach(msg=>{
+              this.messageService.add({
               severity: 'error',
-              summary:'Error',
-              detail: this.validacionService.getMensajeError(
-                this.obtenerEtiqueta(name), errorKey
-              )
+              summary: 'Error',
+              detail: msg
+              })
+
             });
           });
         }
