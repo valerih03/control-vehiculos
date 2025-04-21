@@ -56,6 +56,10 @@ export class DashboardComponent {
   dialogVehiculoVisible = false;
   vehiculoActual: any = {};
   modoFormulario: 'crear' | 'editar' = 'crear';
+  //detalle de despechos
+  mostrarDetalleDespacho = false;
+  vehiculoConDespacho: any = null;
+
 
   nuevoVehiculo = {
     consignatario: '',
@@ -336,6 +340,21 @@ export class DashboardComponent {
     } catch (error: unknown) {
       this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
     }
+}
+verDetalleDespacho(vehiculo: any) {
+  // Verifica que el vehículo tenga datos de despacho
+  if (!vehiculo.bl && !vehiculo.copiaBL) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Sin datos',
+      detail: 'Este vehículo no tiene despacho registrado'
+    });
+    return;
+  }
+
+  this.vehiculoConDespacho = { ...vehiculo };
+  console.log("Datos a mostrar:", this.vehiculoConDespacho); // Verifica en consola
+  this.mostrarDetalleDespacho = true;
 }
 //mesaje de error
 private handlePdfError(error: Error) {

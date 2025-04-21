@@ -24,4 +24,10 @@ export class VehiculoService {
   obtenerPorVin(vin: string) {
     return this.vehiculos.find(v => v.vin === vin);
   }
+  actualizarDespacho(datos: any) {
+    const vehiculo = this.vehiculos.find(v => v.vin === datos.vin);
+    if (vehiculo) {
+      Object.assign(vehiculo, datos); // Fusiona los datos
+    }
+  }
 }
