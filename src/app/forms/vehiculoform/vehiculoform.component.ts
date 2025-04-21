@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputMaskModule } from 'primeng/inputmask';
+import { formatDate } from '@angular/common';
 
 @Component({
   selector: 'app-vehiculoform',
@@ -19,6 +20,11 @@ import { InputMaskModule } from 'primeng/inputmask';
   styleUrl: './vehiculoform.component.css'
 })
 export class VehiculoformComponent implements OnInit, OnChanges{
+
+
+  readonly VIN_LENGTH = 17;
+  today: Date = new Date();
+  todayISO!: string;
 
   @Input() vehiculo: any = {
     consignatario: '',
@@ -61,10 +67,9 @@ export class VehiculoformComponent implements OnInit, OnChanges{
     private messageService: MessageService,
   ){}
 
-  readonly VIN_LENGTH = 17;
-
 
   ngOnInit(){
+    this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
     this.vehiculoForm = this.fb.group({
       consignatario:  [this.vehiculo.consignatario || '', Validators.required],
       nit:           [this.vehiculo.nit          || '', this.validacionService.getValidators('nit')],
