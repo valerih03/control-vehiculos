@@ -36,6 +36,21 @@ export class VehiculoformComponent implements OnInit, OnChanges{
   @Output() guardar = new EventEmitter<any>();
   @Output() cancelar = new EventEmitter<void>();
 
+  private defaultVehiculo = {
+    consignatario: '',
+    nit: '',
+    fecha: '',
+    vin: '',
+    anio: null,
+    marca: '',
+    estilo: '',
+    color: '',
+    abandono: '',
+    despacho: '',
+    realizarRescate: false,
+    fechares: null
+  };
+
   vehiculoForm!: FormGroup;
 
   constructor(
@@ -63,10 +78,16 @@ export class VehiculoformComponent implements OnInit, OnChanges{
       abandono: [this.vehiculo.abandono || ''],
       despacho: [this.vehiculo.despacho || ''],
       realizarRescate: [!!this.vehiculo.fechares],
-      fechares: [{value: this.vehiculo.fechares || '', disable:!this.vehiculo.fechares},[
-        this.validacionService.validarFechaRescate('fecha').bind(this.validacionService)
-      ]]
+      fechares: this.fb.control(
+        {value: this.vehiculo.fechares || null, disabled: !this.vehiculo.fechares},
+        [this.validacionService.validarFechaRescate('fecha').bind(this.validacionService)]
+      )
     });
+
+    // Por si acaso el subscription no dispara antes:
+    if (!this.vehiculoForm.get('realizarRescate')!.value) {
+      this.vehiculoForm.get('fechares')!.disable();
+    }
 
     //esto sincroniza el chackbox en el habilitado
     this.vehiculoForm.get('realizarRescate')!
@@ -80,6 +101,7 @@ export class VehiculoformComponent implements OnInit, OnChanges{
             this.validacionService.validarFechaRescate('fecha').bind(this.validacionService)
           ]);
         }else{
+          ctrl.setValue(null); // Limpiar el valor del campo
           ctrl.disable();
           ctrl.clearValidators();
         }
@@ -88,12 +110,25 @@ export class VehiculoformComponent implements OnInit, OnChanges{
   }
 
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges) {
     if (changes['modo'] && this.vehiculoForm) {
-      this.vehiculoForm.patchValue({
-        ...this.vehiculo,
-        realizarRescate: !!this.vehiculo.fechares
-      });
+      if (this.modo === 'crear') {
+        this.vehiculoForm.reset(this.defaultVehiculo);
+        this.vehiculoForm.get('fechares')!.disable();
+      }
+      else if (this.modo === 'editar' && changes['vehiculo']) {
+        const v = this.vehiculo;
+        this.vehiculoForm.reset({
+          ...v,
+          realizarRescate: !!v.fechares,
+          fechares: v.fechares || null    // ← aquí sí asignas 'fechares'
+        });
+        if (v.fechares) {
+          this.vehiculoForm.get('fechares')!.enable();
+        } else {
+          this.vehiculoForm.get('fechares')!.disable();
+        }
+      }
     }
   }
 

@@ -82,19 +82,7 @@ vehiculosParaExportar: any[] = [];
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {
     this.modoFormulario = 'crear';
-    this.vehiculoActual = {
-      consignatario: '',
-      nit: '',
-      fecha: '',
-      vin: '',
-      anio: null,
-      marca: '',
-      estilo: '',
-      color: '',
-      abandono: '',
-      fechares: '',
-      despacho: ''
-    };
+    this.vehiculoActual = {};
     this.dialogVehiculoVisible = true;
   }
 

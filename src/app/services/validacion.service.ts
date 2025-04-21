@@ -85,9 +85,22 @@ export class ValidacionService {
 
   validarAnio(minYear: number, maxYear: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      if (!value) return null;
-      return value >= minYear && value <= maxYear ? null : { anioInvalido: true };
+      const v = control.value;
+      if (!v) return null;
+
+      // Si viene un Date, usa getFullYear(); si es un número o string, conviértelo
+      let year: number;
+      if (v instanceof Date) {
+        year = v.getFullYear();
+      } else if (typeof v === 'string' || typeof v === 'number') {
+        year = +v;
+      } else {
+        return null;
+      }
+
+      return year >= minYear && year <= maxYear
+        ? null
+        : { anioInvalido: true };
     }
   }
 
