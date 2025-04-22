@@ -21,6 +21,11 @@ export class VehiculoService {
     this.vehiculos.push({...vehiculo});
     this.guardarEnLocalStorage();
   }
+
+  obtenerVehiculoPorVin(vin: string): any | undefined {
+    return this.vehiculos.find(v => v.vin === vin);
+  }
+
   obtenerVehiculos() {
     return [...this.vehiculos];
   }
@@ -33,25 +38,26 @@ export class VehiculoService {
     }
     return false;
   }
-actualizarDespacho(datosDespacho: any) {
-  const vehiculo = this.vehiculos.find(v => v.vin === datosDespacho.vin);
+  actualizarDespacho(datosDespacho: any): boolean {
+    const vehiculo = this.vehiculos.find(v => v.vin === datosDespacho.vin);
+    if (!vehiculo) {
+      console.error('Vehículo no encontrado con VIN:', datosDespacho.vin);
+      return false;
+    }
 
-  if (!vehiculo) {
-    console.error('Vehículo no encontrado con VIN:', datosDespacho.vin);
-    return false;
+    if (datosDespacho.bl) {
+      vehiculo.bl      = datosDespacho.bl;
+      vehiculo.duca    = datosDespacho.duca;
+      vehiculo.despacho = 'DM';
+    }
+    else if (datosDespacho.copiaBL) {
+      vehiculo.copiaBL = datosDespacho.copiaBL;
+      vehiculo.duca    = datosDespacho.duca;
+      vehiculo.tarja   = datosDespacho.tarja;
+      vehiculo.despacho = 'TRANSITO';
+    }
+
+    this.guardarEnLocalStorage();
+    return true;
   }
-  if (datosDespacho.bl) {
-    vehiculo.bl = datosDespacho.bl;
-    vehiculo.duca = datosDespacho.duca;
-    vehiculo.despacho = 'DM';
-  }
-  else if (datosDespacho.copiaBL) { 
-    vehiculo.copiaBL = datosDespacho.copiaBL;
-    vehiculo.duca = datosDespacho.duca;
-    vehiculo.tarja = datosDespacho.tarja;
-    vehiculo.despacho = 'TRANSITO';
-  }
-  this.guardarEnLocalStorage();
-  return true;
-}
 }

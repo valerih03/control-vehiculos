@@ -87,9 +87,25 @@ export class DashboardComponent {
     this.filteredVehiculos = [...this.vehiculos];
     this.updateSortedVehiculos();
   }
+
+  //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
-    this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculos();
+    // buscamos únicamente el vehículo clickeado
+    this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculoPorVin(vehiculo.vin);
     this.mostrarDetalleDespacho = true;
+  }
+
+  onDespachoGuardado(datos: any) {
+    const ok = this.vehiculoService.actualizarDespacho(datos);
+    if (ok) {
+      this.messageService.add({
+        severity: 'success',
+        summary:   'Despacho',
+        detail:    'Detalle de despacho guardado correctamente.'
+      });
+      this.vehiculos = this.vehiculoService.obtenerVehiculos();
+      this.dialogOpcionesDespachoVisible = false;
+    }
   }
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {
