@@ -95,3 +95,12 @@ p-dialog {
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
+.highlight-row {
+  background-color: #f1f1cd !important;
+}
+
+.highlight-text {
+  background-color: #FFEB3B; 
+  padding: 2px;
+  border-radius: 3px;
+}

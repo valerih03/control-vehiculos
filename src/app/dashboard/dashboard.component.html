@@ -7,6 +7,7 @@
   <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
   <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"></p-button>
+
 </div>
 <!-- Diálogo de Opciones de Despacho -->
 <p-dialog header="Despachar Vehículo" [(visible)]="dialogOpcionesDespachoVisible" [modal]="true" [style]="{ width: '80vw' }">
@@ -17,53 +18,25 @@
 </p-dialog>
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
-  <!-- Filtro por autocomplete -->
-  <div class="p-fluid p-mb-4">
-    <div class="flex items-center gap-2">
-      <p-autoComplete
-        [(ngModel)]="selectedVehiculo"
-        [suggestions]="filteredVehiculos"
-        (completeMethod)="search($event)"
-        (onSelect)="onVehiculoSelect($event)"
-        field="vin"
-        [multiple]="false"
-        [dropdown]="true"
-        placeholder="Buscar vehículo por VIN, consignatario, marca..."
-        [minLength]="1"
-        [forceSelection]="false"
-        [inputStyle]="{width: '100%'}"
-      >
-        <ng-template let-vehiculo pTemplate="item">
-          <div class="vehicle-item">
-            <div><strong>VIN:</strong> {{vehiculo.vin || 'N/A'}}</div>
-            <div><strong>Consignatario:</strong> {{vehiculo.consignatario || 'N/A'}}</div>
-            <div><strong>Marca/Estilo:</strong> {{vehiculo.marca || 'N/A'}} {{vehiculo.estilo || ''}}</div>
-          </div>
-        </ng-template>
-      </p-autoComplete>
-      <button *ngIf="selectedVehiculo"
-              pButton
-              icon="pi pi-times"
-              class="p-button-rounded p-button-text"
-              (click)="clearSearch()"
-              pTooltip="Limpiar búsqueda">
-      </button>
-    </div>
-  </div>
-  <!-- Tabla de Vehículos -->
-  <p-table [value]="selectedVehiculo ? [selectedVehiculo] : vehiculos"
-           selectionMode="multiple"
-           [(selection)]="vehiculoSeleccionado"
-           dataKey="vin">
+  <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin">
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 3rem"></th>
-        <th>Consignatario</th>
+        <th>
+          Consignatario
+          <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." style="width: 100%">
+        </th>
         <th>NIT</th>
         <th>Fecha</th>
-        <th>VIN</th>
+        <th>
+          VIN
+          <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..." style="width: 100%">
+        </th>
         <th>Año</th>
-        <th>Marca</th>
+        <th>
+          Marca
+          <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..." style="width: 100%">
+        </th>
         <th>Estilo</th>
         <th>Color</th>
         <th>Abandono</th>
@@ -73,38 +46,83 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-vehiculo>
-      <tr [pSelectableRow]="vehiculo">
+      <tr [pSelectableRow]="vehiculo"
+          [ngClass]="{'highlight-row': isFilteredMatch(vehiculo)}"
+          *ngIf="shouldDisplayRow(vehiculo)">
         <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
-        <td>{{ vehiculo.consignatario }}</td>
+        <td [innerHTML]="getHighlightedText(vehiculo.consignatario, 'consignatario')"></td>
         <td>{{ vehiculo.nit }}</td>
         <td>{{ vehiculo.fecha | date:'dd/MM/yyyy' }}</td>
-        <td>{{ vehiculo.vin }}</td>
-        <td>{{ vehiculo.anio |date: 'yyyy' }}</td>
-        <td>{{ vehiculo.marca }}</td>
+        <td [innerHTML]="getHighlightedText(vehiculo.vin, 'vin')"></td>
+        <td>{{ vehiculo.anio | date:'yyyy' }}</td>
+        <td [innerHTML]="getHighlightedText(vehiculo.marca, 'marca')"></td>
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
         <td>{{ vehiculo.abandono }}</td>
         <td>{{ vehiculo.fechares ? (vehiculo.fechares | date:'dd/MM/yyyy'): 'N/A'}} </td>
         <td>{{ vehiculo.despacho }}</td>
         <td>
-          <button pButton icon="pi pi-pencil"
-                  class="p-button-rounded p-button-success p-button-sm"
-                  (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
-                  style="width: 1rem;">
-          </button>
+          <div class="flex gap-1">
+            <!-- Botón de edición (existente) -->
+            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
+                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()"></button>
+
+            <!-- Nuevo botón de visualización (ojo) -->
+            <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
+                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+                    [disabled]="!vehiculo.despacho"></button>
+          </div>
         </td>
       </tr>
     </ng-template>
-
   </p-table>
+<!-- dashboard.html -->
+<p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{ width: '80vw' }">
+  <div *ngIf="vehiculoConDespacho">
+    <!-- Para DM -->
+    <div *ngIf="vehiculoConDespacho.bl" class="p-fluid">
+      <div class="field">
+        <label>N° BL</label>
+        <p>{{ vehiculoConDespacho.bl }}</p>
+      </div>
+      <div class="field">
+        <label>DUCA</label>
+        <p>{{ vehiculoConDespacho.duca }}</p>
+      </div>
+    </div>
+    <!-- Para TRANSITO -->
+    <div *ngIf="vehiculoConDespacho.copiaBL" class="p-fluid">
+      <div class="field">
+        <label>Copia BL</label>
+        <p>{{ vehiculoConDespacho.copiaBL }}</p>
+      </div>
+      <div class="field">
+        <label>Tarja</label>
+        <p>{{ vehiculoConDespacho.tarja }}</p>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times"
+              (click)="mostrarDetalleDespacho = false"></p-button>
+  </ng-template>
+</p-dialog>
   <div class="flex justify-between mt-4">
     <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
     <div class="flex gap-2">
       <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
     </div>
+
   </div>
 </p-dialog>
-
+<p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin || ''}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{ width: '50vw' }">
+  <app-despachar
+    *ngIf="mostrarDetalleDespacho" [modoVisualizacion]="true" [vehiculoParaMostrar]="vehiculoConDespacho">
+  </app-despachar>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
+  </ng-template>
+</p-dialog>
 <!-- Dialog para insertar y actualizar -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible" [style]="{ width: '60rem' }">
   <!-- Usa el componente de formulario, pasándole el objeto y el modo -->
