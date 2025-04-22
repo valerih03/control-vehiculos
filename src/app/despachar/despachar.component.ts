@@ -7,121 +7,102 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { VehiculoService } from '../services/vehiculo.service';
 import { ListboxModule } from 'primeng/listbox';
+import { SelectButtonModule } from 'primeng/selectbutton';
 @Component({
   selector: 'app-despachar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule, ListboxModule ],
+  imports: [CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule, ListboxModule,
+    SelectButtonModule
+   ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
 export class DespacharComponent {
   @Output() cerrar = new EventEmitter<void>();
-  @Input() modoVisualizacion = false;
+  @Input() modoVisualizacion: boolean = false;
   @Input() vehiculoParaMostrar: any;
-  // Variables para mostrar formularios
-  mostrarDM = false;
-  mostrarTransito = false;
-  //para filtrar
-  vinsRegistrados: any[] = [];
-  vinSeleccionado: any;
 
-  despachoDM = {
+  mostrarDespacho: boolean = false;
+  tipoSeleccionado: any = { name: 'DM', value: 'DM' };
+  tiposDespacho = [
+    { name: 'DM', value: 'DM' },
+    { name: 'TRANSITO', value: 'TRANSITO' }
+  ];
+  despacho: any = {
+    tipo: '',
     vin: '',
     bl: '',
-    duca: ''
-  };
-  despachoTransito = {
-    vin: '',
     copiaBL: '',
     duca: '',
     tarja: ''
   };
-  constructor(private messageService: MessageService,
-    private vehiculoService: VehiculoService) {}
-    cargarVinsRegistrados() {
-      const vehiculos = this.vehiculoService.obtenerVehiculos();
-      console.log('Vehículos obtenidos:', vehiculos); // ← Agrega esto para debug
-
-      this.vinsRegistrados = vehiculos
-        .filter(v => v.vin) // Filtra vehículos con VIN válido
-        .map(v => ({
-          vin: v.vin,
-          marca: v.marca || 'Sin marca',
-          anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
-        }));
-
-      console.log('VINs registrados:', this.vinsRegistrados); // ← Verifica esto
+  vinsRegistrados: any[] = [];
+  vinSeleccionado: any;
+  constructor(
+    private messageService: MessageService,
+    private vehiculoService: VehiculoService
+  ) {}
+  abrirDialogo() {
+    this.mostrarDespacho = true;
+    this.tipoSeleccionado = this.tiposDespacho[0];
+    this.cargarVinsRegistrados();
+  }
+  cerrarDialogo() {
+    this.mostrarDespacho = false;
+    this.limpiarFormulario();
+    this.cerrar.emit();
+  }
+  cambiarTipoDespacho() {
+    this.limpiarFormulario();
+  }
+  getHeaderText(): string {
+    if (this.modoVisualizacion) {
+      return `Detalle de Despacho ${this.despacho.tipo}`;
     }
-    // En despachar.ts
-pruebaServicio() {
-  console.log('Vehículos en servicio:', this.vehiculoService.obtenerVehiculos());
-}
-    // Método para manejar la selección
-    seleccionarVin(event: any) {
-      if (event.value) {
-        this.despachoDM.vin = event.value.vin;
-        this.despachoTransito.vin = event.value.vin;
-      }
-    }
-    ngOnInit() {
-      this.pruebaServicio();
-      this.cargarVinsRegistrados(); // Cargar siempre, no solo en modo visualización
-
-      if (this.modoVisualizacion && this.vehiculoParaMostrar) {
-        this.cargarDatosParaVisualizacion();
-      }
-    }
-  cargarDatosParaVisualizacion() {
-    if (this.vehiculoParaMostrar.bl) {
-      // Es un despacho DM
-      this.despachoDM = { ...this.vehiculoParaMostrar };
-      this.mostrarDM = true;
-    } else if (this.vehiculoParaMostrar.copiaBL) {
-      // Es un despacho TRANSITO
-      this.despachoTransito = { ...this.vehiculoParaMostrar };
-      this.mostrarTransito = true;
+    return this.tipoSeleccionado?.value === 'TRANSITO'
+      ? 'Despacho TRANSITO'
+      : 'Despacho DM';
+  }
+  seleccionarVin(event: any) {
+    if (event.value) {
+      this.despacho.vin = event.value.vin;
     }
   }
-  seleccionarTipo(tipo: string) {
-    if (this.modoVisualizacion) return;
-    if (tipo === 'DM') {
-      this.mostrarDM = true;
+  guardarDespacho() {
+    this.despacho.tipo = this.tipoSeleccionado.value;
+    if (this.tipoSeleccionado.value === 'DM') {
+      console.log('Guardando DM:', this.despacho);
     } else {
-      this.mostrarTransito = true;
+      console.log('Guardando TRANSITO:', this.despacho);
     }
+    this.cerrarDialogo();
   }
-  guardarDM() {
-    if (this.modoVisualizacion) return;
-    console.log('Guardando DM:', this.despachoDM);
-    this.mostrarDM = false;
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Despacho DM registrado'
-    });
-    this.limpiarFormularios();
-    this.cerrar.emit();
+  private limpiarFormulario() {
+    this.despacho = {
+      tipo: this.tipoSeleccionado.value,
+      vin: this.despacho.vin, // Mantener el VIN seleccionado
+      bl: '',
+      copiaBL: '',
+      duca: '',
+      tarja: ''
+    };
   }
-  guardarTransito() {
-    if (this.modoVisualizacion) return;
-    console.log('Guardando TRANSITO:', this.despachoTransito);
-    this.mostrarTransito = false;
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Despacho Tránsito registrado'
-    });
-    this.limpiarFormularios();
-    this.cerrar.emit();
+  cargarVinsRegistrados() {
+    this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
+      .filter(v => v.vin)
+      .map(v => ({
+        vin: v.vin,
+        marca: v.marca || 'Sin marca',
+        anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
+      }));
   }
-  
-  limpiarFormularios() {
-    if (this.modoVisualizacion) return;
-    this.despachoDM = { vin: '', bl: '', duca: '' };
-    this.despachoTransito = { vin: '', copiaBL: '', duca: '', tarja: '' };
-  }
-  cancelar() {
-    this.limpiarFormularios();
-    this.cerrar.emit();
+  ngOnInit() {
+    if (this.modoVisualizacion && this.vehiculoParaMostrar) {
+      this.mostrarDespacho = true;
+      this.despacho = { ...this.vehiculoParaMostrar };
+      this.tipoSeleccionado = this.vehiculoParaMostrar.bl
+        ? this.tiposDespacho[0]
+        : this.tiposDespacho[1];
+    }
   }
 }

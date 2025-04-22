@@ -34,7 +34,7 @@ export class DashboardComponent {
   dialogIngresoVisible = false;
   dialogConsultaVisible = false;
   dialogEdicionVisible = false;
-  //filrtrar
+  //filtrar
   filteredVehiculos: any[] = [];
   selectedVehiculo: any = null;
   selectedVehiculos: any[] = [];
