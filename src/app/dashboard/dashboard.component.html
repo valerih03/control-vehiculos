@@ -39,9 +39,6 @@
         </th>
         <th>Estilo</th>
         <th>Color</th>
-        <th>Abandono</th>
-        <th>Fecha Rescate</th>
-        <th>Despacho</th>
         <th>Acciones</th>
       </tr>
     </ng-template>
@@ -58,14 +55,13 @@
         <td [innerHTML]="getHighlightedText(vehiculo.marca, 'marca')"></td>
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
-        <td>{{ vehiculo.abandono }}</td>
-        <td>{{ vehiculo.fechares ? (vehiculo.fechares | date:'dd/MM/yyyy'): 'N/A'}} </td>
-        <td>{{ vehiculo.despacho }}</td>
         <td>
           <div class="flex gap-1">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
                     (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
-            <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"(click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" style="width: 1rem;"[disabled]="!vehiculo.despacho"></button>
+            <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
+                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" style="width: 1rem;"
+                    [disabled]="!vehiculo.despacho"></button>
           </div>
         </td>
       </tr>

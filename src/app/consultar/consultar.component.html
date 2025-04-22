@@ -12,9 +12,6 @@
         <th>Marca</th>
         <th>Estilo</th>
         <th>Color</th>
-        <th>Abandono</th>
-        <th>Fecha Rescate</th>
-        <th>Despacho</th>
         <th>Acciones</th>
       </tr>
     </ng-template>
@@ -29,9 +26,6 @@
         <td>{{ vehiculo.marca }}</td>
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
-        <td>{{ vehiculo.abandono }}</td>
-        <td>{{ vehiculo.fechares || 'N/A' }}</td>
-        <td>{{ vehiculo.despacho }}</td>
         <td>
           <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm" (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
         </td>

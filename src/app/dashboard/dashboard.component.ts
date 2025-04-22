@@ -69,10 +69,7 @@ export class DashboardComponent {
     anio: null,
     marca: '',
     estilo: '',
-    color: '',
-    abandono: '',
-    fechares: '',
-    despacho: ''
+    color: ''
   };
   constructor(
     private confirmationService: ConfirmationService,
@@ -259,29 +256,27 @@ export class DashboardComponent {
           doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
           doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
-          const headers = ['VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estilo', 'Abandono', 'Fecha Rescate', 'Despacho'];
+          const headers = ['VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estilo'];
           const data = vehiculosParaExportar.map(v => [
             v.vin || 'N/A',
             v.consignatario || 'N/A',
             v.nit || 'N/A',
             v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
             v.marca || 'N/A',
-            v.estilo || 'N/A',
-            v.abandono || 'N/A',
-            v.fechares || 'N/A',
-            v.despacho || 'N/A'
+            v.estilo || 'N/A'
           ]);
           autoTableModule.default(doc, {
             head: [headers],
             body: data,
             startY: 25,
-            margin: { horizontal: 10 },
+            margin: { horizontal: 35 },
             tableWidth: 'auto',
             styles: {
               fontSize: 7,
               cellPadding: 2,
               overflow: 'linebreak',
-              lineWidth: 0.1
+              lineWidth: 0.1,
+              halign: 'center'
             },
             headStyles: {
               fillColor: [13, 71, 161],
@@ -299,10 +294,7 @@ export class DashboardComponent {
               2: { cellWidth: 27 },
               3: { cellWidth: 16 },
               4: { cellWidth: 20 },
-              5: { cellWidth: 20 },
-              6: { cellWidth: 18 },
-              7: { cellWidth: 20 },
-              8: { cellWidth: 18 }
+              5: { cellWidth: 20 }
             }
           });
           const pageCount = doc.getNumberOfPages();

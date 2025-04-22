@@ -34,10 +34,7 @@ export class VehiculoformComponent implements OnInit, OnChanges{
     anio: null,
     marca: '',
     estilo: '',
-    color: '',
-    abandono: '',
-    fechares: '',
-    despacho: ''
+    color: ''
   };
   @Input() modo: 'crear' | 'editar' = 'crear';
   // Se emiten eventos al guardar o cancelar
@@ -52,11 +49,7 @@ export class VehiculoformComponent implements OnInit, OnChanges{
     anio: null,
     marca: '',
     estilo: '',
-    color: '',
-    abandono: '',
-    despacho: '',
-    realizarRescate: false,
-    fechares: null
+    color: ''
   };
 
   vehiculoForm!: FormGroup;
@@ -79,35 +72,10 @@ export class VehiculoformComponent implements OnInit, OnChanges{
       marca:         [this.vehiculo.marca        || '', Validators.required],
       estilo:        [this.vehiculo.estilo       || '', Validators.required],
       color:         [this.vehiculo.color        || '', Validators.required],
-      abandono:      [this.vehiculo.abandono     || ''],
-      despacho:      [this.vehiculo.despacho     || ''],
-      realizarRescate:[!!this.vehiculo.fechares],
-      fechares:      this.fb.control(
-                       { value: this.vehiculo.fechares || null,
-                         disabled: !this.vehiculo.fechares },
-                       this.validacionService.getValidators('fechares')
-                     )
+
     });
 
-    // Por si acaso el subscription no dispara antes:
-    if (!this.vehiculoForm.get('realizarRescate')!.value) {
-      this.vehiculoForm.get('fechares')!.disable();
-    }
 
-    //esto sincroniza el chackbox en el habilitado
-    this.vehiculoForm.get('realizarRescate')!.valueChanges.subscribe(checked => {
-      const ctrl = this.vehiculoForm.get('fechares')!;
-      if (checked) {
-        const vFn = this.validacionService.getValidators('fechares');
-        ctrl.setValidators([ Validators.required, ...vFn ]);
-        ctrl.enable();
-      } else {
-        ctrl.clearValidators();
-        ctrl.setValue(null);
-        ctrl.disable();
-      }
-      ctrl.updateValueAndValidity();
-    });
   }
    //para los mensajes de error
    getErrores(campo: string): string[] {

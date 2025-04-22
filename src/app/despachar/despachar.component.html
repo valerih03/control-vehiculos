@@ -33,6 +33,14 @@
                styleClass="w-full">
       </div>
     </div>
+    <div class="col-12">
+      <div class="p-field">
+        <label for="motorista" class="block font-medium mb-2">Motorista</label>
+        <input id="motorista" pInputText [(ngModel)]="despacho.motorista"
+               [readonly]="modoVisualizacion" required
+               styleClass="w-full">
+      </div>
+    </div>
     <div *ngIf="tipoSeleccionado.value === 'DM'" class="col-12 md:col-6">
       <div class="p-field">
         <label for="bl" class="block font-medium mb-2">N° de BL</label>
@@ -64,6 +72,16 @@
                [readonly]="modoVisualizacion" required
                styleClass="w-full">
       </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="p-field">
+      <label for="observaciones" class="block font-medium mb-2">Observaciones</label>
+      <p-editor [(ngModel)]="despacho.observaciones"
+                [style]="{ 'height': '200px' }"
+                [readonly]="modoVisualizacion"
+                styleClass="w-full">
+      </p-editor>
     </div>
   </div>
   <ng-template pTemplate="footer">

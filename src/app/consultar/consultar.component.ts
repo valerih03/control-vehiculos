@@ -32,9 +32,6 @@ export class ConsultarComponent {
       marca: '',
       estilo: '',
       color: '',
-      abandono: '',
-      fechares: '',
-      despacho: ''
     };
     anio!: number;
     realizararescate: string = '';
@@ -99,10 +96,7 @@ export class ConsultarComponent {
           anio: null,
           marca: '',
           estilo: '',
-          color: '',
-          abandono: '',
-          fechares: '',
-          despacho: ''
+          color: ''
         };
         this.realizararescate = '';
         this.dialogIngresoVisible  = false;
@@ -125,10 +119,7 @@ guardarDatos() {
     anio: null,
     marca: '',
     estilo: '',
-    color: '',
-    abandono: '',
-    fechares: '',
-    despacho: ''
+    color: ''
   };
   this.realizararescate = '';
   this.dialogIngresoVisible  = false;

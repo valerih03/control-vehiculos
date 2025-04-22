@@ -8,11 +8,12 @@ import { MessageService } from 'primeng/api';
 import { VehiculoService } from '../services/vehiculo.service';
 import { ListboxModule } from 'primeng/listbox';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { EditorModule } from 'primeng/editor';
 @Component({
   selector: 'app-despachar',
   standalone: true,
   imports: [CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule, ListboxModule,
-    SelectButtonModule
+    SelectButtonModule, EditorModule
    ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
@@ -31,10 +32,12 @@ export class DespacharComponent {
   despacho: any = {
     tipo: '',
     vin: '',
+    motorista: '',
     bl: '',
     copiaBL: '',
     duca: '',
-    tarja: ''
+    tarja: '',
+    observaciones: ''
   };
   vinsRegistrados: any[] = [];
   vinSeleccionado: any;
@@ -80,11 +83,13 @@ export class DespacharComponent {
   private limpiarFormulario() {
     this.despacho = {
       tipo: this.tipoSeleccionado.value,
-      vin: this.despacho.vin, // Mantener el VIN seleccionado
+      vin: this.despacho.vin,
+      motorista: '',
       bl: '',
       copiaBL: '',
       duca: '',
-      tarja: ''
+      tarja: '',
+      observaciones: ''
     };
   }
   cargarVinsRegistrados() {

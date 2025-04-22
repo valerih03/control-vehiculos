@@ -30,3 +30,17 @@ p-listbox {
 .border-top-1 {
   border-top: 1px solid var(--surface-border);
 }
+/* Para el editor de observaciones */
+.p-editor-container {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+
+.p-editor-content {
+  min-height: 150px;
+}
+
+/* Para el campo motorista */
+#motorista {
+  margin-bottom: 1.5rem;
+}
