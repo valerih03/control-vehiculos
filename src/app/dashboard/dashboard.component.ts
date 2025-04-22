@@ -17,11 +17,9 @@ import { ValidacionService } from '../services/validacion.service';
 import {CheckboxModule} from 'primeng/checkbox';
 import {VehiculoformComponent} from '../forms/vehiculoform/vehiculoform.component';
 import { DespacharComponent } from '../despachar/despachar.component';
-import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-
-//import { TagModule } from 'primeng/tag';
+import { ChangeDetectorRef } from '@angular/core';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -40,8 +38,13 @@ export class DashboardComponent {
   filteredVehiculos: any[] = [];
   selectedVehiculo: any = null;
   selectedVehiculos: any[] = [];
-vehiculosParaExportar: any[] = [];
+  vehiculosParaExportar: any[] = [];
   searchQuery: string = '';
+  vinFilter: string = '';
+  marcaFilter: string = '';
+  currentFilters: { [key: string]: string } = {};
+  sortedVehiculos: any[] = [];
+  isFiltering: boolean = false;
   //despachar
   dialogOpcionesDespachoVisible = false;
   mostrarDM = false;
@@ -53,6 +56,10 @@ vehiculosParaExportar: any[] = [];
   dialogVehiculoVisible = false;
   vehiculoActual: any = {};
   modoFormulario: 'crear' | 'editar' = 'crear';
+  //detalle de despechos
+  mostrarDetalleDespacho = false;
+  vehiculoConDespacho: any = null;
+
 
   nuevoVehiculo = {
     consignatario: '',
@@ -72,39 +79,30 @@ vehiculosParaExportar: any[] = [];
     private messageService: MessageService,
     private vehiculoService: VehiculoService,
     private validacionService: ValidacionService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
-
   ngOnInit() {
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
+    this.filteredVehiculos = [...this.vehiculos];
+    this.updateSortedVehiculos();
   }
-
+  verDetalleDespacho(vehiculo: any) {
+    this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculos();
+    this.mostrarDetalleDespacho = true;
+  }
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {
     this.modoFormulario = 'crear';
-    this.vehiculoActual = {
-      consignatario: '',
-      nit: '',
-      fecha: '',
-      vin: '',
-      anio: null,
-      marca: '',
-      estilo: '',
-      color: '',
-      abandono: '',
-      fechares: '',
-      despacho: ''
-    };
+    this.vehiculoActual = {};
     this.dialogVehiculoVisible = true;
   }
-
   // Método para editar: asigna el vehículo seleccionado y cambia el modo
   editarVehiculo(vehiculo: any) {
     this.modoFormulario = 'editar';
     this.vehiculoActual = { ...vehiculo };
     this.dialogVehiculoVisible = true;
   }
-
   // Maneja el evento del componente de formulario al guardar
   handleGuardar(vehiculo: any) {
     if (this.modoFormulario === 'crear') {
@@ -119,7 +117,6 @@ vehiculosParaExportar: any[] = [];
     this.dialogVehiculoVisible = false;
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
-
   // Maneja la cancelación: cierra el diálogo
   handleCancelar() {
     this.dialogVehiculoVisible = false;
@@ -129,7 +126,6 @@ vehiculosParaExportar: any[] = [];
   search(event: { query: string }) {
     const query = event.query.toLowerCase();
     this.filteredVehiculos = this.vehiculos.filter(vehiculo => {
-      // Verificación segura de propiedades
       const vin = vehiculo.vin ? vehiculo.vin.toLowerCase() : '';
       const consignatario = vehiculo.consignatario ? vehiculo.consignatario.toLowerCase() : '';
       const marca = vehiculo.marca ? vehiculo.marca.toLowerCase() : '';
@@ -141,17 +137,99 @@ vehiculosParaExportar: any[] = [];
              estilo.includes(query);
     });
   }
+  shouldDisplayRow(vehiculo: any): boolean {
+    // Si no estamos filtrando, mostrar todas las filas
+    if (!this.isFiltering) return true;
+    return this.isFilteredMatch(vehiculo);
+  }
+  filterByVin(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.vinFilter = value;
+    this.applyFilter('vin', event);
+  }
+  filterByMarca(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.marcaFilter = value;
+    this.applyFilter('marca', event);
+  }
+  applyFilter(field: string, event: Event) {
+    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    // Actualizar estado de filtrado
+    this.isFiltering = value.length > 0 || Object.keys(this.currentFilters).length > 0;
+    if (value) {
+      this.currentFilters[field] = value;
+    } else {
+      delete this.currentFilters[field];
+      this.isFiltering = Object.keys(this.currentFilters).length > 0;
+    }
+    this.updateSortedVehiculos();
+  }
+  updateSortedVehiculos() {
+    if (Object.keys(this.currentFilters).length === 0) {
+      this.sortedVehiculos = [...this.vehiculos];
+      this.isFiltering = false;
+      return;
+    }
+    // Ordenar poniendo primero los que coinciden
+    this.sortedVehiculos = [...this.vehiculos].sort((a, b) => {
+      const aMatches = this.isFilteredMatch(a);
+      const bMatches = this.isFilteredMatch(b);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+    this.isFiltering = true;
+  }
+  checkMatches(vehiculo: any): boolean {
+    return Object.entries(this.currentFilters).every(([field, searchTerm]) => {
+      const fieldValue = vehiculo[field]?.toString().toLowerCase() || '';
+      return fieldValue.includes(searchTerm);
+    });
+  }
+  getHighlightedText(text: string | null | undefined, field: string): string {
+    if (!text) return 'N/A';
+    let result = text.toString();
+    // Solo resaltar si hay filtros activos
+    if (this.currentFilters[field] && this.currentFilters[field].trim() !== '') {
+      const term = this.currentFilters[field];
+      const regex = new RegExp(term, 'gi');
+      result = result.replace(regex, match => `<span class="highlight-text">${match}</span>`);
+    }
+    return result;
+  }
   onVehiculoSelect(event: any) {
     this.vehiculoSeleccionado = event;
   }
   clearSearch() {
     this.selectedVehiculo = null;
-    this.filteredVehiculos = [];
     this.searchQuery = '';
+    this.currentFilters = {};
+    this.updateSortedVehiculos();
     this.vehiculoSeleccionado = null;
   }
-  exportarPDF() {
+  //nuevos metodos para filtrar
+  applyHighlight(field: string, event: Event) {
+    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    if (value) {
+      this.currentFilters[field] = value;
+    } else {
+      this.currentFilters[field] = '';
+    }
+  }
+  isFilteredMatch(vehiculo: any): boolean {
+    if (Object.keys(this.currentFilters).length === 0) {
+      return false;
+    }
+    // Verificar si el vehículo coincide con TODOS los filtros activos
+    return Object.entries(this.currentFilters).every(([field, searchTerm]) => {
+      // Solo considerar filtros que no estén vacíos
+      if (searchTerm.trim() === '') return true;
 
+      const fieldValue = vehiculo[field]?.toString().toLowerCase() || '';
+      return fieldValue.includes(searchTerm.toLowerCase());
+    });
+  }
+  exportarPDF() {
     const vehiculosParaExportar =
   Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
     ? this.vehiculoSeleccionado
@@ -175,15 +253,12 @@ vehiculosParaExportar: any[] = [];
           const fecha = new Date().toLocaleString();
           const titulo = 'REPORTE DE VEHÍCULOS';
           const pageWidth = doc.internal.pageSize.getWidth();
-
           doc.setFontSize(14);
           doc.setFont('helvetica', 'bold');
           doc.text(titulo, pageWidth / 2, 15, { align: 'center' });
-
           doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
           doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
-
           const headers = ['VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estilo', 'Abandono', 'Fecha Rescate', 'Despacho'];
           const data = vehiculosParaExportar.map(v => [
             v.vin || 'N/A',
@@ -221,8 +296,8 @@ vehiculosParaExportar: any[] = [];
             columnStyles: {
               0: { cellWidth: 28 },
               1: { cellWidth: 25 },
-              2: { cellWidth: 20 },
-              3: { cellWidth: 20 },
+              2: { cellWidth: 27 },
+              3: { cellWidth: 16 },
               4: { cellWidth: 20 },
               5: { cellWidth: 20 },
               6: { cellWidth: 18 },
