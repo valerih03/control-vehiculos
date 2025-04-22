@@ -90,19 +90,7 @@ export class DashboardComponent {
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {
     this.modoFormulario = 'crear';
-    this.vehiculoActual = {
-      consignatario: '',
-      nit: '',
-      fecha: '',
-      vin: '',
-      anio: null,
-      marca: '',
-      estilo: '',
-      color: '',
-      abandono: '',
-      fechares: '',
-      despacho: ''
-    };
+    this.vehiculoActual = {};
     this.dialogVehiculoVisible = true;
   }
   // Método para editar: asigna el vehículo seleccionado y cambia el modo

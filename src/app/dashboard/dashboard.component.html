@@ -59,7 +59,7 @@
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
         <td>{{ vehiculo.abandono }}</td>
-        <td>{{ vehiculo.fechares || 'N/A' }}</td>
+        <td>{{ vehiculo.fechares ? (vehiculo.fechares | date:'dd/MM/yyyy'): 'N/A'}} </td>
         <td>{{ vehiculo.despacho }}</td>
         <td>
           <div class="flex gap-1">
@@ -127,6 +127,7 @@
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible" [style]="{ width: '60rem' }">
   <!-- Usa el componente de formulario, pasándole el objeto y el modo -->
   <app-vehiculoform
+    *ngIf="dialogVehiculoVisible"
     [vehiculo]="vehiculoActual"
     [modo]="modoFormulario"
     (guardar)="handleGuardar($event)"
