@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -9,32 +9,33 @@ import { VehiculoService } from '../services/vehiculo.service';
 import { ListboxModule } from 'primeng/listbox';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { EditorModule } from 'primeng/editor';
+
 @Component({
   selector: 'app-despachar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule, ListboxModule,
-    SelectButtonModule, EditorModule
-   ],
+  imports: [
+    CommonModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    FormsModule,
+    ListboxModule,
+    SelectButtonModule,
+    EditorModule
+  ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
-export class DespacharComponent {
-
-  /** binding para mostrar/ocultar el diálogo */
-  @Input() visible: boolean = false;
+export class DespacharComponent implements OnInit {
+  @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
-  /** lista de VINs recibida desde el Dashboard */
+  @Input() modoVisualizacion = false;
+  @Input() vehiculoParaMostrar: any;
   @Input() vinsRegistrados: any[] = [];
 
-  /** emite el despacho al padre */
   @Output() guardarDespacho = new EventEmitter<any>();
 
-  /** modo sólo lectura */
-  @Input() modoVisualizacion: boolean = false;
-  @Input() vehiculoParaMostrar: any;
-
-  /** para el p-listbox */
   vinSeleccionado: any = null;
 
   despacho: any = {
@@ -68,7 +69,8 @@ export class DespacharComponent {
     }
   }
 
-  /** Texto dinámico del header */
+  
+  /** Texto para el header */
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
@@ -77,7 +79,8 @@ export class DespacharComponent {
       ? 'Despacho TRANSITO'
       : 'Despacho DM';
   }
-  /** Se dispara al abrir el diálogo */
+
+  /** Recarga la lista de VINs al abrir */
   onShow() {
     this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
       .filter(v => v.vin)
@@ -88,7 +91,6 @@ export class DespacharComponent {
       }));
   }
 
-  /** Cierra y notifica al padre */
   cerrarDialogo() {
     this.visibleChange.emit(false);
   }
@@ -98,33 +100,37 @@ export class DespacharComponent {
     this.despacho = {
       tipo: this.tipoSeleccionado.value,
       vin: vinActual,
+      motorista: this.despacho.motorista,
       bl: '',
       copiaBL: '',
       duca: '',
-      tarja: ''
+      tarja: '',
+      observaciones: ''
     };
   }
 
   seleccionarVin(event: any) {
-    if (!event.value) { return; }
-
+    if (!event.value) {
+      return;
+    }
     const vin = event.value.vin;
     this.despacho.vin = vin;
+    this.vinSeleccionado = event.value;
 
-    // Busca el vehículo y carga sus datos de despacho previos, o limpia:
     const veh = this.vehiculoService.obtenerVehiculos()
-                  .find(v => v.vin === vin);
+      .find(v => v.vin === vin);
 
     if (veh && veh.despacho) {
-      // ya tenía despacho, carga los campos
-      this.despacho.bl      = veh.bl || '';
-      this.despacho.copiaBL = veh.copiaBL || '';
-      this.despacho.duca    = veh.duca || '';
-      this.despacho.tarja   = veh.tarja || '';
-      // ajusta el tipo
-      this.tipoSeleccionado = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
+      // carga despachos previos
+      this.despacho.motorista    = veh.motorista    || '';
+      this.despacho.bl           = veh.bl           || '';
+      this.despacho.copiaBL      = veh.copiaBL      || '';
+      this.despacho.duca         = veh.duca         || '';
+      this.despacho.tarja        = veh.tarja        || '';
+      this.despacho.observaciones = veh.observaciones || '';
+      this.tipoSeleccionado      = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
     } else {
-      // nuevo, limpia todo menos el vin
+      // formulario limpio excepto VIN y motorista
       this.cambiarTipoDespacho();
     }
   }
