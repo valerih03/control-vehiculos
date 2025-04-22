@@ -3,43 +3,66 @@
           (onShow)="onShow()"
           (onHide)="cerrarDialogo()"
           [modal]="true"
-          [style]="{width: '50vw', minHeight: '400px'}"
-          [contentStyle]="{padding:'2rem'}">
+          [style]="{ width: '50vw', 'min-height': '400px' }">
 
-  <!-- Tipo -->
-  <p-selectButton [options]="tiposDespacho"
-                  [(ngModel)]="tipoSeleccionado"
-                  optionLabel="name"
-                  (onChange)="cambiarTipoDespacho()"
-                  *ngIf="!modoVisualizacion">
-  </p-selectButton>
-
-  <!-- VIN -->
-  <p-listbox [options]="vinsRegistrados"
-             [(ngModel)]="vinSeleccionado"
-             optionLabel="vin"
-             [filter]="true"
-             (onChange)="seleccionarVin($event)"
-             *ngIf="!modoVisualizacion">
-    <ng-template let-item pTemplate="item">
-      <div>{{item.vin}} - {{item.marca}} ({{item.anio}})</div>
-    </ng-template>
-  </p-listbox>
-
-  <!-- Campos de despacho según tipo -->
-  <div *ngIf="tipoSeleccionado.value==='DM'">
-    <label>N° BL</label>
-    <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion"/>
-    <label>DUCA</label>
-    <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion"/>
+  <div class="p-fluid formgrid grid" *ngIf="!modoVisualizacion">
+    <!-- Selector de Tipo -->
+    <div class="field col-12">
+      <label>Tipo de Despacho</label>
+      <p-selectButton [options]="tiposDespacho"
+                      [(ngModel)]="tipoSeleccionado"
+                      optionLabel="name"
+                      (onChange)="cambiarTipoDespacho()">
+      </p-selectButton>
+    </div>
+    <!-- Buscador de VIN -->
+    <div class="field col-12">
+      <label>Buscar VIN registrado</label>
+      <p-listbox [options]="vinsRegistrados"
+                 [(ngModel)]="vinSeleccionado"
+                 optionLabel="vin"
+                 [filter]="true"
+                 [style]="{ 'max-height': '120px' }"
+                 (onChange)="seleccionarVin($event)">
+        <ng-template let-item pTemplate="item">
+          <div class="flex align-items-center">
+            <span>{{item.vin}} – {{item.marca}} ({{item.anio}})</span>
+          </div>
+        </ng-template>
+      </p-listbox>
+    </div>
   </div>
-  <div *ngIf="tipoSeleccionado.value==='TRANSITO'">
-    <label>Copia BL</label>
-    <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion"/>
-    <label>Tarja</label>
-    <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion"/>
-    <label>DUCA</label>
-    <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion"/>
+
+  <div class="p-fluid formgrid grid">
+    <!-- Campos comunes: VIN readonly -->
+    <div class="field col-12">
+      <label>VIN</label>
+      <input pInputText [(ngModel)]="despacho.vin" [readonly]="true" styleClass="w-full"/>
+    </div>
+
+    <!-- DM -->
+    <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
+      <label>N° de BL</label>
+      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" styleClass="w-full"/>
+    </div>
+    <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
+      <label>DUCA</label>
+      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full"/>
+    </div>
+
+    <!-- TRANSITO -->
+    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
+      <label>Copia de BL</label>
+      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" styleClass="w-full"/>
+    </div>
+    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
+      <label>Tarja</label>
+      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" styleClass="w-full"/>
+    </div>
+    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
+      <label>DUCA</label>
+      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full"/>
+    </div>
   </div>
 
   <ng-template pTemplate="footer">
@@ -47,7 +70,6 @@
               icon="pi pi-times"
               class="p-button-text"
               (click)="cerrarDialogo()"></p-button>
-
     <p-button *ngIf="!modoVisualizacion"
               label="Guardar"
               icon="pi pi-check"

@@ -104,9 +104,26 @@ export class DespacharComponent {
   }
 
   seleccionarVin(event: any) {
-    if (event.value) {
-      this.despacho.vin = event.value.vin;
-      this.vinSeleccionado = event.value;
+    if (!event.value) { return; }
+
+    const vin = event.value.vin;
+    this.despacho.vin = vin;
+
+    // Busca el vehículo y carga sus datos de despacho previos, o limpia:
+    const veh = this.vehiculoService.obtenerVehiculos()
+                  .find(v => v.vin === vin);
+
+    if (veh && veh.despacho) {
+      // ya tenía despacho, carga los campos
+      this.despacho.bl      = veh.bl || '';
+      this.despacho.copiaBL = veh.copiaBL || '';
+      this.despacho.duca    = veh.duca || '';
+      this.despacho.tarja   = veh.tarja || '';
+      // ajusta el tipo
+      this.tipoSeleccionado = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
+    } else {
+      // nuevo, limpia todo menos el vin
+      this.cambiarTipoDespacho();
     }
   }
 
