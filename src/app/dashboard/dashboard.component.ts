@@ -87,6 +87,10 @@ export class DashboardComponent {
     this.filteredVehiculos = [...this.vehiculos];
     this.updateSortedVehiculos();
   }
+  verDetalleDespacho(vehiculo: any) {
+    this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculos();
+    this.mostrarDetalleDespacho = true;
+  }
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {
     this.modoFormulario = 'crear';
@@ -292,8 +296,8 @@ export class DashboardComponent {
             columnStyles: {
               0: { cellWidth: 28 },
               1: { cellWidth: 25 },
-              2: { cellWidth: 20 },
-              3: { cellWidth: 20 },
+              2: { cellWidth: 27 },
+              3: { cellWidth: 16 },
               4: { cellWidth: 20 },
               5: { cellWidth: 20 },
               6: { cellWidth: 18 },
@@ -328,21 +332,6 @@ export class DashboardComponent {
     } catch (error: unknown) {
       this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
     }
-}
-verDetalleDespacho(vehiculo: any) {
-  // Verifica que el vehículo tenga datos de despacho
-  if (!vehiculo.bl && !vehiculo.copiaBL) {
-    this.messageService.add({
-      severity: 'warn',
-      summary: 'Sin datos',
-      detail: 'Este vehículo no tiene despacho registrado'
-    });
-    return;
-  }
-
-  this.vehiculoConDespacho = { ...vehiculo };
-  console.log("Datos a mostrar:", this.vehiculoConDespacho); // Verifica en consola
-  this.mostrarDetalleDespacho = true;
 }
 //mesaje de error
 private handlePdfError(error: Error) {

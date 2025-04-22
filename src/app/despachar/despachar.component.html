@@ -2,15 +2,25 @@
 <!-- Diálogo DM -->
 <p-dialog [header]="modoVisualizacion ? 'Detalle de Despacho DM' : 'Despacho DM'"
           [(visible)]="mostrarDM" [modal]="true" [style]="{ width: '50vw' }">
+          <div class="p-field" *ngIf="!modoVisualizacion">
+            <label for="vinFilter">Buscar VIN registrado</label>
+            <p-listbox [options]="vinsRegistrados" [(ngModel)]="vinSeleccionado"
+                       optionLabel="vin" [filter]="true" [multiple]="false"
+                       (onChange)="seleccionarVin($event)" class="w-full">
+              <ng-template let-item pTemplate="item">
+                <div>{{item.vin}} - {{item.marca}} {{item.anio}}</div>
+              </ng-template>
+            </p-listbox>
+          </div><br>
   <div class="p-fluid" style="padding-bottom: 2rem;">
     <div class="p-field">
       <label for="vin">VIN</label>
       <input id="vin" pInputText [(ngModel)]="despachoDM.vin" [readonly]="modoVisualizacion" required>
-    </div>
+    </div><br>
     <div class="field">
       <label for="bl">N° de BL</label>
       <input id="bl" pInputText [(ngModel)]="despachoDM.bl" [readonly]="modoVisualizacion" required>
-    </div>
+    </div><br>
     <div class="field">
       <label for="duca">DUCA</label>
       <input id="duca" pInputText [(ngModel)]="despachoDM.duca" [readonly]="modoVisualizacion" required>
@@ -25,19 +35,29 @@
 <!-- Diálogo TRANSITO -->
 <p-dialog [header]="modoVisualizacion ? 'Detalle de Despacho TRANSITO' : 'Despacho TRANSITO'"
           [(visible)]="mostrarTransito" [modal]="true" [style]="{ width: '50vw' }">
+          <div class="p-field" *ngIf="!modoVisualizacion">
+            <label for="vinFilter">Buscar VIN registrado</label>
+            <p-listbox [options]="vinsRegistrados" [(ngModel)]="vinSeleccionado"
+                       optionLabel="vin" [filter]="true" [multiple]="false"
+                       (onChange)="seleccionarVin($event)" class="w-full">
+              <ng-template let-item pTemplate="item">
+                <div>{{item.vin}} - {{item.marca}} {{item.anio}}</div>
+              </ng-template>
+            </p-listbox>
+          </div><br>
   <div class="p-fluid" style="padding-bottom: 2rem;">
     <div class="p-field">
       <label for="vin">VIN</label>
       <input id="vin" pInputText [(ngModel)]="despachoTransito.vin" [readonly]="modoVisualizacion" required>
-    </div>
+    </div><br>
     <div class="field">
       <label for="copiaBL">Copia de BL</label>
       <input id="copiaBL" pInputText [(ngModel)]="despachoTransito.copiaBL" [readonly]="modoVisualizacion" required>
-    </div>
+    </div><br>
     <div class="field">
       <label for="ducaTransito">DUCA</label>
       <input id="ducaTransito" pInputText [(ngModel)]="despachoTransito.duca" [readonly]="modoVisualizacion" required>
-    </div>
+    </div><br>
     <div class="field">
       <label for="tarja">Copia de Tarja</label>
       <input id="tarja" pInputText [(ngModel)]="despachoTransito.tarja" [readonly]="modoVisualizacion" required>
