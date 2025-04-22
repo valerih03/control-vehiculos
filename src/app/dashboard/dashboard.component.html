@@ -65,11 +65,11 @@
           <div class="flex gap-1">
             <!-- Botón de edición (existente) -->
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
-                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()"></button>
+                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
 
             <!-- Nuevo botón de visualización (ojo) -->
             <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
-                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" style="width: 1rem;"
                     [disabled]="!vehiculo.despacho"></button>
           </div>
         </td>
