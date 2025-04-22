@@ -19,16 +19,24 @@ import { EditorModule } from 'primeng/editor';
   styleUrls: ['./despachar.component.css']
 })
 export class DespacharComponent {
-  @Output() cerrar = new EventEmitter<void>();
+
+  /** binding para mostrar/ocultar el diálogo */
+  @Input() visible: boolean = false;
+  @Output() visibleChange = new EventEmitter<boolean>();
+
+  /** lista de VINs recibida desde el Dashboard */
+  @Input() vinsRegistrados: any[] = [];
+
+  /** emite el despacho al padre */
+  @Output() guardarDespacho = new EventEmitter<any>();
+
+  /** modo sólo lectura */
   @Input() modoVisualizacion: boolean = false;
   @Input() vehiculoParaMostrar: any;
 
-  mostrarDespacho: boolean = false;
-  tipoSeleccionado: any = { name: 'DM', value: 'DM' };
-  tiposDespacho = [
-    { name: 'DM', value: 'DM' },
-    { name: 'TRANSITO', value: 'TRANSITO' }
-  ];
+  /** para el p-listbox */
+  vinSeleccionado: any = null;
+
   despacho: any = {
     tipo: '',
     vin: '',
@@ -39,60 +47,38 @@ export class DespacharComponent {
     tarja: '',
     observaciones: ''
   };
-  vinsRegistrados: any[] = [];
-  vinSeleccionado: any;
+
+  tipoSeleccionado = { name: 'DM', value: 'DM' };
+  tiposDespacho = [
+    { name: 'DM', value: 'DM' },
+    { name: 'TRANSITO', value: 'TRANSITO' }
+  ];
+
   constructor(
     private messageService: MessageService,
     private vehiculoService: VehiculoService
   ) {}
-  abrirDialogo() {
-    this.mostrarDespacho = true;
-    this.tipoSeleccionado = this.tiposDespacho[0];
-    this.cargarVinsRegistrados();
+
+  ngOnInit() {
+    if (this.modoVisualizacion && this.vehiculoParaMostrar) {
+      this.despacho = { ...this.vehiculoParaMostrar };
+      this.tipoSeleccionado = this.vehiculoParaMostrar.bl
+        ? this.tiposDespacho[0]
+        : this.tiposDespacho[1];
+    }
   }
-  cerrarDialogo() {
-    this.mostrarDespacho = false;
-    this.limpiarFormulario();
-    this.cerrar.emit();
-  }
-  cambiarTipoDespacho() {
-    this.limpiarFormulario();
-  }
+
+  /** Texto dinámico del header */
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
     }
-    return this.tipoSeleccionado?.value === 'TRANSITO'
+    return this.tipoSeleccionado.value === 'TRANSITO'
       ? 'Despacho TRANSITO'
       : 'Despacho DM';
   }
-  seleccionarVin(event: any) {
-    if (event.value) {
-      this.despacho.vin = event.value.vin;
-    }
-  }
-  guardarDespacho() {
-    this.despacho.tipo = this.tipoSeleccionado.value;
-    if (this.tipoSeleccionado.value === 'DM') {
-      console.log('Guardando DM:', this.despacho);
-    } else {
-      console.log('Guardando TRANSITO:', this.despacho);
-    }
-    this.cerrarDialogo();
-  }
-  private limpiarFormulario() {
-    this.despacho = {
-      tipo: this.tipoSeleccionado.value,
-      vin: this.despacho.vin,
-      motorista: '',
-      bl: '',
-      copiaBL: '',
-      duca: '',
-      tarja: '',
-      observaciones: ''
-    };
-  }
-  cargarVinsRegistrados() {
+  /** Se dispara al abrir el diálogo */
+  onShow() {
     this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
       .filter(v => v.vin)
       .map(v => ({
@@ -101,13 +87,51 @@ export class DespacharComponent {
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
       }));
   }
-  ngOnInit() {
-    if (this.modoVisualizacion && this.vehiculoParaMostrar) {
-      this.mostrarDespacho = true;
-      this.despacho = { ...this.vehiculoParaMostrar };
-      this.tipoSeleccionado = this.vehiculoParaMostrar.bl
-        ? this.tiposDespacho[0]
-        : this.tiposDespacho[1];
+
+  /** Cierra y notifica al padre */
+  cerrarDialogo() {
+    this.visibleChange.emit(false);
+  }
+
+  cambiarTipoDespacho() {
+    const vinActual = this.despacho.vin;
+    this.despacho = {
+      tipo: this.tipoSeleccionado.value,
+      vin: vinActual,
+      bl: '',
+      copiaBL: '',
+      duca: '',
+      tarja: ''
+    };
+  }
+
+  seleccionarVin(event: any) {
+    if (!event.value) { return; }
+
+    const vin = event.value.vin;
+    this.despacho.vin = vin;
+
+    // Busca el vehículo y carga sus datos de despacho previos, o limpia:
+    const veh = this.vehiculoService.obtenerVehiculos()
+                  .find(v => v.vin === vin);
+
+    if (veh && veh.despacho) {
+      // ya tenía despacho, carga los campos
+      this.despacho.bl      = veh.bl || '';
+      this.despacho.copiaBL = veh.copiaBL || '';
+      this.despacho.duca    = veh.duca || '';
+      this.despacho.tarja   = veh.tarja || '';
+      // ajusta el tipo
+      this.tipoSeleccionado = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
+    } else {
+      // nuevo, limpia todo menos el vin
+      this.cambiarTipoDespacho();
     }
+  }
+
+  onGuardar() {
+    this.despacho.tipo = this.tipoSeleccionado.value;
+    this.guardarDespacho.emit(this.despacho);
+    this.visibleChange.emit(false);
   }
 }

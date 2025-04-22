@@ -10,10 +10,23 @@
 
 </div>
 <!-- Diálogo de Opciones de Despacho -->
-<p-dialog header="Despachar Vehículo" [(visible)]="dialogOpcionesDespachoVisible" [modal]="true" [style]="{ width: '80vw' }">
-  <app-despachar></app-despachar>
+<p-dialog header="Despachar Vehículo"
+          [(visible)]="dialogOpcionesDespachoVisible"
+          [modal]="true"
+          [style]="{ width: '80vw' }">
+
+  <!-- ahora le pasamos el array de VINs, el objeto despachado y el evento -->
+  <app-despachar
+    [vinsRegistrados]="vehiculos"
+    [(visible)]="dialogOpcionesDespachoVisible"
+    (guardarDespacho)="onDespachoGuardado($event)">
+  </app-despachar>
+
   <ng-template pTemplate="footer">
-    <p-button label="Cerrar" icon="pi pi-times" (click)="dialogOpcionesDespachoVisible = false"></p-button>
+    <p-button label="Cerrar"
+              icon="pi pi-times"
+              (click)="dialogOpcionesDespachoVisible = false">
+    </p-button>
   </ng-template>
 </p-dialog>
 <!-- Diálogo de Consulta -->
