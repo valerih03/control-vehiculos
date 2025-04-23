@@ -3,32 +3,19 @@
 
 <h1>CONTROL DE VEHÍCULOS</h1>
 
-<div class="flex gap-2 mb-4">
+<div [style]="{backgroundColor: 'Green'}" class="p-8">
   <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
   <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"></p-button>
 
 </div>
 <!-- Diálogo de Opciones de Despacho -->
-<p-dialog header="Despachar Vehículo"
-          [(visible)]="dialogOpcionesDespachoVisible"
-          [modal]="true"
-          [style]="{ width: '80vw' }">
-
-  <!-- ahora le pasamos el array de VINs, el objeto despachado y el evento -->
-  <app-despachar
+<app-despachar
     [vinsRegistrados]="vehiculos"
     [(visible)]="dialogOpcionesDespachoVisible"
     (guardarDespacho)="onDespachoGuardado($event)">
-  </app-despachar>
+</app-despachar>
 
-  <ng-template pTemplate="footer">
-    <p-button label="Cerrar"
-              icon="pi pi-times"
-              (click)="dialogOpcionesDespachoVisible = false">
-    </p-button>
-  </ng-template>
-</p-dialog>
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
   <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin">
@@ -69,7 +56,7 @@
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
         <td>
-          <div class="flex gap-1">
+          <div class="flex gap-1 bg-indigo-400">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
                     (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
             <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
@@ -80,7 +67,9 @@
       </tr>
     </ng-template>
   </p-table>
-<!-- Dialogo para despacho -->
+
+
+<!-- Dialogo para detalles de despacho -->
 <p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}"
           [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{ width: '80vw' }">
   <div *ngIf="vehiculoConDespacho">
@@ -94,6 +83,14 @@
         <label>DUCA</label>
         <p>{{ vehiculoConDespacho.duca }}</p>
       </div>
+      <div class="field">
+        <label>Motorista</label>
+        <p>{{ vehiculoConDespacho.motorista }}</p>
+      </div>
+      <div class="field">
+        <label>Observaciones</label>
+        <p>{{ vehiculoConDespacho.observaciones }}</p>
+      </div>
     </div>
     <!-- Para TRANSITO -->
     <div *ngIf="vehiculoConDespacho.copiaBL" class="p-fluid">
@@ -104,6 +101,14 @@
       <div class="field">
         <label>Tarja</label>
         <p>{{ vehiculoConDespacho.tarja }}</p>
+      </div>
+      <div class="field">
+        <label>Motorista</label>
+        <p>{{ vehiculoConDespacho.motorista }}</p>
+      </div>
+      <div class="field">
+        <label>Observaciones</label>
+        <p>{{ vehiculoConDespacho.observaciones }}</p>
       </div>
     </div>
   </div>

@@ -48,12 +48,16 @@ export class VehiculoService {
     if (datosDespacho.bl) {
       vehiculo.bl      = datosDespacho.bl;
       vehiculo.duca    = datosDespacho.duca;
+      vehiculo.motorista= datosDespacho.motorista;
+      vehiculo.observaciones= datosDespacho.observaciones;
       vehiculo.despacho = 'DM';
     }
     else if (datosDespacho.copiaBL) {
       vehiculo.copiaBL = datosDespacho.copiaBL;
       vehiculo.duca    = datosDespacho.duca;
       vehiculo.tarja   = datosDespacho.tarja;
+      vehiculo.motorista= datosDespacho.motorista;
+      vehiculo.observaciones= datosDespacho.observaciones;
       vehiculo.despacho = 'TRANSITO';
     }
 

@@ -6,9 +6,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { VehiculoService } from '../services/vehiculo.service';
-import { ListboxModule } from 'primeng/listbox';
+import { DropdownModule } from 'primeng/dropdown';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { EditorModule } from 'primeng/editor';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 
 @Component({
   selector: 'app-despachar',
@@ -19,9 +20,10 @@ import { EditorModule } from 'primeng/editor';
     DialogModule,
     InputTextModule,
     FormsModule,
-    ListboxModule,
+    DropdownModule,
     SelectButtonModule,
-    EditorModule
+    EditorModule,
+    InputTextareaModule
   ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
@@ -69,7 +71,7 @@ export class DespacharComponent implements OnInit {
     }
   }
 
-  
+
   /** Texto para el header */
   getHeaderText(): string {
     if (this.modoVisualizacion) {

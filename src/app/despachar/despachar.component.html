@@ -3,8 +3,7 @@
           (onShow)="onShow()"
           (onHide)="cerrarDialogo()"
           [modal]="true"
-          [style]="{ width: '50vw', 'min-height': '800px' }"
-          [contentStyle]="{ padding: '2rem', display: 'flex', 'flex-direction': 'column', gap: '1.5rem' }">
+          >
 
   <!-- Solo en modo edición/creación -->
   <div class="p-fluid formgrid grid" *ngIf="!modoVisualizacion">
@@ -17,21 +16,27 @@
                       (onChange)="cambiarTipoDespacho()">
       </p-selectButton>
     </div>
+    
     <!-- VIN -->
     <div class="field col-12">
-      <label>Buscar VIN registrado</label>
-      <p-listbox [options]="vinsRegistrados"
-                 [(ngModel)]="vinSeleccionado"
-                 optionLabel="vin"
-                 [filter]="true"
-                 [style]="{ 'max-height': '120px' }"
-                 (onChange)="seleccionarVin($event)">
+      <label for="vinDropdown">Buscar VIN registrado</label>
+      <p-dropdown
+        inputId="vinDropdown"
+        [options]="vinsRegistrados"
+        [(ngModel)]="vinSeleccionado"
+        optionLabel="vin"
+        [panelStyle]="{ 'max-height': '120px', 'overflow-y': 'auto' }"
+        [style]="{ width: '100%' }"
+        placeholder="Seleccione un VIN"
+        (onChange)="seleccionarVin($event)">
+
         <ng-template let-item pTemplate="item">
           <div class="flex align-items-center">
             <span>{{ item.vin }} – {{ item.marca }} ({{ item.anio }})</span>
           </div>
         </ng-template>
-      </p-listbox>
+
+      </p-dropdown>
     </div>
   </div>
 
@@ -87,12 +92,17 @@
 
     <!-- Observaciones -->
     <div class="field col-12">
-      <label>Observaciones</label>
-      <p-editor [(ngModel)]="despacho.observaciones"
-                [style]="{ height: '200px' }"
-                [readonly]="modoVisualizacion"
-                styleClass="w-full">
-      </p-editor>
+      <label for="observaciones">Observaciones</label>
+      <textarea
+        id="observaciones"
+        pInputTextarea
+        style="height: 200px; resize: none; overflow: auto; width: 100%;"
+        rows="1"
+        [(ngModel)]="despacho.observaciones"
+        name="observaciones"
+        [disabled]="modoVisualizacion"
+        class="w-full">
+      </textarea>
     </div>
   </div>
 
