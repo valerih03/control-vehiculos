@@ -44,3 +44,30 @@ p-listbox {
 #motorista {
   margin-bottom: 1.5rem;
 }
+/* Estilos para el diálogo y dropdown */
+.p-dialog {
+  overflow: visible !important;
+}
+
+.p-dialog-content {
+  overflow: visible !important;
+}
+
+.p-dropdown-panel {
+  z-index: 1100 !important;
+  position: fixed !important;
+  max-height: 200px !important;
+}
+
+/* Ajustes específicos para el dropdown de VIN */
+#vinDropdown ~ .p-dropdown-panel {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+/* Asegurar que el diálogo no cause scroll innecesario */
+.p-dialog-mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

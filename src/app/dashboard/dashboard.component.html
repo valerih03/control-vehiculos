@@ -7,7 +7,6 @@
   <p-button (click)="showCrearDialog()"  label="Ingresar Datos" icon="pi pi-plus"></p-button>
   <p-button (click)="dialogConsultaVisible = true"  label="Consultar Datos" icon="pi pi-search"></p-button>
   <p-button (click)="dialogOpcionesDespachoVisible = true"  label="Realizar Despacho" icon="pi pi-truck"></p-button>
-
 </div>
 <!-- Diálogo de Opciones de Despacho -->
 <app-despachar
@@ -15,7 +14,6 @@
     [(visible)]="dialogOpcionesDespachoVisible"
     (guardarDespacho)="onDespachoGuardado($event)">
 </app-despachar>
-
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
   <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin">
@@ -67,63 +65,58 @@
       </tr>
     </ng-template>
   </p-table>
-
-
 <!-- Dialogo para detalles de despacho -->
 <p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}"
           [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{ width: '80vw' }">
   <div *ngIf="vehiculoConDespacho">
-    <!-- Para DM -->
-    <div *ngIf="vehiculoConDespacho.bl" class="p-fluid">
-      <div class="field">
-        <label>N° BL</label>
-        <p>{{ vehiculoConDespacho.bl }}</p>
-      </div>
-      <div class="field">
-        <label>DUCA</label>
-        <p>{{ vehiculoConDespacho.duca }}</p>
-      </div>
-      <div class="field">
-        <label>Motorista</label>
-        <p>{{ vehiculoConDespacho.motorista }}</p>
-      </div>
-      <div class="field">
-        <label>Observaciones</label>
-        <p>{{ vehiculoConDespacho.observaciones }}</p>
+    <div class="field mb-4">
+      <label class="font-bold">Tipo de Despacho:</label>
+      <div>
+        <span class="p-tag" [ngClass]="{
+          'p-tag-info': getSeverity(vehiculoConDespacho.despacho) === 'info',
+          'p-tag-warning': getSeverity(vehiculoConDespacho.despacho) === 'warning'
+        }">
+          {{ vehiculoConDespacho.despacho || 'No especificado' }}
+        </span>
       </div>
     </div>
-    <!-- Para TRANSITO -->
-    <div *ngIf="vehiculoConDespacho.copiaBL" class="p-fluid">
-      <div class="field">
-        <label>Copia BL</label>
-        <p>{{ vehiculoConDespacho.copiaBL }}</p>
-      </div>
-      <div class="field">
-        <label>Tarja</label>
-        <p>{{ vehiculoConDespacho.tarja }}</p>
-      </div>
-      <div class="field">
-        <label>Motorista</label>
-        <p>{{ vehiculoConDespacho.motorista }}</p>
-      </div>
-      <div class="field">
-        <label>Observaciones</label>
-        <p>{{ vehiculoConDespacho.observaciones }}</p>
-      </div>
+    <div class="field"><br>
+      <label class="font-bold">Motorista:</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.motorista || 'No especificado' }}</p>
+    </div>
+    <div class="field">
+      <label class="font-bold">DUCA:</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.duca || 'No especificado' }}</p>
+    </div>
+    <div *ngIf="vehiculoConDespacho.despacho === 'DM'" class="field">
+      <label class="font-bold">N° BL</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.bl || 'No especificado' }}</p>
+    </div>
+
+    <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
+      <label class="font-bold">Copia BL</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.copiaBL || 'No especificado' }}</p>
+    </div>
+    <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
+      <label class="font-bold">Tarja</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.tarja || 'No especificado' }}</p>
+    </div>
+    <div class="field">
+      <label class="font-bold">Observaciones:</label>
+      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</p>
     </div>
   </div>
   <ng-template pTemplate="footer">
-    <p-button label="Cerrar" icon="pi pi-times"
-              (click)="mostrarDetalleDespacho = false"></p-button>
+    <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
   </ng-template>
 </p-dialog>
-  <div class="flex justify-between mt-4">
-    <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
-    <div class="flex gap-2">
-      <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
-    </div>
-
+<div class="flex justify-between mt-4">
+  <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
+  <div class="flex gap-2">
+    <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
   </div>
+
+</div>
 </p-dialog>
 <!-- Dialog para insertar y actualizar -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible" [style]="{ width: '60rem' }">

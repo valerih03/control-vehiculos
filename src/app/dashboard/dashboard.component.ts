@@ -84,6 +84,13 @@ export class DashboardComponent {
     this.filteredVehiculos = [...this.vehiculos];
     this.updateSortedVehiculos();
   }
+  getSeverity(tipoDespacho: string): string {
+    switch(tipoDespacho) {
+      case 'DM': return 'info';
+      case 'TRANSITO': return 'warning';
+      default: return 'info';
+    }
+  }
 
   //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
@@ -91,7 +98,6 @@ export class DashboardComponent {
     this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculoPorVin(vehiculo.vin);
     this.mostrarDetalleDespacho = true;
   }
-
   onDespachoGuardado(datos: any) {
     const ok = this.vehiculoService.actualizarDespacho(datos);
     if (ok) {

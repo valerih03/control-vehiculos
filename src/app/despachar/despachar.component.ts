@@ -10,21 +10,12 @@ import { DropdownModule } from 'primeng/dropdown';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { EditorModule } from 'primeng/editor';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-
+import { TagModule } from 'primeng/tag';
 @Component({
   selector: 'app-despachar',
   standalone: true,
-  imports: [
-    CommonModule,
-    ButtonModule,
-    DialogModule,
-    InputTextModule,
-    FormsModule,
-    DropdownModule,
-    SelectButtonModule,
-    EditorModule,
-    InputTextareaModule
-  ],
+  imports: [ CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule,
+    DropdownModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
@@ -50,18 +41,15 @@ export class DespacharComponent implements OnInit {
     tarja: '',
     observaciones: ''
   };
-
   tipoSeleccionado = { name: 'DM', value: 'DM' };
   tiposDespacho = [
     { name: 'DM', value: 'DM' },
     { name: 'TRANSITO', value: 'TRANSITO' }
   ];
-
   constructor(
     private messageService: MessageService,
     private vehiculoService: VehiculoService
   ) {}
-
   ngOnInit() {
     if (this.modoVisualizacion && this.vehiculoParaMostrar) {
       this.despacho = { ...this.vehiculoParaMostrar };
@@ -70,9 +58,6 @@ export class DespacharComponent implements OnInit {
         : this.tiposDespacho[1];
     }
   }
-
-
-  /** Texto para el header */
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
@@ -81,8 +66,6 @@ export class DespacharComponent implements OnInit {
       ? 'Despacho TRANSITO'
       : 'Despacho DM';
   }
-
-  /** Recarga la lista de VINs al abrir */
   onShow() {
     this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
       .filter(v => v.vin)
@@ -92,11 +75,9 @@ export class DespacharComponent implements OnInit {
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
       }));
   }
-
   cerrarDialogo() {
     this.visibleChange.emit(false);
   }
-
   cambiarTipoDespacho() {
     const vinActual = this.despacho.vin;
     this.despacho = {
@@ -110,7 +91,6 @@ export class DespacharComponent implements OnInit {
       observaciones: ''
     };
   }
-
   seleccionarVin(event: any) {
     if (!event.value) {
       return;
@@ -136,7 +116,6 @@ export class DespacharComponent implements OnInit {
       this.cambiarTipoDespacho();
     }
   }
-
   onGuardar() {
     this.despacho.tipo = this.tipoSeleccionado.value;
     this.guardarDespacho.emit(this.despacho);
