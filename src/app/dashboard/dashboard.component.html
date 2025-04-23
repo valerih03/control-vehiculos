@@ -1,12 +1,12 @@
 <p-toast></p-toast>
 <p-confirmDialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmDialog>
 
-<h1>CONTROL DE VEHÍCULOS</h1>
+<h1 class="text-center">CONTROL DE VEHÍCULOS</h1>
 
-<div [style]="{backgroundColor: 'Green'}" class="p-8">
-  <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus"></p-button>
-  <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"></p-button>
-  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"></p-button>
+<div class="flex card justify-content-center p-4">
+  <p-button (click)="showCrearDialog()"  label="Ingresar Datos" icon="pi pi-plus"></p-button>
+  <p-button (click)="dialogConsultaVisible = true"  label="Consultar Datos" icon="pi pi-search"></p-button>
+  <p-button (click)="dialogOpcionesDespachoVisible = true"  label="Realizar Despacho" icon="pi pi-truck"></p-button>
 
 </div>
 <!-- Diálogo de Opciones de Despacho -->
@@ -56,7 +56,7 @@
         <td>{{ vehiculo.estilo }}</td>
         <td>{{ vehiculo.color }}</td>
         <td>
-          <div class="flex gap-1 bg-indigo-400">
+          <div class="flex gap-1">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
                     (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
             <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
