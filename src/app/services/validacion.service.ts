@@ -41,7 +41,6 @@ export class ValidacionService {
           Validators.required,
           Validators.pattern(this.patterns.vin),
           Validators.minLength(17),
-          Validators.maxLength(17)
         ];
       case 'fecha':
         return [
@@ -76,11 +75,8 @@ export class ValidacionService {
   ): string {
     const msgs: Record<string,string> = {
       required:             `${campo} es requerido`,
-      minlength:            `${campo} debe tener al menos ${errorValue.requiredLength} caracteres`,
-      maxlength:            `${campo} no puede tener más de ${errorValue.requiredLength} caracteres`,
-      pattern:              `${campo} tiene un formato inválido`,
-      nitInvalido:          `Formato inválido. Ej: 1234-051180-001-2`,
-      vinInvalido:          `Formato inválido (17 caracteres alfanumérico sin I, O, Q)`,
+      pattern:              ` ${campo} tiene un formato inválido`,
+      minlength:            ` ${campo} debe tener al menos ${errorValue.requiredLength} caracteres`,
       anioInvalido:         `El año está fuera del rango permitido`,
       fechaFutura:          `La fecha no puede ser futura`,
       fechaRescateAnterior: `La fecha de rescate no puede ser anterior a la fecha de ingreso`
