@@ -57,7 +57,7 @@
           <div class="flex gap-1">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
                     (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
-            <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info p-button-sm"
+            <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button-sm"
                     (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" style="width: 1rem;"
                     [disabled]="!vehiculo.despacho"></button>
           </div>
@@ -89,16 +89,16 @@
       <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.duca || 'No especificado' }}</p>
     </div>
     <div *ngIf="vehiculoConDespacho.despacho === 'DM'" class="field">
-      <label class="font-bold">N° BL</label>
+      <label class="font-bold">N° BL:</label>
       <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.bl || 'No especificado' }}</p>
     </div>
 
     <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
-      <label class="font-bold">Copia BL</label>
+      <label class="font-bold">N° BL:</label>
       <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.copiaBL || 'No especificado' }}</p>
     </div>
     <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
-      <label class="font-bold">Tarja</label>
+      <label class="font-bold">Tarja:</label>
       <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.tarja || 'No especificado' }}</p>
     </div>
     <div class="field">

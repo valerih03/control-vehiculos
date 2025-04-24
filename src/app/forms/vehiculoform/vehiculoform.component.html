@@ -53,10 +53,19 @@
   <!-- anio -->
   <div class="flex items-center gap-4 mb-8">
     <label for="año" class="font-semibold w-24">Año</label>
-    <p-calendar formControlName="anio" view="year" dateFormat="yy" [yearNavigator]="true" yearRange="1990:2050" inputId="año" class="flex-auto" />
+    <p-calendar
+  formControlName="anio"
+  view="year"
+  dateFormat="yy"
+  [yearNavigator]="true"
+  yearRange="1990:2026"
+  [maxDate]="maxAnio"
+  inputId="año"
+  class="flex-auto"
+/>
     <div class="p-error text-sm mt-1"
     *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
-      <small>El año está fuera del rango permitido (1990–2050)</small>
+      <small>El año está fuera del rango permitido (1990–2026)</small>
     </div>
   </div>
 

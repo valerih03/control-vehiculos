@@ -74,6 +74,21 @@ export class DespacharComponent implements OnInit {
         marca: v.marca || 'Sin marca',
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
       }));
+    // Limpiar formulario
+    if (!this.modoVisualizacion) {
+      this.despacho = {
+        tipo: this.tipoSeleccionado.value,
+        vin: '',
+        motorista: '',
+        bl: '',
+        copiaBL: '',
+        duca: '',
+        tarja: '',
+        observaciones: ''
+      };
+      this.tipoSeleccionado = { name: 'DM', value: 'DM' };
+      this.vinSeleccionado = null;
+    }
   }
   cerrarDialogo() {
     this.visibleChange.emit(false);
@@ -103,19 +118,30 @@ export class DespacharComponent implements OnInit {
       .find(v => v.vin === vin);
 
     if (veh && veh.despacho) {
-      // carga despachos previos
-      this.despacho.motorista    = veh.motorista    || '';
-      this.despacho.bl           = veh.bl           || '';
-      this.despacho.copiaBL      = veh.copiaBL      || '';
-      this.despacho.duca         = veh.duca         || '';
-      this.despacho.tarja        = veh.tarja        || '';
+      // Cargar despachos previos
+      this.despacho.motorista     = veh.motorista     || '';
+      this.despacho.bl            = veh.bl            || '';
+      this.despacho.copiaBL       = veh.copiaBL       || '';
+      this.despacho.duca          = veh.duca          || '';
+      this.despacho.tarja         = veh.tarja         || '';
       this.despacho.observaciones = veh.observaciones || '';
-      this.tipoSeleccionado      = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
+      this.tipoSeleccionado       = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
     } else {
-      // formulario limpio excepto VIN y motorista
+      // Limpiar todos los campos excepto VIN
+      this.despacho = {
+        vin: vin,
+        motorista: '',  // si también quieres conservarlo, puedes hacerlo
+        bl: '',
+        copiaBL: '',
+        duca: '',
+        tarja: '',
+        observaciones: ''
+      };
+      // Reiniciar el tipo de despacho u otras propiedades si hace falta
       this.cambiarTipoDespacho();
     }
   }
+
   onGuardar() {
     this.despacho.tipo = this.tipoSeleccionado.value;
     this.guardarDespacho.emit(this.despacho);

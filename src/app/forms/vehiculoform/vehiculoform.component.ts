@@ -78,6 +78,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     private validacionService: ValidacionService,
     private messageService: MessageService
   ) {}
+  maxAnio = new Date(2026, 11, 31);  // diciembre es 11 (0-indexed)
 
   ngOnInit() {
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
@@ -97,7 +98,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       ],
       anio: [
         this.vehiculo.anio || null,
-        this.validacionService.getValidators('anio'),
+        [Validators.required, Validators.min(1990), Validators.max(2026)]
       ],
       marca: [this.vehiculo.marca || '', Validators.required],
       estilo: [this.vehiculo.estilo || '', Validators.required],
@@ -173,7 +174,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     this.guardar.emit(this.vehiculoForm.getRawValue());
   }
 
-  
+
   // Helper para mapear formControlName
   private obtenerEtiqueta(cn: string) {
     const labels: Record<string, string> = {

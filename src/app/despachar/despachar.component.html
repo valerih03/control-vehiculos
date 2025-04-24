@@ -9,25 +9,27 @@
     <div class="field col-12">
       <label for="vinDropdown">Buscar VIN registrado</label>
       <p-dropdown
-            inputId="vinDropdown"
-            [options]="vinsRegistrados"
-            [(ngModel)]="vinSeleccionado"
-            optionLabel="vin"
-            [panelStyle]="{ 'max-height': '200px' }"
-            [style]="{ width: '100%' }"
-            placeholder="Seleccione un VIN"
-            (onChange)="seleccionarVin($event)"
-            appendTo="body"
-            [autoDisplayFirst]="false"
-            [virtualScroll]="true"
-            [virtualScrollItemSize]="34">
-
-  <ng-template let-item pTemplate="item">
-    <div class="flex align-items-center">
-      <span>{{ item.vin }}</span>
-    </div>
-  </ng-template>
-</p-dropdown>
+        inputId="vinDropdown"
+        [options]="vinsRegistrados"
+        [(ngModel)]="vinSeleccionado"
+        optionLabel="vin"
+        [panelStyle]="{ 'max-height': '200px' }"
+        [style]="{ width: '100%' }"
+        placeholder="Seleccione un VIN"
+        (onChange)="seleccionarVin($event)"
+        appendTo="body"
+        [autoDisplayFirst]="false"
+        [virtualScroll]="true"
+        [virtualScrollItemSize]="34"
+        [filter]="true"
+        filterPlaceholder="Buscar VIN"
+      >
+        <ng-template let-item pTemplate="item">
+          <div class="flex align-items-center">
+            <span>{{ item.vin }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
     </div>
   </div>
   <div class="p-fluid formgrid grid">
@@ -49,7 +51,7 @@
       <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label>Copia de BL</label>
+      <label>N° de BL</label>
       <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
