@@ -30,6 +30,15 @@ export class DespacharComponent implements OnInit {
   @Output() guardarDespacho = new EventEmitter<any>();
 
   vinSeleccionado: any = null;
+   // Variables para control de errores
+   mostrarErrorVin = false;
+   mostrarErrorMotorista = false;
+   mostrarErrorBl = false;
+   mostrarErrorCopiaBl = false;
+   mostrarErrorDuca = false;
+   mostrarErrorTarja = false;
+   intentoGuardar = false;
+
 
   despacho: any = {
     tipo: '',
@@ -67,6 +76,8 @@ export class DespacharComponent implements OnInit {
       : 'Despacho DM';
   }
   onShow() {
+    this.intentoGuardar = false;
+    this.resetearErrores();
     this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
       .filter(v => v.vin)
       .map(v => ({
@@ -107,9 +118,8 @@ export class DespacharComponent implements OnInit {
     };
   }
   seleccionarVin(event: any) {
-    if (!event.value) {
-      return;
-    }
+    if (!event.value) return;
+
     const vin = event.value.vin;
     this.despacho.vin = vin;
     this.vinSeleccionado = event.value;
@@ -130,21 +140,68 @@ export class DespacharComponent implements OnInit {
       // Limpiar todos los campos excepto VIN
       this.despacho = {
         vin: vin,
-        motorista: '',  // si también quieres conservarlo, puedes hacerlo
+        motorista: '',
         bl: '',
         copiaBL: '',
         duca: '',
         tarja: '',
         observaciones: ''
       };
-      // Reiniciar el tipo de despacho u otras propiedades si hace falta
       this.cambiarTipoDespacho();
     }
+    // Reseteamos todos los errores al seleccionar un VIN
+    this.resetearErrores();
   }
-
+  private resetearErrores(): void {
+    this.mostrarErrorVin = false;
+    this.mostrarErrorMotorista = false;
+    this.mostrarErrorBl = false;
+    this.mostrarErrorCopiaBl = false;
+    this.mostrarErrorDuca = false;
+    this.mostrarErrorTarja = false;
+  }
   onGuardar() {
+    this.intentoGuardar = true;
+    if (!this.validarFormulario()) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Por favor complete todos los campos obligatorios'
+      });
+      return;
+    }
+
     this.despacho.tipo = this.tipoSeleccionado.value;
     this.guardarDespacho.emit(this.despacho);
     this.visibleChange.emit(false);
+}
+
+validarFormulario(): boolean {
+  let valido = true;
+
+  // Solo validar si ya se intentó guardar
+  if (this.intentoGuardar) {
+    this.mostrarErrorVin = !this.despacho.vin;
+    if (this.mostrarErrorVin) valido = false;
+
+    this.mostrarErrorMotorista = !this.despacho.motorista;
+    if (this.mostrarErrorMotorista) valido = false;
+
+    if (this.tipoSeleccionado.value === 'DM') {
+      this.mostrarErrorBl = !this.despacho.bl;
+      this.mostrarErrorDuca = !this.despacho.duca;
+      if (this.mostrarErrorBl || this.mostrarErrorDuca) valido = false;
+    } else {
+      this.mostrarErrorCopiaBl = !this.despacho.copiaBL;
+      this.mostrarErrorTarja = !this.despacho.tarja;
+      this.mostrarErrorDuca = !this.despacho.duca;
+      if (this.mostrarErrorCopiaBl || this.mostrarErrorTarja || this.mostrarErrorDuca) valido = false;
+    }
+  }
+
+  return valido;
+}
+  formularioValido(): boolean {
+    return this.validarFormulario();
   }
 }
