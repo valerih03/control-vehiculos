@@ -7,32 +7,28 @@
       </p-selectButton>
     </div>
     <div class="field col-12">
-      <label for="vinDropdown">Buscar VIN registrado</label>
-      <p-dropdown
-        inputId="vinDropdown"
-        [options]="vinsRegistrados"
+      <label for="vinAutoComplete">Buscar VIN registrado</label>
+      <p-autoComplete
+        inputId="vinAutoComplete"
         [(ngModel)]="vinSeleccionado"
-        optionLabel="vin"
-        [panelStyle]="{ 'max-height': '200px' }"
-        [style]="{ width: '100%' }"
+        [suggestions]="vinFiltrados"
+        (completeMethod)="filtrarVins($event)"
+        field="vin"
+        [dropdown]="true"
         placeholder="Seleccione un VIN"
-        (onChange)="seleccionarVin($event)"
-        appendTo="body"
-        [autoDisplayFirst]="false"
-        [virtualScroll]="true"
-        [virtualScrollItemSize]="34"
-        [filter]="true"
-        filterPlaceholder="Buscar VIN"
+        [style]="{ width: '100%' }"
         [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorVin}"
+        (onSelect)="seleccionarVin($event)"
       >
-        <ng-template let-item pTemplate="item">
+        <ng-template let-vin pTemplate="item">
           <div class="flex align-items-center">
-            <span>{{ item.vin }}</span>
+            <span>{{ vin.vin }}</span>
           </div>
         </ng-template>
-      </p-dropdown>
+      </p-autoComplete>
       <small *ngIf="intentoGuardar && mostrarErrorVin" class="p-error">Campo obligatorio</small>
     </div>
+
   </div>
   <div class="p-fluid formgrid grid">
     <div class="field col-12">
