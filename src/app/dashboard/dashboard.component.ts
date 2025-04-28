@@ -64,12 +64,13 @@ export class DashboardComponent {
   nuevoVehiculo = {
     consignatario: '',
     nit: '',
-    fecha: '',
+    /* fecha: '', */
     vin: '',
     anio: null,
     marca: '',
-    estilo: '',
-    color: ''
+/*     estilo: '',
+    color: '', */
+    estado: ''
   };
   constructor(
     private confirmationService: ConfirmationService,
@@ -99,16 +100,84 @@ export class DashboardComponent {
     this.mostrarDetalleDespacho = true;
   }
   onDespachoGuardado(datos: any) {
+    const datosCompletos = {
+      ...datos,
+      estado: 'Deshabilitado'
+    };
+
     const ok = this.vehiculoService.actualizarDespacho(datos);
     if (ok) {
       this.messageService.add({
         severity: 'success',
-        summary:   'Despacho',
-        detail:    'Detalle de despacho guardado correctamente.'
+        summary: 'Despacho',
+        detail: 'Detalle de despacho guardado correctamente.'
       });
       this.vehiculos = this.vehiculoService.obtenerVehiculos();
       this.dialogOpcionesDespachoVisible = false;
     }
+  }
+  // Método para reactivar un vehículo
+reactivarVehiculo(vin: string) {
+  this.confirmationService.confirm({
+    message: '¿Está seguro que desea reactivar este vehículo? Esto lo volverá a disponer para despacho.',
+    header: 'Confirmar Reactivación',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Sí, reactivar',
+    rejectLabel: 'Cancelar',
+    accept: () => {
+      const vehiculo = this.vehiculoService.obtenerVehiculoPorVin(vin);
+
+      if (vehiculo) {
+        vehiculo.estado = 'Disponible';
+        vehiculo.despacho = null; // Elimina los datos del despacho anterior
+
+        // Actualiza el vehículo en el servicio
+        const success = this.vehiculoService.actualizarVehiculo(vehiculo);
+
+        if (success) {
+          // Actualiza la lista local de vehículos
+          this.vehiculos = this.vehiculoService.obtenerVehiculos();
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Vehículo reactivado',
+            detail: `El vehículo con VIN ${vin} ha sido reactivado exitosamente`
+          });
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo reactivar el vehículo'
+          });
+        }
+      }
+    }
+  });
+}
+  //Metodo para mostrar el ESTADO de un vehiculo
+  getEstadoVehiculo(vehiculo: any): string {
+    return vehiculo.despacho ? 'Deshabilitado' : 'Disponible';
+  }
+  obtenerVehiculos(): any[] {
+    return this.vehiculos.map(v => ({
+      ...v,
+      estado: v.despacho ? 'Deshabilitado' : 'Disponible'
+    }));
+  }
+  actualizarDespacho(datos: any): boolean {
+    const vehiculo = this.vehiculos.find(v => v.vin === datos.vin);
+    if (vehiculo) {
+      vehiculo.despacho = datos.tipo; // 'DM' o 'TRANSITO'
+      vehiculo.motorista = datos.motorista;
+      vehiculo.bl = datos.bl;
+      vehiculo.copiaBL = datos.copiaBL;
+      vehiculo.duca = datos.duca;
+      vehiculo.tarja = datos.tarja;
+      vehiculo.observaciones = datos.observaciones;
+      vehiculo.estado = 'Deshabilitado'; // Aquí actualizamos el estado
+      return true;
+    }
+    return false;
   }
    // Método para abrir el diálogo en modo creación
    showCrearDialog() {

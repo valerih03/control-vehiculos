@@ -33,40 +33,33 @@
   <div class="p-fluid formgrid grid">
     <div class="field col-12">
       <label>VIN</label>
-      <input pInputText [(ngModel)]="despacho.vin" readonly styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorVin}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorVin" class="p-error">Campo obligatorio</small>
+      <input pInputText [(ngModel)]="despacho.vin" readonly styleClass="w-full"/>
     </div>
     <div class="field col-12 md:col-6">
       <label>Motorista</label>
       <input pInputText [(ngModel)]="despacho.motorista"
-             [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorMotorista}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorMotorista" class="p-error">Campo obligatorio</small>
+             [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
       <label>N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorBl}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorBl" class="p-error">Campo obligatorio</small>
+      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
       <label>DUCA</label>
-      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorDuca}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorDuca" class="p-error">Campo obligatorio</small>
+      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
       <label>N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorCopiaBl}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorCopiaBl" class="p-error">Campo obligatorio</small>
+      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
       <label>Tarja</label>
-      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorTarja}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorTarja" class="p-error">Campo obligatorio</small>
+      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
       <label>DUCA</label>
       <input pInputText [(ngModel)]="despacho.duca"
-             [readonly]="modoVisualizacion" styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorDuca}"/>
-      <small *ngIf="intentoGuardar && mostrarErrorDuca" class="p-error">Campo obligatorio</small>
+             [readonly]="modoVisualizacion" styleClass="w-full"/>
     </div>
     <div class="field col-12">
       <label for="observaciones">Observaciones</label>
@@ -82,7 +75,7 @@
   <ng-template pTemplate="footer">
     <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()">
     </p-button>
-    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check" (click)="onGuardar()" [disabled]="!formularioValido()">
+    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check" (click)="onGuardar()">
     </p-button>
   </ng-template>
 </p-dialog>

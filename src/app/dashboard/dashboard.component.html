@@ -14,6 +14,8 @@
     [(visible)]="dialogOpcionesDespachoVisible"
     (guardarDespacho)="onDespachoGuardado($event)">
 </app-despachar>
+<app-despachar [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible" (guardarDespacho)="onDespachoGuardado($event)">
+</app-despachar>
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
   <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin">
@@ -25,7 +27,6 @@
           <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." style="width: 100%">
         </th>
         <th>NIT</th>
-        <th>Fecha</th>
         <th>
           VIN
           <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..." style="width: 100%">
@@ -35,8 +36,7 @@
           Marca
           <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..." style="width: 100%">
         </th>
-        <th>Estilo</th>
-        <th>Color</th>
+        <th>Estado</th>
         <th>Acciones</th>
       </tr>
     </ng-template>
@@ -47,19 +47,43 @@
         <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
         <td [innerHTML]="getHighlightedText(vehiculo.consignatario, 'consignatario')"></td>
         <td>{{ vehiculo.nit }}</td>
-        <td>{{ vehiculo.fecha | date:'dd/MM/yyyy' }}</td>
         <td [innerHTML]="getHighlightedText(vehiculo.vin, 'vin')"></td>
         <td>{{ vehiculo.anio | date:'yyyy' }}</td>
         <td [innerHTML]="getHighlightedText(vehiculo.marca, 'marca')"></td>
-        <td>{{ vehiculo.estilo }}</td>
-        <td>{{ vehiculo.color }}</td>
+        <td>
+          <div class="flex align-items-center gap-2">
+            <span class="p-tag"
+                  [ngClass]="{
+                    'p-tag-success': !vehiculo.despacho,
+                    'p-tag-warning': vehiculo.despacho && vehiculo.estado !== 'Deshabilitado',
+                    'p-tag-danger': vehiculo.estado === 'Deshabilitado'
+                  }"
+                  [pTooltip]="vehiculo.despacho ? 'Despachado como ' + (vehiculo.despacho.tipo || vehiculo.despacho) : 'Disponible para despacho'"
+                  tooltipPosition="top">
+              {{ getEstadoVehiculo(vehiculo) }}
+            </span>
+            <button *ngIf="vehiculo.estado === 'Deshabilitado'"
+                    pButton icon="pi pi-history"
+                    class="p-button-rounded p-button-text p-button-sm"
+                    (click)="reactivarVehiculo(vehiculo.vin); $event.stopPropagation()"
+                    pTooltip="Reactivar vehículo"
+                    tooltipPosition="top"></button>
+          </div>
+        </td>
         <td>
           <div class="flex gap-1">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
-                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()" style="width: 1rem;"></button>
+                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+                    style="width: 1rem;"
+                    [disabled]="vehiculo.estado === 'Deshabilitado'"
+                    pTooltip="Editar vehículo"
+                    tooltipPosition="top"></button>
             <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button-sm"
-                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" style="width: 1rem;"
-                    [disabled]="!vehiculo.despacho"></button>
+                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+                    style="width: 1rem;"
+                    [disabled]="!vehiculo.despacho"
+                    pTooltip="Ver detalle de despacho"
+                    tooltipPosition="top"></button>
           </div>
         </td>
       </tr>

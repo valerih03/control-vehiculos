@@ -1,4 +1,3 @@
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -7,15 +6,17 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { VehiculoService } from '../services/vehiculo.service';
+import { DropdownModule } from 'primeng/dropdown';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { EditorModule } from 'primeng/editor';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TagModule } from 'primeng/tag';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 @Component({
   selector: 'app-despachar',
   standalone: true,
   imports: [ CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule,
-    AutoCompleteModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule ],
+    DropdownModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule, AutoCompleteModule ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
@@ -30,14 +31,6 @@ export class DespacharComponent implements OnInit {
   @Output() guardarDespacho = new EventEmitter<any>();
 
   vinSeleccionado: any = null;
-   // Variables para control de errores
-   mostrarErrorVin = false;
-   mostrarErrorMotorista = false;
-   mostrarErrorBl = false;
-   mostrarErrorCopiaBl = false;
-   mostrarErrorDuca = false;
-   mostrarErrorTarja = false;
-   intentoGuardar = false;
 
   despacho: any = {
     tipo: '',
@@ -66,15 +59,22 @@ export class DespacharComponent implements OnInit {
         : this.tiposDespacho[1];
     }
   }
+  vinFiltrados: any[] = [];
+  // Variables para control de errores
+  mostrarErrorVin = false;
+  mostrarErrorMotorista = false;
+  mostrarErrorBl = false;
+  mostrarErrorCopiaBl = false;
+  mostrarErrorDuca = false;
+  mostrarErrorTarja = false;
+  intentoGuardar = false;
 
-vinFiltrados: any[] = [];
-
-filtrarVins(event: any) {
-  const query = event.query.toLowerCase();
-  this.vinFiltrados = this.vinsRegistrados.filter(v =>
-    v.vin.toLowerCase().includes(query)
-  );
-}
+  filtrarVins(event: any) {
+    const query = event.query.toLowerCase();
+    this.vinFiltrados = this.vinsRegistrados.filter(v =>
+      v.vin.toLowerCase().includes(query)
+    );
+  }
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
@@ -126,15 +126,14 @@ filtrarVins(event: any) {
     };
   }
   seleccionarVin(event: any) {
-    // Verificamos si el evento tiene un valor (puede ser undefined si se borra la selección)
-    if (!event) {
-        this.despacho.vin = '';
+    if (!event.value) {
+      this.despacho.vin = '';
         this.resetearErrores();
         return;
     }
-    const vin = event.vin; // Ahora el objeto viene directamente en el evento
+    const vin = event.value.vin;
     this.despacho.vin = vin;
-    this.vinSeleccionado = event; // Guardamos el objeto completo
+    this.vinSeleccionado = event.value;
 
     const veh = this.vehiculoService.obtenerVehiculos()
       .find(v => v.vin === vin);
@@ -147,10 +146,10 @@ filtrarVins(event: any) {
       this.despacho.duca          = veh.duca          || '';
       this.despacho.tarja         = veh.tarja         || '';
       this.despacho.observaciones = veh.observaciones || '';
-
-      // Seleccionar tipo de despacho basado en los datos
+      this.tipoSeleccionado       = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
       this.tipoSeleccionado = this.tiposDespacho.find(t => t.value === veh.tipoDespacho) ||
-                             (veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1]);
+      (veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1]);
+
     } else {
       // Limpiar todos los campos excepto VIN
       this.despacho = {
@@ -163,10 +162,11 @@ filtrarVins(event: any) {
         observaciones: ''
       };
       this.cambiarTipoDespacho();
-    }
-    // Reseteamos todos los errores al seleccionar un VIN
-    this.resetearErrores();
-}
+      }
+      // Reiniciar el tipo de despacho u otras propiedades si hace falta
+      this.resetearErrores();
+
+  }
   private resetearErrores(): void {
     this.mostrarErrorVin = false;
     this.mostrarErrorMotorista = false;
@@ -185,11 +185,15 @@ filtrarVins(event: any) {
       });
       return;
     }
-
-    this.despacho.tipo = this.tipoSeleccionado.value;
-    this.guardarDespacho.emit(this.despacho);
+    const datosDespacho = {
+      ...this.despacho,
+      tipo: this.tipoSeleccionado.value,
+      estado: 'Deshabilitado' 
+    };
+    console.log('Datos de despacho a guardar:', datosDespacho);
+    this.guardarDespacho.emit(datosDespacho);
     this.visibleChange.emit(false);
-}
+  }
 validarFormulario(): boolean {
   let valido = true;
   // Solo validar si ya se intentó guardar
