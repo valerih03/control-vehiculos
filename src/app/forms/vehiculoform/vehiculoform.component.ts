@@ -88,10 +88,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         this.vehiculo.nit || '',
         this.validacionService.getValidators('nit'),
       ],
-      fecha: [
-        this.vehiculo.fecha || '',
-        this.validacionService.getValidators('fecha'),
-      ],
+
       vin: [
         this.vehiculo.vin || '',
         this.validacionService.getValidators('vin'),
@@ -180,7 +177,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     const labels: Record<string, string> = {
       consignatario: 'Consignatario',
       nit: 'NIT',
-      fecha: 'Fecha',
       vin: 'VIN',
       anio: 'Año',
       marca: 'Marca',

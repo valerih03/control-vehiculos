@@ -118,14 +118,13 @@
 
 </div>
 </p-dialog>
-<!-- Dialog para insertar y actualizar -->
-<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible" [style]="{ width: '60rem' }">
-  <!-- Usa el componente de formulario, pasándole el objeto y el modo -->
-  <app-vehiculoform
+<p-dialog header="Control de vehículos"
+          [modal]="true"
+          [(visible)]="dialogVehiculoVisible"
+          >
+  <app-registro
     *ngIf="dialogVehiculoVisible"
-    [vehiculo]="vehiculoActual"
-    [modo]="modoFormulario"
     (guardar)="handleGuardar($event)"
     (cancelar)="handleCancelar()">
-  </app-vehiculoform>
+  </app-registro>
 </p-dialog>
