@@ -1,67 +1,46 @@
 import { Injectable } from '@angular/core';
-
+import { Vehiculo } from '../interfaces/vehiculo';
 @Injectable({
   providedIn: 'root',
 })
 export class VehiculoService {
   private readonly STORAGE_KEY = 'vehiculos_registrados';
-  private vehiculos: any[] = [];
+  private vehiculos: Vehiculo[] = [];
 
   constructor() {
     this.cargarDesdeLocalStorage();
   }
+
   private cargarDesdeLocalStorage() {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
   }
+
   private guardarEnLocalStorage() {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.vehiculos));
   }
-  agregarVehiculo(vehiculo: any) {
-    this.vehiculos.push({...vehiculo});
+
+  agregarVehiculo(vehiculo: Vehiculo) {
+    this.vehiculos.push({ ...vehiculo });
     this.guardarEnLocalStorage();
   }
 
-  obtenerVehiculoPorVin(vin: string): any | undefined {
+  obtenerVehiculoPorVin(vin: string): Vehiculo | undefined {
     return this.vehiculos.find(v => v.vin === vin);
   }
 
-  obtenerVehiculos() {
+  obtenerVehiculos(): Vehiculo[] {
     return [...this.vehiculos];
   }
-  actualizarVehiculo(vehiculoActualizado: any) {
+
+  actualizarVehiculo(vehiculoActualizado: Vehiculo): boolean {
     const index = this.vehiculos.findIndex(v => v.vin === vehiculoActualizado.vin);
     if (index !== -1) {
-      this.vehiculos[index] = {...vehiculoActualizado};
+      this.vehiculos[index] = { ...vehiculoActualizado };
       this.guardarEnLocalStorage();
       return true;
     }
     return false;
   }
-  actualizarDespacho(datosDespacho: any): boolean {
-    const vehiculo = this.vehiculos.find(v => v.vin === datosDespacho.vin);
-    if (!vehiculo) {
-      console.error('Vehículo no encontrado con VIN:', datosDespacho.vin);
-      return false;
-    }
 
-    if (datosDespacho.bl) {
-      vehiculo.bl      = datosDespacho.bl;
-      vehiculo.duca    = datosDespacho.duca;
-      vehiculo.motorista= datosDespacho.motorista;
-      vehiculo.observaciones= datosDespacho.observaciones;
-      vehiculo.despacho = 'DM';
-    }
-    else if (datosDespacho.copiaBL) {
-      vehiculo.copiaBL = datosDespacho.copiaBL;
-      vehiculo.duca    = datosDespacho.duca;
-      vehiculo.tarja   = datosDespacho.tarja;
-      vehiculo.motorista= datosDespacho.motorista;
-      vehiculo.observaciones= datosDespacho.observaciones;
-      vehiculo.despacho = 'TRANSITO';
-    }
-
-    this.guardarEnLocalStorage();
-    return true;
-  }
 }
