@@ -25,20 +25,6 @@
     </div>
   </div>
 
-  <!-- Fecha Ingreso -->
-  <div class="flex items-center gap-4 mb-4">
-    <label for="fecha" class="font-semibold w-24">Fecha</label>
-    <input pInputText type="date" id="fecha" formControlName="fecha" [attr.max]="todayISO" class="flex-auto" autocomplete="off"/>
-    <div class="p-error text-sm mt-1" *ngIf="vehiculoForm.get('fecha')?.touched">
-      <small *ngIf="vehiculoForm.get('fecha')?.hasError('required')">
-        Fecha es requerida
-      </small>
-      <small *ngIf="vehiculoForm.get('fecha')?.hasError('fechaFutura')">
-        La fecha no puede ser futura
-      </small>
-    </div>
-  </div>
-
   <!-- VIN -->
   <div class="flex items-center gap-4 mb-8">
     <label class="font-semibold w-24">VIN</label>

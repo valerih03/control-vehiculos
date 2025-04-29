@@ -16,7 +16,6 @@ p-button {
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 /* Estilo del cuadro de diálogo */

@@ -15,16 +15,17 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router, RouterModule } from '@angular/router';
 import { ValidacionService } from '../services/validacion.service';
 import {CheckboxModule} from 'primeng/checkbox';
-import {VehiculoformComponent} from '../forms/vehiculoform/vehiculoform.component';
 import { DespacharComponent } from '../despachar/despachar.component';
 import 'jspdf-autotable';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
+import { RegistroComponent } from '../forms/registro/registro.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, VehiculoformComponent, DespacharComponent,
-    ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule, FormsModule, AutoCompleteModule],
+  imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, DespacharComponent,
+            ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule,
+            FormsModule, AutoCompleteModule, RegistroComponent],
   providers: [ConfirmationService, MessageService, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -192,16 +193,35 @@ reactivarVehiculo(vin: string) {
     this.dialogVehiculoVisible = true;
   }
   // Maneja el evento del componente de formulario al guardar
-  handleGuardar(vehiculo: any) {
+  handleGuardar(registro: any) {
+    const { fechaIngreso, numeroBL, numeroTarja, vehiculo } = registro;
+
     if (this.modoFormulario === 'crear') {
-      // Para creación se agrega el vehículo
-      this.vehiculoService.agregarVehiculo(vehiculo);
-      this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Vehículo guardado correctamente.' });
+      this.vehiculoService.agregarVehiculo({
+        ...vehiculo,
+        fecha:       fechaIngreso,
+        bl:          numeroBL,
+        tarja:       numeroTarja
+      });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Guardado',
+        detail:  'Vehículo ingresado correctamente.'
+      });
     } else {
-      // Para edición se actualiza el vehículo
-      this.vehiculoService.actualizarVehiculo(vehiculo);
-      this.messageService.add({ severity: 'success', summary: 'Actualizado', detail: 'Vehículo actualizado correctamente.' });
+      this.vehiculoService.actualizarVehiculo({
+        ...vehiculo,
+        fecha:       fechaIngreso,
+        bl:          numeroBL,
+        tarja:       numeroTarja
+      });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Actualizado',
+        detail:  'Vehículo actualizado correctamente.'
+      });
     }
+
     this.dialogVehiculoVisible = false;
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
