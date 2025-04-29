@@ -1,78 +1,87 @@
-<form [formGroup]="vehiculoForm">
-  <div class="p-text-secondary block mb-8">
+<form [formGroup]="vehiculoForm" class="p-fluid">
+  <!-- Texto descriptivo -->
+  <div class="text-color-secondary block mb-4">
     Ingrese los datos del vehículo.
   </div>
   <!-- CONSIGNATARIO -->
-  <div class="flex items-center gap-4 mb-4">
-    <label for="consignatario" class="font-semibold w-24">Consignatario</label>
-    <input pInputText formControlName="consignatario" class="flex-auto"/>
+  <div class="field grid mb-4">
+    <label for="consignatario" class="col-12 md:col-2 font-bold">Consignatario</label>
+    <div class="col-12 md:col-10">
+      <input pInputText id="consignatario" formControlName="consignatario" class="w-full"/>
+    </div>
   </div>
-
   <!-- NIT -->
-  <div class="flex items-center gap-4 mb-4">
-    <label class="font-semibold w-24">NIT</label>
-    <p-inputMask
-    formControlName="nit"
-    mask="9999-999999-999-9"
-    [autoClear]= "false"
-    slotChar=" "
-    class="flex-auto"
-  ></p-inputMask>
-    <div class="p-error text-sm mt-1" *ngIf="vehiculoForm.get('nit')?.touched">
-      <ng-container *ngFor="let msg of getErrores('nit')">
-        <small>{{ msg }}</small>
-      </ng-container>
+  <div class="field grid mb-4">
+    <label for="nit" class="col-12 md:col-2 font-bold">NIT</label>
+    <div class="col-12 md:col-10">
+      <p-inputMask
+        id="nit"
+        formControlName="nit"
+        mask="9999-999999-999-9"
+        [autoClear]="false"
+        slotChar=" "
+        class="w-full"
+      ></p-inputMask>
+      <div class="p-error mt-1" *ngIf="vehiculoForm.get('nit')?.touched">
+        <ng-container *ngFor="let msg of getErrores('nit')">
+          <small class="text-sm">{{ msg }}</small>
+        </ng-container>
+      </div>
     </div>
   </div>
-
   <!-- VIN -->
-  <div class="flex items-center gap-4 mb-8">
-    <label class="font-semibold w-24">VIN</label>
-    <input pInputText formControlName="vin" class="flex-auto" autocomplete="off" [attr.minlength]="VIN_LENGTH" [attr.maxlength]="VIN_LENGTH"/>
-    <div class="p-error text-sm mt-1" *ngIf="vehiculoForm.get('vin')?.touched">
-      <ng-container *ngFor="let msg of getErrores('vin')">
-        <small>{{ msg }}</small>
-      </ng-container>
+  <div class="field grid mb-4">
+    <label for="vin" class="col-12 md:col-2 font-bold">VIN</label>
+    <div class="col-12 md:col-10">
+      <input pInputText id="vin" formControlName="vin" class="w-full" autocomplete="off"
+             [attr.minlength]="VIN_LENGTH" [attr.maxlength]="VIN_LENGTH"/>
+      <div class="p-error mt-1" *ngIf="vehiculoForm.get('vin')?.touched">
+        <ng-container *ngFor="let msg of getErrores('vin')">
+          <small class="text-sm">{{ msg }}</small>
+        </ng-container>
+      </div>
     </div>
   </div>
-
-  <!-- anio -->
-  <div class="flex items-center gap-4 mb-8">
-    <label for="año" class="font-semibold w-24">Año</label>
-    <p-calendar
-  formControlName="anio"
-  view="year"
-  dateFormat="yy"
-  [yearNavigator]="true"
-  yearRange="1990:2026"
-  [maxDate]="maxAnio"
-  inputId="año"
-  class="flex-auto"
-/>
-    <div class="p-error text-sm mt-1"
-    *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
-      <small>El año está fuera del rango permitido (1990–2026)</small>
+  <!-- Año -->
+  <div class="field grid mb-4">
+    <label for="año" class="col-12 md:col-2 font-bold">Año</label>
+    <div class="col-12 md:col-10">
+      <p-calendar
+        id="año"
+        formControlName="anio"
+        view="year"
+        dateFormat="yy"
+        [yearNavigator]="true"
+        yearRange="1990:2026"
+        [maxDate]="maxAnio"
+        class="w-full"
+      ></p-calendar>
+      <div class="p-error mt-1" *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
+        <small class="text-sm">El año está fuera del rango permitido (1990-2026)</small>
+      </div>
     </div>
   </div>
-
-  <!-- marca -->
-  <div class="flex items-center gap-4 mb-8">
-    <label for="marca" class="font-semibold w-24">Marca</label>
-    <input pInputText formControlName="marca" class="flex-auto"  />
+  <!-- Marca -->
+  <div class="field grid mb-4">
+    <label for="marca" class="col-12 md:col-2 font-bold">Marca</label>
+    <div class="col-12 md:col-10">
+      <input pInputText id="marca" formControlName="marca" class="w-full"/>
+    </div>
   </div>
-
-  <!-- estilo -->
-  <div class="flex items-center gap-4 mb-8">
-    <label for="estilo" class="font-semibold w-24">Estilo</label>
-    <input pInputText formControlName="estilo" class="flex-auto" />
+  <!-- Estilo -->
+  <div class="field grid mb-4">
+    <label for="estilo" class="col-12 md:col-2 font-bold">Estilo</label>
+    <div class="col-12 md:col-10">
+      <input pInputText id="estilo" formControlName="estilo" class="w-full"/>
+    </div>
   </div>
-
-  <!-- colors -->
-  <div class="flex items-center gap-4 mb-8">
-    <label for="color" class="font-semibold w-24">Color</label>
-    <input pInputText formControlName="color" class="flex-auto" />
+  <!-- Color -->
+  <div class="field grid mb-4">
+    <label for="color" class="col-12 md:col-2 font-bold">Color</label>
+    <div class="col-12 md:col-10">
+      <input pInputText id="color" formControlName="color" class="w-full"/>
+    </div>
   </div>
-
   <!-- RESCATE
   <div class="flex items-center gap-4 mb-4">
     <label class="font-semibold w-24">Realizar rescate</label>
@@ -95,10 +104,9 @@
     <input pInputText formControlName="despacho" class="flex-auto" />
   </div>-->
 
-  <div class="flex justify-end gap-2">
+ <div class="flex justify-end gap-2">
     <p-button label="Cancelar" severity="danger" (click)="onCancel()"></p-button>
     <p-button label="{{ modo === 'crear' ? 'Guardar' : 'Actualizar' }}" (click)="confirmSave()"></p-button>
   </div>
-
 
 </form>
