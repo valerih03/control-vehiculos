@@ -1,6 +1,6 @@
-<form [formGroup]="registroForm" class="p-formgrid p-grid p-mt-4">
+<form [formGroup]="registroForm" class="p-fluid">
 
-  <!-- Grupo de inputs: ocupa 9/12 columnas en md+ -->
+
   <div class="p-col-12 md:p-col-9">
     <p-inputGroup class="border-round ">
       <input
@@ -25,35 +25,8 @@
       />
     </p-inputGroup>
   </div>
-
-  <!-- Botón ocupa 3/12 columnas en md+, con ancho automático y padding -->
-  <div class="flex flex-row  gap-1" >
-    <button
-      pButton
-      type="button"
-      label="Ingresar vehículo"
-      icon="pi pi-car"
-      (click)="openVehiculoForm()"
-      styleClass="w-auto px-4 py-5 p-button-rounded p-button-primary"
-    ></button>
-    <button
-    pButton
-    label="Cancelar"
-    severity="danger"
-    (click)="onCancel()"
-    styleClass="px-4 py-2"
-  ></button>
-  <button
-    pButton
-    label="Guardar"
-    (click)="confirmSave()"
-    styleClass="px-4 py-2 ml-2"
-  ></button>
-
-  </div>
-
-  <!-- Mensajes de validación -->
-  <div class="p-col-12">
+   <!-- Mensajes de validación -->
+   <div class="p-col-12">
     <div class="grid grid-nogutter mt-2">
       <div class="col-12 md:col-4">
         <small
@@ -75,9 +48,19 @@
       </div>
     </div>
   </div>
+  <!-- Botón para abrir el formulario de vehículo -->
+  <div class="gap-1 py-5 w-4 px-0 p-button-rounded p-button-primary">
+    <button
+    pButton
+    type="button"
+    label="Ingresar vehículo"
+    icon="pi pi-car"
+    (click)="openVehiculoForm()"></button>
+  </div>
+
 
   <!-- Formulario de vehículo embebido -->
-  <div *ngIf="showVehiculoForm" class="p-mb-6">
+  <div *ngIf="showVehiculoForm" >
     <app-vehiculoform
       [vehiculo]="registroForm.get('vehiculo')?.value"
       modo="crear"
@@ -85,9 +68,20 @@
       (cancelar)="showVehiculoForm = false"
     ></app-vehiculoform>
   </div>
-
-  <!-- Acciones finales con padding en botones -->
-  <div class="p-col-12 p-text-right mt-4">
-
+  <!-- Botón de guardar y cancelar -->
+  <div class="flex flex-row w-4 justify-content-center gap-1 py-6 px-0" >
+    <button
+    pButton
+    label="Cancelar"
+    severity="danger"
+    (click)="onCancel()"
+    styleClass="px-4 py-2"
+  ></button>
+  <button
+    pButton
+    label="Guardar"
+    (click)="confirmSave()"
+    styleClass="px-4 py-2 ml-2"
+  ></button>
   </div>
 </form>
