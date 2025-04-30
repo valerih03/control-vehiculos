@@ -18,21 +18,36 @@ export class VehiculoService {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.vehiculos));
   }
   agregarVehiculo(vehiculo: any) {
-    this.vehiculos.push({...vehiculo});
+    const vehiculoNormalizado = {
+      ...vehiculo,
+      bl: vehiculo.numeroBL,       // Mapea numeroBL -> bl
+      tarja: vehiculo.numeroTarja, // Mapea numeroTarja -> tarja
+      fecha: vehiculo.fechaIngreso // Mapea fechaIngreso -> fecha
+    };
+    // Elimina los nombres antiguos para evitar duplicados
+    /* delete vehiculoNormalizado.numeroBL;
+    delete vehiculoNormalizado.numeroTarja;
+    delete vehiculoNormalizado.fechaIngreso; */
+    this.vehiculos.push(vehiculoNormalizado);
     this.guardarEnLocalStorage();
   }
 
   obtenerVehiculoPorVin(vin: string): any | undefined {
     return this.vehiculos.find(v => v.vin === vin);
   }
-
   obtenerVehiculos() {
     return [...this.vehiculos];
   }
   actualizarVehiculo(vehiculoActualizado: any) {
     const index = this.vehiculos.findIndex(v => v.vin === vehiculoActualizado.vin);
     if (index !== -1) {
-      this.vehiculos[index] = {...vehiculoActualizado};
+      // Mantén la estructura consistente
+      this.vehiculos[index] = {
+        ...vehiculoActualizado,
+        // Asegúrate de mantener estos campos aunque el formulario no los envíe
+        despacho: this.vehiculos[index].despacho,
+        estado: this.vehiculos[index].estado
+      };
       this.guardarEnLocalStorage();
       return true;
     }
@@ -44,23 +59,27 @@ export class VehiculoService {
       console.error('Vehículo no encontrado con VIN:', datosDespacho.vin);
       return false;
     }
-
     if (datosDespacho.bl) {
-      vehiculo.bl      = datosDespacho.bl;
-      vehiculo.duca    = datosDespacho.duca;
-      vehiculo.motorista= datosDespacho.motorista;
-      vehiculo.observaciones= datosDespacho.observaciones;
-      vehiculo.despacho = 'DM';
+      vehiculo.bl = datosDespacho.bl;
+      vehiculo.fecha = new Date().toISOString(); // o usa la fecha del formulario
+      vehiculo.despacho = {
+        tipo: 'DM',
+        duca: datosDespacho.duca,
+        motorista: datosDespacho.motorista,
+        observaciones: datosDespacho.observaciones
+      };
     }
     else if (datosDespacho.copiaBL) {
       vehiculo.copiaBL = datosDespacho.copiaBL;
-      vehiculo.duca    = datosDespacho.duca;
-      vehiculo.tarja   = datosDespacho.tarja;
-      vehiculo.motorista= datosDespacho.motorista;
-      vehiculo.observaciones= datosDespacho.observaciones;
-      vehiculo.despacho = 'TRANSITO';
+      vehiculo.tarja = datosDespacho.tarja;
+      vehiculo.fecha = new Date().toISOString();
+      vehiculo.despacho = {
+        tipo: 'TRANSITO',
+        duca: datosDespacho.duca,
+        motorista: datosDespacho.motorista,
+        observaciones: datosDespacho.observaciones
+      };
     }
-
     this.guardarEnLocalStorage();
     return true;
   }

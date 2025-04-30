@@ -63,16 +63,17 @@ export class DashboardComponent {
 
 
   nuevoVehiculo = {
+    numeroTarja: '',
+    fechaIngreso: '',
+    numeroBL: '',
     consignatario: '',
-    nit: '',
-    /* fecha: '', */
     vin: '',
     anio: null,
     marca: '',
-/*     estilo: '',
-    color: '', */
+    nit: '',
     estado: ''
   };
+
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -93,7 +94,6 @@ export class DashboardComponent {
       default: return 'info';
     }
   }
-
   //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
     // buscamos únicamente el vehículo clickeado
@@ -105,7 +105,6 @@ export class DashboardComponent {
       ...datos,
       estado: 'Deshabilitado'
     };
-
     const ok = this.vehiculoService.actualizarDespacho(datos);
     if (ok) {
       this.messageService.add({
@@ -189,20 +188,34 @@ reactivarVehiculo(vin: string) {
   // Método para editar: asigna el vehículo seleccionado y cambia el modo
   editarVehiculo(vehiculo: any) {
     this.modoFormulario = 'editar';
-    this.vehiculoActual = { ...vehiculo };
+    this.vehiculoActual = {
+      ...vehiculo,
+      numeroBL: vehiculo.bl,
+      numeroTarja: vehiculo.tarja,
+      fechaIngreso: vehiculo.fecha
+    };
+    console.log('Vehículo a editar:', this.vehiculoActual);
     this.dialogVehiculoVisible = true;
   }
   // Maneja el evento del componente de formulario al guardar
   handleGuardar(vehiculo: any) {
+    // Normaliza los datos antes de guardar
+    const vehiculoParaGuardar = {
+      ...vehiculo,
+      bl: vehiculo.numeroBL,
+      tarja: vehiculo.numeroTarja,
+      fecha: vehiculo.fechaIngreso
+    };
+
     if (this.modoFormulario === 'crear') {
-      this.vehiculoService.agregarVehiculo(vehiculo);
+      this.vehiculoService.agregarVehiculo(vehiculoParaGuardar);
       this.messageService.add({
         severity: 'success',
         summary: 'Guardado',
         detail: 'Vehículo ingresado correctamente.'
       });
     } else {
-      this.vehiculoService.actualizarVehiculo(vehiculo);
+      this.vehiculoService.actualizarVehiculo(vehiculoParaGuardar);
       this.messageService.add({
         severity: 'success',
         summary: 'Actualizado',
@@ -223,12 +236,14 @@ reactivarVehiculo(vin: string) {
   search(event: { query: string }) {
     const query = event.query.toLowerCase();
     this.filteredVehiculos = this.vehiculos.filter(vehiculo => {
+      const numeroTarja = vehiculo.numeroTarja ? vehiculo.numeroTarja.toLowerCase() : '';
       const vin = vehiculo.vin ? vehiculo.vin.toLowerCase() : '';
       const consignatario = vehiculo.consignatario ? vehiculo.consignatario.toLowerCase() : '';
       const marca = vehiculo.marca ? vehiculo.marca.toLowerCase() : '';
       const estilo = vehiculo.estilo ? vehiculo.estilo.toLowerCase() : '';
 
       return vin.includes(query) ||
+      numeroTarja.includes(query) ||
              consignatario.includes(query) ||
              marca.includes(query) ||
              estilo.includes(query);

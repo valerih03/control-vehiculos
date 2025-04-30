@@ -19,6 +19,11 @@
     <ng-template pTemplate="header">
       <tr>
         <th class="w-3rem"></th>
+        <th>Fecha Ingreso</th>
+        <th>BL</th>
+        <th>Tarja
+          <input pInputText type="text" (input)="applyFilter('tarja', $event)" placeholder="Buscar..." class="w-full mt-1">
+        </th>
         <th>
           Consignatario
           <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." class="w-full mt-1">
@@ -35,12 +40,16 @@
         </th>
         <th>Estado</th>
         <th>Acciones</th>
-      </tr>
+
+        <!-- <th>Tarja</th> -->
+          </tr>
     </ng-template>
     <ng-template pTemplate="body" let-vehiculo>
-      <tr [pSelectableRow]="vehiculo"
-    *ngIf="shouldDisplayRow(vehiculo)">
+      <tr [pSelectableRow]="vehiculo" *ngIf="shouldDisplayRow(vehiculo)">
         <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
+        <td>{{ vehiculo.fechaIngreso | date:'dd/MM/yyyy' }}</td>
+        <td>{{ vehiculo.numeroBL }}</td>
+        <td>{{ vehiculo.numeroTarja }}</td>
         <td [innerHTML]="getHighlightedText(vehiculo.consignatario, 'consignatario')"></td>
         <td>{{ vehiculo.nit }}</td>
         <td [innerHTML]="getHighlightedText(vehiculo.vin, 'vin')"></td>
@@ -73,15 +82,16 @@
                 (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
                 [disabled]="vehiculo.estado === 'Deshabilitado'"
                 pTooltip="Editar vehículo" tooltipPosition="top">
-          </button>
-        <button pButton icon="pi pi-list"
-                class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
-                (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
-                [disabled]="!vehiculo.despacho" pTooltip="Ver detalle de despacho" tooltipPosition="top">
+            </button>
+            <button pButton icon="pi pi-list"
+                    class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
+                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+                    [disabled]="!vehiculo.despacho" pTooltip="Ver detalle de despacho" tooltipPosition="top">
         </button>
 
           </div>
         </td>
+        <!-- <td>{{ vehiculo.tarja }}</td> -->
       </tr>
     </ng-template>
   </p-table>
@@ -139,6 +149,6 @@
 <!-- Dialogo para ingreso de vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-vehiculoform
-    *ngIf="dialogVehiculoVisible" (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
+    *ngIf="dialogVehiculoVisible"  (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
   </app-vehiculoform>
 </p-dialog>

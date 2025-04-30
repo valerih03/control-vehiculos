@@ -96,7 +96,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       ? this.validacionService.getErrorMessages(campo as any, ctrl)
       : [];
   }
-
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
   ngOnChanges(changes: SimpleChanges) {
     if (changes['modo'] && this.vehiculoForm) {
@@ -118,7 +117,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       }
     }
   }
-
   confirmSave() {
     // Limpia mensajes anteriores
     this.messageService.clear();
@@ -157,8 +155,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     //Si todo es válido, emitimos para guardar/actualizar
     this.guardar.emit(this.vehiculoForm.getRawValue());
   }
-
-
   // Helper para mapear formControlName
   private obtenerEtiqueta(cn: string) {
     const labels: Record<string, string> = {
@@ -175,8 +171,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     };
     return labels[cn] || cn;
   }
-
-  onCancel() {
+ onCancel() {
     this.cancelar.emit();
   }
 }
