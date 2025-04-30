@@ -40,6 +40,10 @@
       <input pInputText [(ngModel)]="despacho.motorista"
              [readonly]="modoVisualizacion" class="w-full"/>
     </div>
+    <div class="field col-12 md:col-6">
+      <label class="font-bold block mb-2">Nota de levante</label>
+      <input pInputText [(ngModel)]="despacho.notadelevante" [readonly]="modoVisualizacion" class="w-full" />
+    </div>
     <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
       <label class="font-bold block mb-2">N° de BL</label>
       <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" class="w-full"/>

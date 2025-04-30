@@ -36,6 +36,7 @@ export class DespacharComponent implements OnInit {
     tipo: '',
     vin: '',
     motorista: '',
+    notadelevante: '',
     bl: '',
     copiaBL: '',
     duca: '',
@@ -99,6 +100,7 @@ export class DespacharComponent implements OnInit {
         tipo: this.tipoSeleccionado.value,
         vin: '',
         motorista: '',
+        notadelevante: '',
         bl: '',
         copiaBL: '',
         duca: '',
@@ -118,6 +120,7 @@ export class DespacharComponent implements OnInit {
       tipo: this.tipoSeleccionado.value,
       vin: vinActual,
       motorista: this.despacho.motorista,
+      notadelevante: '',
       bl: '',
       copiaBL: '',
       duca: '',
@@ -141,6 +144,7 @@ export class DespacharComponent implements OnInit {
     if (veh && veh.despacho) {
       // Cargar despachos previos
       this.despacho.motorista     = veh.motorista     || '';
+      this.despacho.notadelevante = veh.notadelevante || '';
       this.despacho.bl            = veh.bl            || '';
       this.despacho.copiaBL       = veh.copiaBL       || '';
       this.despacho.duca          = veh.duca          || '';
@@ -155,6 +159,7 @@ export class DespacharComponent implements OnInit {
       this.despacho = {
         vin: vin,
         motorista: '',
+        notadelevante: '',
         bl: '',
         copiaBL: '',
         duca: '',
@@ -188,7 +193,7 @@ export class DespacharComponent implements OnInit {
     const datosDespacho = {
       ...this.despacho,
       tipo: this.tipoSeleccionado.value,
-      estado: 'Deshabilitado' 
+      estado: 'Deshabilitado'
     };
     console.log('Datos de despacho a guardar:', datosDespacho);
     this.guardarDespacho.emit(datosDespacho);
