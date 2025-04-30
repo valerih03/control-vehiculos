@@ -72,10 +72,20 @@ export class DespacharComponent implements OnInit {
 
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
-    this.vinFiltrados = this.vinsRegistrados.filter(v =>
-      v.vin.toLowerCase().includes(query)
-    );
-  }
+
+    // Obtener todos los vehículos disponibles del servicio
+    const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
+        .filter(v => v.vin && !v.despacho && v.estado !== 'Deshabilitado');
+
+    // Filtrar por el query
+    this.vinFiltrados = vehiculosDisponibles
+        .filter(v => v.vin.toLowerCase().includes(query))
+        .map(v => ({
+            vin: v.vin,
+            marca: v.marca || 'Sin marca',
+            anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
+        }));
+}
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
@@ -87,14 +97,10 @@ export class DespacharComponent implements OnInit {
   onShow() {
     this.intentoGuardar = false;
     this.resetearErrores();
-    this.vinsRegistrados = this.vehiculoService.obtenerVehiculos()
-      .filter(v => v.vin)
-      .map(v => ({
-        vin: v.vin,
-        marca: v.marca || 'Sin marca',
-        anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
-      }));
-    // Limpiar formulario
+
+    // No necesitamos cargar vinsRegistrados aquí, se hará en filtrarVins
+    this.vinsRegistrados = []; // Opcional: limpiar el array
+
     if (!this.modoVisualizacion) {
       this.despacho = {
         tipo: this.tipoSeleccionado.value,
@@ -110,7 +116,7 @@ export class DespacharComponent implements OnInit {
       this.tipoSeleccionado = { name: 'DM', value: 'DM' };
       this.vinSeleccionado = null;
     }
-  }
+}
   cerrarDialogo() {
     this.visibleChange.emit(false);
   }
@@ -129,34 +135,43 @@ export class DespacharComponent implements OnInit {
     };
   }
   seleccionarVin(event: any) {
-    if (!event.value) {
-      this.despacho.vin = '';
+    if (!event?.value?.vin) {
+        this.despacho.vin = '';
         this.resetearErrores();
         return;
     }
+
     const vin = event.value.vin;
+    const vehiculo = this.vehiculoService.obtenerVehiculos()
+        .find(v => v.vin === vin);
+
+    if (!vehiculo) {
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'VIN no encontrado'
+        });
+        return;
+    }
+
+    // Verificar que el vehículo esté disponible
+    if (vehiculo.despacho || vehiculo.estado === 'Deshabilitado') {
+        this.messageService.add({
+            severity: 'warn',
+            summary: 'Advertencia',
+            detail: 'Este VIN ya ha sido despachado'
+        });
+        this.despacho.vin = '';
+        this.vinSeleccionado = null;
+        return;
+    }
+
+    // Resto de la lógica...
     this.despacho.vin = vin;
     this.vinSeleccionado = event.value;
 
-    const veh = this.vehiculoService.obtenerVehiculos()
-      .find(v => v.vin === vin);
-
-    if (veh && veh.despacho) {
-      // Cargar despachos previos
-      this.despacho.motorista     = veh.motorista     || '';
-      this.despacho.notadelevante = veh.notadelevante || '';
-      this.despacho.bl            = veh.bl            || '';
-      this.despacho.copiaBL       = veh.copiaBL       || '';
-      this.despacho.duca          = veh.duca          || '';
-      this.despacho.tarja         = veh.tarja         || '';
-      this.despacho.observaciones = veh.observaciones || '';
-      this.tipoSeleccionado       = veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1];
-      this.tipoSeleccionado = this.tiposDespacho.find(t => t.value === veh.tipoDespacho) ||
-      (veh.bl ? this.tiposDespacho[0] : this.tiposDespacho[1]);
-
-    } else {
-      // Limpiar todos los campos excepto VIN
-      this.despacho = {
+    // Limpiar campos para nuevo despacho
+    this.despacho = {
         vin: vin,
         motorista: '',
         notadelevante: '',
@@ -165,13 +180,10 @@ export class DespacharComponent implements OnInit {
         duca: '',
         tarja: '',
         observaciones: ''
-      };
-      this.cambiarTipoDespacho();
-      }
-      // Reiniciar el tipo de despacho u otras propiedades si hace falta
-      this.resetearErrores();
-
-  }
+    };
+    this.cambiarTipoDespacho();
+    this.resetearErrores();
+}
   private resetearErrores(): void {
     this.mostrarErrorVin = false;
     this.mostrarErrorMotorista = false;
