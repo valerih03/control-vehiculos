@@ -138,7 +138,7 @@
 </p-dialog>
 <!-- Dialogo para ingreso de vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
-  <app-registro
+  <app-vehiculoform
     *ngIf="dialogVehiculoVisible" (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
-  </app-registro>
+  </app-vehiculoform>
 </p-dialog>

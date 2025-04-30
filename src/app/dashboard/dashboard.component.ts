@@ -19,13 +19,13 @@ import { DespacharComponent } from '../despachar/despachar.component';
 import 'jspdf-autotable';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
-import { RegistroComponent } from '../forms/registro/registro.component';
+import { VehiculoformComponent } from "../forms/vehiculoform/vehiculoform.component";
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, DespacharComponent,
-            ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule,
-            FormsModule, AutoCompleteModule, RegistroComponent],
+    ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule,
+    FormsModule, AutoCompleteModule, VehiculoformComponent],
   providers: [ConfirmationService, MessageService, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -193,38 +193,27 @@ reactivarVehiculo(vin: string) {
     this.dialogVehiculoVisible = true;
   }
   // Maneja el evento del componente de formulario al guardar
-  handleGuardar(registro: any) {
-    const { fechaIngreso, numeroBL, numeroTarja, vehiculo } = registro;
-
+  handleGuardar(vehiculo: any) {
     if (this.modoFormulario === 'crear') {
-      this.vehiculoService.agregarVehiculo({
-        ...vehiculo,
-        fecha:       fechaIngreso,
-        bl:          numeroBL,
-        tarja:       numeroTarja
-      });
+      this.vehiculoService.agregarVehiculo(vehiculo);
       this.messageService.add({
         severity: 'success',
         summary: 'Guardado',
-        detail:  'Vehículo ingresado correctamente.'
+        detail: 'Vehículo ingresado correctamente.'
       });
     } else {
-      this.vehiculoService.actualizarVehiculo({
-        ...vehiculo,
-        fecha:       fechaIngreso,
-        bl:          numeroBL,
-        tarja:       numeroTarja
-      });
+      this.vehiculoService.actualizarVehiculo(vehiculo);
       this.messageService.add({
         severity: 'success',
         summary: 'Actualizado',
-        detail:  'Vehículo actualizado correctamente.'
+        detail: 'Vehículo actualizado correctamente.'
       });
     }
 
     this.dialogVehiculoVisible = false;
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
+
   // Maneja la cancelación: cierra el diálogo
   handleCancelar() {
     this.dialogVehiculoVisible = false;

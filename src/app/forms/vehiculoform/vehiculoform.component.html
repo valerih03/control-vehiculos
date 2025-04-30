@@ -1,5 +1,38 @@
 <form [formGroup]="vehiculoForm" class="p-fluid">
   <!-- Texto descriptivo -->
+  <div class="grid mb-4">
+    <div class="field col-12 md:col-4">
+      <label class="font-bold block mb-2">Fecha de ingreso</label>
+      <input
+        pInputText type="date" formControlName="fechaIngreso"
+        [attr.max]="todayISO" class="w-full"
+      />
+      <small class="p-error block mt-1" *ngIf="vehiculoForm.get('fechaIngreso')?.touched && vehiculoForm.get('fechaIngreso')?.hasError('required')">
+        Fecha requerida
+      </small>
+    </div>
+
+    <div class="field col-12 md:col-4">
+      <label class="font-bold block mb-2">N° BL</label>
+      <input
+        pInputText formControlName="numeroBL" class="w-full"
+      />
+      <small class="p-error block mt-1" *ngIf="vehiculoForm.get('numeroBL')?.touched && vehiculoForm.get('numeroBL')?.hasError('required')">
+        BL requerido
+      </small>
+    </div>
+
+    <div class="field col-12 md:col-4">
+      <label class="font-bold block mb-2">Tarja</label>
+      <input
+        pInputText formControlName="numeroTarja" class="w-full"
+      />
+      <small class="p-error block mt-1" *ngIf="vehiculoForm.get('numeroTarja')?.touched && vehiculoForm.get('numeroTarja')?.hasError('required')">
+        Tarja requerida
+      </small>
+    </div>
+  </div>
+
   <div class="text-color-secondary block mb-4">
     Ingrese los datos del vehículo.
   </div>
