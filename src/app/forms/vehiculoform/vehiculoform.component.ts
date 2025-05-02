@@ -10,6 +10,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputMaskModule } from 'primeng/inputmask';
 import { formatDate } from '@angular/common';
+import { Vehiculo } from '../../interfaces/vehiculo';
 
 @Component({
   selector: 'app-vehiculoform',
@@ -26,36 +27,12 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   today: Date = new Date();
   todayISO!: string;
 
-  @Input() vehiculo: any = {
-    fechaIngreso: '',
-    numeroBL: '',
-    numeroTarja: '',
-    consignatario: '',
-    nit: '',
-    fecha: '',
-    vin: '',
-    anio: null,
-    marca: '',
-    estilo: '',
-    color: '',
-  };
+  @Input() vehiculo: Partial<Vehiculo> = {};
   @Input() modo: 'crear' | 'editar' = 'crear';
-  // Se emiten eventos al guardar o cancelar
-  @Output() guardar = new EventEmitter<any>();
+  @Output() guardar = new EventEmitter<Vehiculo>();
   @Output() cancelar = new EventEmitter<void>();
 
-  private defaultVehiculo = {
-    fechaIngreso: '',
-    numeroBL: '',
-    numeroTarja: '',
-    consignatario: '',
-    nit: '',
-    vin: '',
-    anio: null,
-    marca: '',
-    estilo: '',
-    color: '',
-  };
+
   vehiculoForm!: FormGroup;
 
   constructor(
@@ -67,28 +44,71 @@ export class VehiculoformComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
-    this.vehiculoForm = this.fb.group({
-      fechaIngreso: [this.vehiculo.fechaIngreso || '', Validators.required],
-      numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
-      numeroTarja: [this.vehiculo.numeroTarja || '', Validators.required],
-      consignatario: [this.vehiculo.consignatario || '', Validators.required],
-      nit: [
-        this.vehiculo.nit || '',
-        this.validacionService.getValidators('nit'),
-      ],
-      vin: [
-        this.vehiculo.vin || '',
-        this.validacionService.getValidators('vin'),
-      ],
-      anio: [
-        this.vehiculo.anio || null,
-        [Validators.required, Validators.min(1990), Validators.max(2026)]
-      ],
-      marca: [this.vehiculo.marca || '', Validators.required],
-      estilo: [this.vehiculo.estilo || '', Validators.required],
-      color: [this.vehiculo.color || '', Validators.required],
-    });
+    this.initForm();
   }
+
+    // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
+    ngOnChanges(changes: SimpleChanges): void {
+      if (changes['modo'] && this.vehiculoForm) {
+        if (this.modo === 'crear') {
+          this.vehiculoForm.reset();
+        } else if (this.modo === 'editar' && changes['vehiculo']) {
+          const v = this.vehiculo;
+          this.vehiculoForm.reset({
+            fechaIngreso: v.fechaIngreso ? new Date(v.fechaIngreso) : null,
+            numeroBL: v.numeroBL || '',
+            numeroTarja: (v as any).numeroTarja ?? v.tarja ?? '',
+            consignatario: v.consignatario || '',
+            nit: v.nit || '',
+            vin: v.vin || '',
+            anio: v.anio
+              ? typeof v.anio === 'string'
+                ? new Date(v.anio)
+                : new Date(v.anio)
+              : null,
+            marca: v.marca || '',
+            estilo: v.estilo || '',
+            color: v.color || '',
+            observaciones: v.observaciones || ''
+          });
+        }
+      }
+    }
+
+    private initForm(): void {
+      this.vehiculoForm = this.fb.group({
+        fechaIngreso: [
+          this.vehiculo.fechaIngreso ? new Date(this.vehiculo.fechaIngreso) : null,
+          Validators.required
+        ],
+        numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
+        numeroTarja: [
+          (this.vehiculo as any).numeroTarja ?? this.vehiculo.tarja ?? '',
+          Validators.required
+        ],
+        consignatario: [this.vehiculo.consignatario || '', Validators.required],
+        nit: [
+          this.vehiculo.nit || '',
+          this.validacionService.getValidators('nit')
+        ],
+        vin: [
+          this.vehiculo.vin || '',
+          this.validacionService.getValidators('vin')
+        ],
+        anio: [
+          this.vehiculo.anio
+            ? typeof this.vehiculo.anio === 'string'
+              ? new Date(this.vehiculo.anio)
+              : new Date(this.vehiculo.anio)
+            : null,
+          [Validators.required]
+        ],
+        marca: [this.vehiculo.marca || '', Validators.required],
+        estilo: [this.vehiculo.estilo || '', Validators.required],
+        color: [this.vehiculo.color || '', Validators.required],
+        observaciones: [this.vehiculo.observaciones || '']
+      });
+    }
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
@@ -96,80 +116,28 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       ? this.validacionService.getErrorMessages(campo as any, ctrl)
       : [];
   }
-  // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['modo'] && this.vehiculoForm) {
-      if (this.modo === 'crear') {
-        this.vehiculoForm.reset(this.defaultVehiculo);
-        this.vehiculoForm.get('fechares')!.disable();
-      } else if (this.modo === 'editar' && changes['vehiculo']) {
-        const v = this.vehiculo;
-        this.vehiculoForm.reset({
-          ...v,
-          realizarRescate: !!v.fechares,
-          fechares: v.fechares || null, // ← aquí sí asignas 'fechares'
-        });
-        if (v.fechares) {
-          this.vehiculoForm.get('fechares')!.enable();
-        } else {
-          this.vehiculoForm.get('fechares')!.disable();
-        }
-      }
-    }
-  }
+
   confirmSave() {
-    // Limpia mensajes anteriores
     this.messageService.clear();
-
-    // Marca todos los campos como 'touched' para que aparezcan los mensajes inline
     this.vehiculoForm.markAllAsTouched();
-
-    // Si hay errores, los mostramos (filtrando los de longitud en VIN) y salimos
     if (this.vehiculoForm.invalid) {
-      Object.keys(this.vehiculoForm.controls).forEach(name => {
-        const ctrl = this.vehiculoForm.get(name)!;
+      Object.entries(this.vehiculoForm.controls).forEach(([name, ctrl]) => {
         if (ctrl.invalid) {
-          // obtenemos todos los mensajes
           let mensajes = this.getErrores(name);
-
-          // si es VIN
           if (name === 'vin') {
             mensajes = mensajes.filter(msg =>
               !msg.toLowerCase().includes('debe tener')
             );
           }
-
-          // mostramos los mensajes filtrados en la alerta
-          mensajes.forEach(msg => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: msg
-            });
-          });
+          mensajes.forEach(msg =>
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: msg })
+          );
         }
       });
-      return;  // detenemos la ejecución para no emitir guardar
+      return;
     }
-
-    //Si todo es válido, emitimos para guardar/actualizar
-    this.guardar.emit(this.vehiculoForm.getRawValue());
-  }
-  // Helper para mapear formControlName
-  private obtenerEtiqueta(cn: string) {
-    const labels: Record<string, string> = {
-      consignatario: 'Consignatario',
-      nit: 'NIT',
-      vin: 'VIN',
-      anio: 'Año',
-      marca: 'Marca',
-      estilo: 'Estilo',
-      color: 'Color',
-      abandono: 'Abandono',
-      despacho: 'Despacho',
-      fechares: 'Fecha de rescate',
-    };
-    return labels[cn] || cn;
+    this.guardar.emit(this.vehiculoForm.getRawValue() as Vehiculo);
+    console.log('Vehículo guardado:', this.vehiculoForm.getRawValue());
   }
  onCancel() {
     this.cancelar.emit();

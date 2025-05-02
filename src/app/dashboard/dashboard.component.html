@@ -9,10 +9,12 @@
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="w-full sm:w-auto"></p-button>
   <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck" class="w-full sm:w-auto"></p-button>
 </div>
+
 <!-- Diálogo de Opciones de Despacho -->
 <app-despachar
     [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible" (guardarDespacho)="onDespachoGuardado($event)">
 </app-despachar>
+
 <!-- Diálogo de Consulta -->
 <p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [styleClass]="'w-screen md:w-10 max-h-screen overflow-y-auto'">
   <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin" responsiveLayout="scroll">
@@ -74,17 +76,23 @@
         </td>
         <td>
           <div class="flex gap-1">
-            <button pButton icon="pi pi-pencil"
-                class="p-button-rounded p-button-success p-button-sm w-2rem"
-                (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
-                [disabled]="vehiculo.estado === 'Deshabilitado'"
-                pTooltip="Editar vehículo" tooltipPosition="top">
+            <button
+            pButton
+            icon="pi pi-pencil"
+            class="p-button-rounded p-button-success p-button-sm w-2rem"
+            (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+            pTooltip="Editar vehículo"
+            tooltipPosition="top">
             </button>
-            <button pButton icon="pi pi-list"
-                    class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
-                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
-                    [disabled]="!vehiculo.despacho" pTooltip="Ver detalle de despacho" tooltipPosition="top">
-        </button>
+            <button
+              pButton
+              icon="pi pi-list"
+              class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
+              (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+              [disabled]="vehiculo.estado !== 'Deshabilitado'"
+              pTooltip="vehiculo.estado === 'Deshabilitado' ? 'Ver detalle de despacho' : 'Sin despacho'"
+              tooltipPosition="top">
+            </button>
 
           </div>
         </td>
@@ -93,74 +101,85 @@
     </ng-template>
   </p-table>
   <!-- Detalle de despacho y vehiculo -->
-  <p-dialog
-  header="Detalle de Despacho - {{ vehiculoConDespacho?.vin }}"
-  [(visible)]="mostrarDetalleDespacho"
-  [modal]="true"
+<p-dialog
+header="Detalle de Despacho - {{ vehiculoConDespacho?.vin }}"
+[(visible)]="mostrarDetalleDespacho"
+[modal]="true"
 >
-  <div *ngIf="vehiculoConDespacho && vehiculoDetalle">
-    <!-- BL y Tarja desde Vehiculo -->
-    <div class="field mb-4">
-      <label class="font-bold">N° BL (Vehículo):</label>
-      <div class="p-card p-2">
-        {{ vehiculoDetalle.numeroBL || 'No especificado' }}
-      </div>
+<div *ngIf="vehiculoConDespacho && vehiculoDetalle">
+  <!-- BL y Tarja desde Vehiculo -->
+  <div class="field mb-4">
+    <label class="font-bold">N° BL (Vehículo):</label>
+    <div class="p-card p-2">
+      {{ vehiculoDetalle.numeroBL || 'No especificado' }}
     </div>
-    <div class="field mb-4">
-      <label class="font-bold">Tarja (Vehículo):</label>
-      <div class="p-card p-2">
-        {{ vehiculoDetalle.tarja || 'No especificado' }}
-      </div>
-    </div>
-
-    <!-- El resto desde Despacho -->
-    <div class="field mb-4">
-      <label class="font-bold">Fecha de Despacho:</label>
-      <div class="p-card p-2">
-        {{ vehiculoConDespacho.fechaDespacho | date:'dd/MM/yyyy' }}
-      </div>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">Tipo de Salida:</label>
-      <span
-        class="p-tag"
-        [ngClass]="{
-          'p-tag-info': getSeverity(vehiculoConDespacho.tipoSalida)==='info',
-          'p-tag-warning': getSeverity(vehiculoConDespacho.tipoSalida)==='warning'
-        }"
-      >
-        {{ vehiculoConDespacho.tipoSalida }}
-      </span>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">Motorista:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.motorista }}</div>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">DUCA:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.duca }}</div>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">Nota de Levante:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.notaLevante }}</div>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">Observaciones:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</div>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">Tarja (Vehículo):</label>
+    <div class="p-card p-2">
+      {{ vehiculoDetalle.tarja || 'No especificado' }}
     </div>
   </div>
 
-  <ng-template pTemplate="footer">
-    <p-button
-      label="Cerrar"
-      icon="pi pi-times"
-      (click)="mostrarDetalleDespacho = false"
-    ></p-button>
-  </ng-template>
+  <!-- El resto desde Despacho -->
+  <div class="field mb-4">
+    <label class="font-bold">Fecha de Despacho:</label>
+    <div class="p-card p-2">
+      {{ vehiculoConDespacho.fechaDespacho | date:'dd/MM/yyyy' }}
+    </div>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">Tipo de Salida:</label>
+    <span
+      class="p-tag"
+      [ngClass]="{
+        'p-tag-info': getSeverity(vehiculoConDespacho.tipoSalida)==='info',
+        'p-tag-warning': getSeverity(vehiculoConDespacho.tipoSalida)==='warning'
+      }"
+    >
+      {{ vehiculoConDespacho.tipoSalida }}
+    </span>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">Motorista:</label>
+    <div class="p-card p-2">{{ vehiculoConDespacho.motorista }}</div>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">DUCA:</label>
+    <div class="p-card p-2">{{ vehiculoConDespacho.duca }}</div>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">Nota de Levante:</label>
+    <div class="p-card p-2">{{ vehiculoConDespacho.notaLevante }}</div>
+  </div>
+  <div class="field mb-4">
+    <label class="font-bold">Observaciones:</label>
+    <div class="p-card p-2">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</div>
+  </div>
+</div>
+
+<ng-template pTemplate="footer">
+  <p-button
+    label="Cerrar"
+    icon="pi pi-times"
+    (click)="mostrarDetalleDespacho = false"
+  ></p-button>
+</ng-template>
 </p-dialog>
+</p-dialog>
+
 <!-- Dialogo para ingreso de vehiculos -->
-<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
+<p-dialog
+  header="Control de vehículos"
+  *ngIf="dialogVehiculoVisible"
+  [(visible)]="dialogVehiculoVisible"
+  [modal]="true"
+  (onHide)="dialogVehiculoVisible = false"
+>
   <app-vehiculoform
-    *ngIf="dialogVehiculoVisible"  (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
-  </app-vehiculoform>
+    [vehiculo]="vehiculoActual"
+    [modo]="modoFormulario"
+    (guardar)="handleGuardar($event)"
+    (cancelar)="handleCancelar()"
+  ></app-vehiculoform>
 </p-dialog>

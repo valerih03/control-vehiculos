@@ -82,6 +82,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatos();
+    console.log('Vehículos cargados:', this.vehiculos);
   }
 
   private tieneDespacho(vin: string): boolean {
@@ -290,43 +291,46 @@ export class DashboardComponent implements OnInit {
   }
 
   // Diálogo vehículo
-  showCrearDialog(): void {
-    this.modoFormulario = 'crear';
-    this.vehiculoActual = {};
-    this.dialogVehiculoVisible = true;
-  }
+showCrearDialog(): void {
+  this.modoFormulario = 'crear';
+  this.vehiculoActual = {} as Vehiculo;      // Vehículo vacío tipado
+  this.dialogVehiculoVisible = true;
+}
 
-  editarVehiculo(vehiculo: any): void {
-    this.modoFormulario = 'editar';
-    this.vehiculoActual = { ...vehiculo };
-    this.dialogVehiculoVisible = true;
-  }
+editarVehiculo(vehiculo: Vehiculo): void {
+  this.modoFormulario = 'editar';
+  this.vehiculoActual = { ...vehiculo };     // Copia el vehículo a editar
+  this.dialogVehiculoVisible = true;
+  console.log('Vehículo a editar:', this.vehiculoActual);
+}
 
-  handleGuardar(registro: any): void {
-    const { fechaIngreso, numeroBL, numeroTarja, vehiculo } = registro;
-    if (this.modoFormulario === 'crear') {
-      this.vehiculoService.agregarVehiculo({
-        ...vehiculo,
-        fechaIngreso,
-        bl: numeroBL,
-        tarja: numeroTarja
-      });
-      this.messageService.add({ severity: 'success', summary: 'Guardado', detail: 'Vehículo ingresado correctamente.' });
-    } else {
-      this.vehiculoService.actualizarVehiculo({
-        ...vehiculo,
-        fechaIngreso,
-        bl: numeroBL,
-        tarja: numeroTarja
-      });
-      this.messageService.add({ severity: 'success', summary: 'Actualizado', detail: 'Vehículo actualizado correctamente.' });
-    }
-    this.dialogVehiculoVisible = false;
-    this.cargarDatos();
+handleGuardar(registro: Vehiculo): void {
+  // 'registro' ya contiene todas las propiedades de Vehiculo
+  if (this.modoFormulario === 'crear') {
+    this.vehiculoService.agregarVehiculo(registro);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Guardado',
+      detail: 'Vehículo ingresado correctamente.'
+    });
+  } else {
+    this.vehiculoService.actualizarVehiculo(registro);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Actualizado',
+      detail: 'Vehículo actualizado correctamente.'
+    });
   }
+  this.dialogVehiculoVisible = false;
+  this.cargarDatos();  // Recarga la lista con el nuevo/actualizado
+}
 
-  handleCancelar(): void {
-    this.dialogVehiculoVisible = false;
-    this.messageService.add({ severity: 'info', summary: 'Cancelado', detail: 'Operación cancelada.' });
-  }
+handleCancelar(): void {
+  this.dialogVehiculoVisible = false;
+  this.messageService.add({
+    severity: 'info',
+    summary: 'Cancelado',
+    detail: 'Operación cancelada.'
+  });
+}
 }
