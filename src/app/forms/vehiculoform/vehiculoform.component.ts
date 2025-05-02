@@ -1,20 +1,7 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  SimpleChanges,
-  OnInit,
-  OnChanges,
-} from '@angular/core';
+import {Component,Input,Output,EventEmitter,SimpleChanges,OnInit,OnChanges,} from '@angular/core';
 import { ValidacionService } from '../../services/validacion.service';
 import { MessageService } from 'primeng/api';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators,  ReactiveFormsModule} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -28,14 +15,8 @@ import { formatDate } from '@angular/common';
   selector: 'app-vehiculoform',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    DialogModule,
-    ButtonModule,
-    InputTextModule,
-    CalendarModule,
-    CheckboxModule,
-    InputMaskModule,
+    CommonModule, ReactiveFormsModule, DialogModule, ButtonModule,
+    InputTextModule, CalendarModule, CheckboxModule, InputMaskModule,
   ],
   templateUrl: './vehiculoform.component.html',
   styleUrl: './vehiculoform.component.css',
@@ -46,6 +27,9 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   todayISO!: string;
 
   @Input() vehiculo: any = {
+    fechaIngreso: '',
+    numeroBL: '',
+    numeroTarja: '',
     consignatario: '',
     nit: '',
     fecha: '',
@@ -61,16 +45,17 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   @Output() cancelar = new EventEmitter<void>();
 
   private defaultVehiculo = {
+    fechaIngreso: '',
+    numeroBL: '',
+    numeroTarja: '',
     consignatario: '',
     nit: '',
-    fecha: '',
     vin: '',
     anio: null,
     marca: '',
     estilo: '',
     color: '',
   };
-
   vehiculoForm!: FormGroup;
 
   constructor(
@@ -83,12 +68,14 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
     this.vehiculoForm = this.fb.group({
+      fechaIngreso: [this.vehiculo.fechaIngreso || '', Validators.required],
+      numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
+      numeroTarja: [this.vehiculo.numeroTarja || '', Validators.required],
       consignatario: [this.vehiculo.consignatario || '', Validators.required],
       nit: [
         this.vehiculo.nit || '',
         this.validacionService.getValidators('nit'),
       ],
-
       vin: [
         this.vehiculo.vin || '',
         this.validacionService.getValidators('vin'),
@@ -109,7 +96,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       ? this.validacionService.getErrorMessages(campo as any, ctrl)
       : [];
   }
-
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
   ngOnChanges(changes: SimpleChanges) {
     if (changes['modo'] && this.vehiculoForm) {
@@ -131,7 +117,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       }
     }
   }
-
   confirmSave() {
     // Limpia mensajes anteriores
     this.messageService.clear();
@@ -170,8 +155,6 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     //Si todo es válido, emitimos para guardar/actualizar
     this.guardar.emit(this.vehiculoForm.getRawValue());
   }
-
-
   // Helper para mapear formControlName
   private obtenerEtiqueta(cn: string) {
     const labels: Record<string, string> = {
@@ -188,8 +171,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     };
     return labels[cn] || cn;
   }
-
-  onCancel() {
+ onCancel() {
     this.cancelar.emit();
   }
 }

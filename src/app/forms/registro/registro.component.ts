@@ -6,7 +6,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
-import { VehiculoformComponent } from '../vehiculoform/vehiculoform.component';
+
 import { Router } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -16,7 +16,7 @@ import { InputGroupModule } from 'primeng/inputgroup';
 @Component({
   selector: 'app-registro',
   standalone: true,
-  imports: [CommonModule, ButtonModule, InputTextModule, CalendarModule, VehiculoformComponent, DialogModule,
+  imports: [CommonModule, ButtonModule, InputTextModule, CalendarModule, DialogModule,
              ReactiveFormsModule, InputGroupModule],
   templateUrl: './registro.component.html',
   styleUrl: './registro.component.css'
