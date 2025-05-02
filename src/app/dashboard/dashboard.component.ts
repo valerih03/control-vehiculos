@@ -20,7 +20,7 @@ import { DespacharComponent } from '../despachar/despachar.component';
 import 'jspdf-autotable';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
-import { RegistroComponent } from '../forms/registro/registro.component';
+import { VehiculoformComponent } from '../forms/vehiculoform/vehiculoform.component';
 import { Vehiculo } from '../interfaces/vehiculo';
 import { Despacho } from '../interfaces/despacho';
 
@@ -32,7 +32,7 @@ import { Despacho } from '../interfaces/despacho';
     CalendarModule, DespacharComponent, ToastModule,
     ConfirmDialogModule, TableModule, RadioButtonModule,
     SplitButtonModule, CheckboxModule, FormsModule,
-    AutoCompleteModule, RegistroComponent
+    AutoCompleteModule, VehiculoformComponent
   ],
   providers: [ConfirmationService, MessageService, RouterModule],
   templateUrl: './dashboard.component.html',
