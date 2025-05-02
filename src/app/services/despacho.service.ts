@@ -43,4 +43,7 @@ export class DespachoService {
     }
     return false;
   }
+  obtenerDespachoPorVin(vin: string): Despacho | undefined {
+    return this.despachos.find(d => d.vin === vin);
+  }
 }

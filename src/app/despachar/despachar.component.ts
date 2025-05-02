@@ -6,12 +6,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { VehiculoService } from '../services/vehiculo.service';
+import { DespachoService } from '../services/despacho.service';  // Import agregado
 import { DropdownModule } from 'primeng/dropdown';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { EditorModule } from 'primeng/editor';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TagModule } from 'primeng/tag';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+
 @Component({
   selector: 'app-despachar',
   standalone: true,
@@ -48,10 +50,13 @@ export class DespacharComponent implements OnInit {
     { name: 'DM', value: 'DM' },
     { name: 'TRANSITO', value: 'TRANSITO' }
   ];
+
   constructor(
     private messageService: MessageService,
-    private vehiculoService: VehiculoService
+    private vehiculoService: VehiculoService,
+    private despachoService: DespachoService   // Servicio agregado
   ) {}
+
   ngOnInit() {
     if (this.modoVisualizacion && this.vehiculoParaMostrar) {
       this.despacho = { ...this.vehiculoParaMostrar };
@@ -60,6 +65,7 @@ export class DespacharComponent implements OnInit {
         : this.tiposDespacho[1];
     }
   }
+
   vinFiltrados: any[] = [];
   // Variables para control de errores
   mostrarErrorVin = false;
@@ -73,19 +79,24 @@ export class DespacharComponent implements OnInit {
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
 
-    // Obtener todos los vehículos disponibles del servicio
+    // Obtener vehículos que no tengan despacho registrado
+    const despachos = this.despachoService.obtenerDespachos();
     const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
-        .filter(v => v.vin && !v.despacho && v.estado !== 'Deshabilitado');
+      .filter(v => {
+        const tieneDespacho = despachos.some(d => d.vin === v.vin);
+        return v.vin && !tieneDespacho && v.estado !== 'Deshabilitado';
+      });
 
     // Filtrar por el query
     this.vinFiltrados = vehiculosDisponibles
-        .filter(v => v.vin.toLowerCase().includes(query))
-        .map(v => ({
-            vin: v.vin,
-            marca: v.marca || 'Sin marca',
-            anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
-        }));
-}
+      .filter(v => v.vin.toLowerCase().includes(query))
+      .map(v => ({
+        vin: v.vin,
+        marca: v.marca || 'Sin marca',
+        anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
+      }));
+  }
+
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho ${this.despacho.tipo}`;
@@ -94,12 +105,12 @@ export class DespacharComponent implements OnInit {
       ? 'Despacho TRANSITO'
       : 'Despacho DM';
   }
+
   onShow() {
     this.intentoGuardar = false;
     this.resetearErrores();
 
-    // No necesitamos cargar vinsRegistrados aquí, se hará en filtrarVins
-    this.vinsRegistrados = []; // Opcional: limpiar el array
+    this.vinsRegistrados = [];
 
     if (!this.modoVisualizacion) {
       this.despacho = {
@@ -116,10 +127,12 @@ export class DespacharComponent implements OnInit {
       this.tipoSeleccionado = { name: 'DM', value: 'DM' };
       this.vinSeleccionado = null;
     }
-}
+  }
+
   cerrarDialogo() {
     this.visibleChange.emit(false);
   }
+
   cambiarTipoDespacho() {
     const vinActual = this.despacho.vin;
     this.despacho = {
@@ -134,56 +147,61 @@ export class DespacharComponent implements OnInit {
       observaciones: ''
     };
   }
+
   seleccionarVin(event: any) {
     if (!event?.value?.vin) {
-        this.despacho.vin = '';
-        this.resetearErrores();
-        return;
+      this.despacho.vin = '';
+      this.resetearErrores();
+      return;
     }
 
     const vin = event.value.vin;
     const vehiculo = this.vehiculoService.obtenerVehiculos()
-        .find(v => v.vin === vin);
+      .find(v => v.vin === vin);
 
     if (!vehiculo) {
-        this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'VIN no encontrado'
-        });
-        return;
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'VIN no encontrado'
+      });
+      return;
     }
 
-    // Verificar que el vehículo esté disponible
-    if (vehiculo.despacho || vehiculo.estado === 'Deshabilitado') {
-        this.messageService.add({
-            severity: 'warn',
-            summary: 'Advertencia',
-            detail: 'Este VIN ya ha sido despachado'
-        });
-        this.despacho.vin = '';
-        this.vinSeleccionado = null;
-        return;
+    // Verificar despacho existente con el servicio de despacho
+    const yaDespachado = this.despachoService.obtenerDespachos().some(d => d.vin === vin);
+    if (yaDespachado || vehiculo.estado === 'Deshabilitado') {
+      this.messageService.add({
+        severity: yaDespachado ? 'warn' : 'warn',
+        summary: 'Advertencia',
+        detail: yaDespachado
+          ? 'Este VIN ya ha sido despachado'
+          : 'Este VIN está deshabilitado'
+      });
+      this.despacho.vin = '';
+      this.vinSeleccionado = null;
+      return;
     }
 
     // Resto de la lógica...
     this.despacho.vin = vin;
     this.vinSeleccionado = event.value;
 
-    // Limpiar campos para nuevo despacho
+    // Preparar formulario para nuevo despacho
     this.despacho = {
-        vin: vin,
-        motorista: '',
-        notadelevante: '',
-        bl: '',
-        copiaBL: '',
-        duca: '',
-        tarja: '',
-        observaciones: ''
+      vin: vin,
+      motorista: '',
+      notadelevante: '',
+      bl: '',
+      copiaBL: '',
+      duca: '',
+      tarja: '',
+      observaciones: ''
     };
     this.cambiarTipoDespacho();
     this.resetearErrores();
-}
+  }
+
   private resetearErrores(): void {
     this.mostrarErrorVin = false;
     this.mostrarErrorMotorista = false;
@@ -192,6 +210,7 @@ export class DespacharComponent implements OnInit {
     this.mostrarErrorDuca = false;
     this.mostrarErrorTarja = false;
   }
+
   onGuardar() {
     this.intentoGuardar = true;
     if (!this.validarFormulario()) {
@@ -211,29 +230,30 @@ export class DespacharComponent implements OnInit {
     this.guardarDespacho.emit(datosDespacho);
     this.visibleChange.emit(false);
   }
-validarFormulario(): boolean {
-  let valido = true;
-  // Solo validar si ya se intentó guardar
-  if (this.intentoGuardar) {
-    this.mostrarErrorVin = !this.despacho.vin;
-    if (this.mostrarErrorVin) valido = false;
 
-    this.mostrarErrorMotorista = !this.despacho.motorista;
-    if (this.mostrarErrorMotorista) valido = false;
+  validarFormulario(): boolean {
+    let valido = true;
+    if (this.intentoGuardar) {
+      this.mostrarErrorVin = !this.despacho.vin;
+      if (this.mostrarErrorVin) valido = false;
 
-    if (this.tipoSeleccionado.value === 'DM') {
-      this.mostrarErrorBl = !this.despacho.bl;
-      this.mostrarErrorDuca = !this.despacho.duca;
-      if (this.mostrarErrorBl || this.mostrarErrorDuca) valido = false;
-    } else {
-      this.mostrarErrorCopiaBl = !this.despacho.copiaBL;
-      this.mostrarErrorTarja = !this.despacho.tarja;
-      this.mostrarErrorDuca = !this.despacho.duca;
-      if (this.mostrarErrorCopiaBl || this.mostrarErrorTarja || this.mostrarErrorDuca) valido = false;
+      this.mostrarErrorMotorista = !this.despacho.motorista;
+      if (this.mostrarErrorMotorista) valido = false;
+
+      if (this.tipoSeleccionado.value === 'DM') {
+        this.mostrarErrorBl = !this.despacho.bl;
+        this.mostrarErrorDuca = !this.despacho.duca;
+        if (this.mostrarErrorBl || this.mostrarErrorDuca) valido = false;
+      } else {
+        this.mostrarErrorCopiaBl = !this.despacho.copiaBL;
+        this.mostrarErrorTarja = !this.despacho.tarja;
+        this.mostrarErrorDuca = !this.despacho.duca;
+        if (this.mostrarErrorCopiaBl || this.mostrarErrorTarja || this.mostrarErrorDuca) valido = false;
+      }
     }
+    return valido;
   }
-  return valido;
-}
+
   formularioValido(): boolean {
     return this.validarFormulario();
   }
