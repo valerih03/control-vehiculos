@@ -72,12 +72,9 @@ export class DespacharComponent implements OnInit {
 
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
-
-    // Obtener todos los vehículos disponibles del servicio
     const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
         .filter(v => v.vin && !v.despacho && v.estado !== 'Deshabilitado');
 
-    // Filtrar por el query
     this.vinFiltrados = vehiculosDisponibles
         .filter(v => v.vin.toLowerCase().includes(query))
         .map(v => ({
@@ -97,9 +94,7 @@ export class DespacharComponent implements OnInit {
   onShow() {
     this.intentoGuardar = false;
     this.resetearErrores();
-
-    // No necesitamos cargar vinsRegistrados aquí, se hará en filtrarVins
-    this.vinsRegistrados = []; // Opcional: limpiar el array
+    this.vinsRegistrados = [];
 
     if (!this.modoVisualizacion) {
       this.despacho = {
@@ -140,11 +135,9 @@ export class DespacharComponent implements OnInit {
         this.resetearErrores();
         return;
     }
-
     const vin = event.value.vin;
     const vehiculo = this.vehiculoService.obtenerVehiculos()
         .find(v => v.vin === vin);
-
     if (!vehiculo) {
         this.messageService.add({
             severity: 'error',
@@ -153,7 +146,6 @@ export class DespacharComponent implements OnInit {
         });
         return;
     }
-
     // Verificar que el vehículo esté disponible
     if (vehiculo.despacho || vehiculo.estado === 'Deshabilitado') {
         this.messageService.add({
@@ -165,11 +157,8 @@ export class DespacharComponent implements OnInit {
         this.vinSeleccionado = null;
         return;
     }
-
-    // Resto de la lógica...
     this.despacho.vin = vin;
     this.vinSeleccionado = event.value;
-
     // Limpiar campos para nuevo despacho
     this.despacho = {
         vin: vin,
@@ -213,7 +202,6 @@ export class DespacharComponent implements OnInit {
   }
 validarFormulario(): boolean {
   let valido = true;
-  // Solo validar si ya se intentó guardar
   if (this.intentoGuardar) {
     this.mostrarErrorVin = !this.despacho.vin;
     if (this.mostrarErrorVin) valido = false;

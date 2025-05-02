@@ -38,6 +38,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     marca: '',
     estilo: '',
     color: '',
+    observaciones: ''
   };
   @Input() modo: 'crear' | 'editar' = 'crear';
   // Se emiten eventos al guardar o cancelar
@@ -55,6 +56,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     marca: '',
     estilo: '',
     color: '',
+    observaciones: ''
   };
   vehiculoForm!: FormGroup;
 
@@ -66,29 +68,31 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   maxAnio = new Date(2026, 11, 31);  // diciembre es 11 (0-indexed)
 
   ngOnInit() {
+    this.inicializarFormulario();
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
-    this.vehiculoForm = this.fb.group({
-      fechaIngreso: [this.vehiculo.fechaIngreso || '', Validators.required],
-      numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
-      numeroTarja: [this.vehiculo.numeroTarja || '', Validators.required],
-      consignatario: [this.vehiculo.consignatario || '', Validators.required],
-      nit: [
-        this.vehiculo.nit || '',
-        this.validacionService.getValidators('nit'),
-      ],
-      vin: [
-        this.vehiculo.vin || '',
-        this.validacionService.getValidators('vin'),
-      ],
-      anio: [
-        this.vehiculo.anio || null,
-        [Validators.required, Validators.min(1990), Validators.max(2026)]
-      ],
-      marca: [this.vehiculo.marca || '', Validators.required],
-      estilo: [this.vehiculo.estilo || '', Validators.required],
-      color: [this.vehiculo.color || '', Validators.required],
-    });
   }
+
+  private inicializarFormulario() {
+    this.vehiculoForm = this.fb.group({
+      fechaIngreso: ['', Validators.required],
+      numeroBL: ['', Validators.required],
+      numeroTarja: ['', Validators.required],
+      consignatario: ['', Validators.required],
+      nit: ['', this.validacionService.getValidators('nit')],
+      vin: [
+        {value: '', disabled: this.modo === 'editar'},
+        this.validacionService.getValidators('vin')
+      ],
+      anio: [null, [Validators.required, Validators.min(1990), Validators.max(2026)]],
+      marca: ['', Validators.required],
+      estilo: ['', Validators.required],
+      color: ['', Validators.required],
+      observaciones: ['']
+    });
+
+
+  }
+
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);

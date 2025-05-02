@@ -13,6 +13,7 @@ export class VehiculoService {
   private cargarDesdeLocalStorage() {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
+    /* localStorage.removeItem(this.STORAGE_KEY); */
   }
   private guardarEnLocalStorage() {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.vehiculos));

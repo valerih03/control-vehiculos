@@ -20,17 +20,19 @@ import 'jspdf-autotable';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
 import { VehiculoformComponent } from "../forms/vehiculoform/vehiculoform.component";
+import { RescateComponent } from '../rescate/rescate.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, DespacharComponent,
     ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule,
-    FormsModule, AutoCompleteModule, VehiculoformComponent],
+    FormsModule, AutoCompleteModule, VehiculoformComponent, RescateComponent],
   providers: [ConfirmationService, MessageService, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
+
   //consultar
   dialogIngresoVisible = false;
   dialogConsultaVisible = false;
@@ -60,6 +62,7 @@ export class DashboardComponent {
   //detalle de despechos
   mostrarDetalleDespacho = false;
   vehiculoConDespacho: any = null;
+  visibleRescate: boolean = false;
 
 
   nuevoVehiculo = {
@@ -82,6 +85,7 @@ export class DashboardComponent {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
+
   ngOnInit() {
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
     this.filteredVehiculos = [...this.vehiculos];
@@ -94,6 +98,16 @@ export class DashboardComponent {
       default: return 'info';
     }
   }
+  mostrarDialogoRescate() {
+    this.visibleRescate = true;
+  }
+seleccionarParaRescate(vehiculo: any): void {
+  this.vehiculoSeleccionado = vehiculo;
+  //this.mostrarDialogoRescate = true;
+}
+procesarRescate(datosRescate: any): void {
+  console.log('Datos del rescate:', datosRescate);
+}
   //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
     // buscamos únicamente el vehículo clickeado
@@ -116,44 +130,6 @@ export class DashboardComponent {
       this.dialogOpcionesDespachoVisible = false;
     }
   }
-  // Método para reactivar un vehículo
-reactivarVehiculo(vin: string) {
-  this.confirmationService.confirm({
-    message: '¿Está seguro que desea reactivar este vehículo? Esto lo volverá a disponer para despacho.',
-    header: 'Confirmar Reactivación',
-    icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Sí, reactivar',
-    rejectLabel: 'Cancelar',
-    accept: () => {
-      const vehiculo = this.vehiculoService.obtenerVehiculoPorVin(vin);
-
-      if (vehiculo) {
-        vehiculo.estado = 'Disponible';
-        vehiculo.despacho = null; // Elimina los datos del despacho anterior
-
-        // Actualiza el vehículo en el servicio
-        const success = this.vehiculoService.actualizarVehiculo(vehiculo);
-
-        if (success) {
-          // Actualiza la lista local de vehículos
-          this.vehiculos = this.vehiculoService.obtenerVehiculos();
-
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Vehículo reactivado',
-            detail: `El vehículo con VIN ${vin} ha sido reactivado exitosamente`
-          });
-        } else {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo reactivar el vehículo'
-          });
-        }
-      }
-    }
-  });
-}
   //Metodo para mostrar el ESTADO de un vehiculo
   getEstadoVehiculo(vehiculo: any): string {
     return vehiculo.despacho ? 'Deshabilitado' : 'Disponible';
@@ -174,7 +150,7 @@ reactivarVehiculo(vin: string) {
       vehiculo.duca = datos.duca;
       vehiculo.tarja = datos.tarja;
       vehiculo.observaciones = datos.observaciones;
-      vehiculo.estado = 'Deshabilitado'; // Aquí actualizamos el estado
+      vehiculo.estado = 'Deshabilitado';
       return true;
     }
     return false;
@@ -222,7 +198,7 @@ reactivarVehiculo(vin: string) {
         detail: 'Vehículo actualizado correctamente.'
       });
     }
-
+    console.log('Vehículo guardado:', vehiculoParaGuardar);
     this.dialogVehiculoVisible = false;
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
@@ -236,14 +212,14 @@ reactivarVehiculo(vin: string) {
   search(event: { query: string }) {
     const query = event.query.toLowerCase();
     this.filteredVehiculos = this.vehiculos.filter(vehiculo => {
-      const numeroTarja = vehiculo.numeroTarja ? vehiculo.numeroTarja.toLowerCase() : '';
+      const bl = vehiculo.bl ? vehiculo.bl.toLowerCase() : '';
       const vin = vehiculo.vin ? vehiculo.vin.toLowerCase() : '';
       const consignatario = vehiculo.consignatario ? vehiculo.consignatario.toLowerCase() : '';
       const marca = vehiculo.marca ? vehiculo.marca.toLowerCase() : '';
       const estilo = vehiculo.estilo ? vehiculo.estilo.toLowerCase() : '';
 
       return vin.includes(query) ||
-      numeroTarja.includes(query) ||
+      bl.includes(query) ||
              consignatario.includes(query) ||
              marca.includes(query) ||
              estilo.includes(query);

@@ -1,0 +1,36 @@
+<p-toast position="top-right"></p-toast>
+
+   <p-dialog
+        header="Realizar Rescate" [(visible)]="visible" [modal]="true" (onHide)="cerrar()" [draggable]="false" [resizable]="false">
+  <form [formGroup]="formularioRescate" (ngSubmit)="guardar()">
+    <div class="p-fluid grid">
+      <!-- Campo Tarja -->
+      <div class="field col-12 md:col-6">
+        <label for="tarja">Tarja</label>
+        <input id="tarja" type="text"pInputText [formControl]="tarjaControl" readonly class="w-full">
+      </div>
+      <!-- Campo BL -->
+      <div class="field col-12 md:col-6">
+        <label for="bl">BL</label>
+        <input id="bl" type="text" pInputText [formControl]="blControl" readonly class="w-full">
+      </div>
+
+      <!-- Fecha de Rescate (solo visible si confirma) -->
+      <div class="field col-12">
+        <label for="fechaRescate">Fecha de Rescate</label>
+        <input pInputText type="date" formControlName="fechaRescate" [attr.max]="todayISO" class="w-full">
+        <small
+          class="p-error block" *ngIf="fechaRescateControl.invalid && (fechaRescateControl.touched || fechaRescateControl.dirty)"
+        >La fecha de rescate es requerida.</small>
+      </div>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-between">
+      <button pButton pRipple type="button" label="Cancelar" icon="pi pi-times" class="p-button-text p-button-danger" (click)="cerrar()"
+      ></button>
+      <button pButton pRipple type="submit" label="Guardar Rescate" icon="pi pi-check" class="p-button-success" [disabled]="formularioRescate.invalid"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>
