@@ -1,40 +1,37 @@
 <p-toast></p-toast>
 <p-confirmDialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmDialog>
 
-<h1 class="text-center">CONTROL DE VEHÍCULOS</h1>
-
-<div class="flex card justify-content-center p-4">
-  <p-button (click)="showCrearDialog()"  label="Ingresar Datos" icon="pi pi-plus"></p-button>
-  <p-button (click)="dialogConsultaVisible = true"  label="Consultar Datos" icon="pi pi-search"></p-button>
-  <p-button (click)="dialogOpcionesDespachoVisible = true"  label="Realizar Despacho" icon="pi pi-truck"></p-button>
+<div class="flex justify-content-center flex-wrap">
+  <div class="flex align-items-center"><h1>CONTROL DE VEHÍCULOS</h1></div>
+</div>
+<div class="flex flex-wrap justify-content-center gap-3 card p-4">
+  <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus" class="w-full sm:w-auto"></p-button>
+  <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="w-full sm:w-auto"></p-button>
+  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck" class="w-full sm:w-auto"></p-button>
 </div>
 <!-- Diálogo de Opciones de Despacho -->
 <app-despachar
-    [vinsRegistrados]="vehiculos"
-    [(visible)]="dialogOpcionesDespachoVisible"
-    (guardarDespacho)="onDespachoGuardado($event)">
-</app-despachar>
-<app-despachar [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible" (guardarDespacho)="onDespachoGuardado($event)">
+    [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible" (guardarDespacho)="onDespachoGuardado($event)">
 </app-despachar>
 <!-- Diálogo de Consulta -->
-<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [style]="{ width: '100vw' }">
-  <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin">
+<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [styleClass]="'w-screen md:w-10 max-h-screen overflow-y-auto'">
+  <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin" responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
-        <th style="width: 3rem"></th>
+        <th class="w-3rem"></th>
         <th>
           Consignatario
-          <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." style="width: 100%">
+          <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." class="w-full mt-1">
         </th>
         <th>NIT</th>
         <th>
           VIN
-          <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..." style="width: 100%">
+          <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..." class="w-full mt-1">
         </th>
         <th>Año</th>
         <th>
           Marca
-          <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..." style="width: 100%">
+          <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..." class="w-full mt-1">
         </th>
         <th>Estado</th>
         <th>Acciones</th>
@@ -42,8 +39,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-vehiculo>
       <tr [pSelectableRow]="vehiculo"
-          [ngClass]="{'highlight-row': isFilteredMatch(vehiculo)}"
-          *ngIf="shouldDisplayRow(vehiculo)">
+    *ngIf="shouldDisplayRow(vehiculo)">
         <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
         <td [innerHTML]="getHighlightedText(vehiculo.consignatario, 'consignatario')"></td>
         <td>{{ vehiculo.nit }}</td>
@@ -72,18 +68,18 @@
         </td>
         <td>
           <div class="flex gap-1">
-            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm"
-                    (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
-                    style="width: 1rem;"
-                    [disabled]="vehiculo.estado === 'Deshabilitado'"
-                    pTooltip="Editar vehículo"
-                    tooltipPosition="top"></button>
-            <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button-sm"
-                    (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
-                    style="width: 1rem;"
-                    [disabled]="!vehiculo.despacho"
-                    pTooltip="Ver detalle de despacho"
-                    tooltipPosition="top"></button>
+            <button pButton icon="pi pi-pencil"
+                class="p-button-rounded p-button-success p-button-sm w-2rem"
+                (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+                [disabled]="vehiculo.estado === 'Deshabilitado'"
+                pTooltip="Editar vehículo" tooltipPosition="top">
+          </button>
+        <button pButton icon="pi pi-list"
+                class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
+                (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
+                [disabled]="!vehiculo.despacho" pTooltip="Ver detalle de despacho" tooltipPosition="top">
+        </button>
+
           </div>
         </td>
       </tr>
@@ -91,7 +87,7 @@
   </p-table>
 <!-- Dialogo para detalles de despacho -->
 <p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}"
-          [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{ width: '80vw' }">
+          [(visible)]="mostrarDetalleDespacho" [modal]="true">
   <div *ngIf="vehiculoConDespacho">
     <div class="field mb-4">
       <label class="font-bold">Tipo de Despacho:</label>
@@ -106,28 +102,27 @@
     </div>
     <div class="field"><br>
       <label class="font-bold">Motorista:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.motorista || 'No especificado' }}</p>
+      <div class="p-card p-2">{{ vehiculoConDespacho.motorista || 'No especificado' }}</div>
     </div>
     <div class="field">
       <label class="font-bold">DUCA:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.duca || 'No especificado' }}</p>
+      <div class="p-card p-2">{{ vehiculoConDespacho.duca || 'No especificado' }}</div>
     </div>
     <div *ngIf="vehiculoConDespacho.despacho === 'DM'" class="field">
       <label class="font-bold">N° BL:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.bl || 'No especificado' }}</p>
+      <div class="p-card p-2">{{ vehiculoConDespacho.bl || 'No especificado' }}</div>
     </div>
-
     <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
       <label class="font-bold">N° BL:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.copiaBL || 'No especificado' }}</p>
+      <div class="p-card p-2d">{{ vehiculoConDespacho.copiaBL || 'No especificado' }}</div>
     </div>
     <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
       <label class="font-bold">Tarja:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.tarja || 'No especificado' }}</p>
+      <div class="p-card p-2">{{ vehiculoConDespacho.tarja || 'No especificado' }}</div>
     </div>
     <div class="field">
       <label class="font-bold">Observaciones:</label>
-      <p class="surface-100 p-2 border-round">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</p>
+      <div class="p-card p-2">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</div>
     </div>
   </div>
   <ng-template pTemplate="footer">
@@ -139,16 +134,11 @@
   <div class="flex gap-2">
     <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
   </div>
-
 </div>
 </p-dialog>
-<p-dialog header="Control de vehículos"
-          [modal]="true"
-          [(visible)]="dialogVehiculoVisible"
-          >
+<!-- Dialogo para ingreso de vehiculos -->
+<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-registro
-    *ngIf="dialogVehiculoVisible"
-    (guardar)="handleGuardar($event)"
-    (cancelar)="handleCancelar()">
+    *ngIf="dialogVehiculoVisible" (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
   </app-registro>
 </p-dialog>

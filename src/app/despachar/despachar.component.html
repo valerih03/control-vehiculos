@@ -1,13 +1,13 @@
-<p-dialog header="{{ getHeaderText() }}" [(visible)]="visible" (onShow)="onShow()" (onHide)="cerrarDialogo()" [modal]="true">
+<p-dialog header="{{ getHeaderText() }}" [(visible)]="visible" (onShow)="onShow()" (onHide)="cerrarDialogo()" [modal]="true" [style]="{width: '50vw'}">
   <div class="p-fluid formgrid grid" *ngIf="!modoVisualizacion">
     <div class="field col-12">
-      <label>Tipo de Despacho</label>
+      <label class="font-bold block mb-2">Tipo de Despacho</label>
       <p-selectButton [options]="tiposDespacho" [(ngModel)]="tipoSeleccionado"
-      optionLabel="name" (onChange)="cambiarTipoDespacho()">
+                     optionLabel="name" (onChange)="cambiarTipoDespacho()" class="w-full">
       </p-selectButton>
     </div>
     <div class="field col-12">
-      <label for="vinAutoComplete">Buscar VIN registrado</label>
+      <label for="vinAutoComplete" class="font-bold block mb-2">Buscar VIN registrado</label>
       <p-autoComplete
         inputId="vinAutoComplete"
         [(ngModel)]="vinSeleccionado"
@@ -16,9 +16,9 @@
         field="vin"
         [dropdown]="true"
         placeholder="Seleccione un VIN"
-        [style]="{ width: '100%' }"
-        [ngClass]="{'ng-invalid ng-dirty': intentoGuardar && mostrarErrorVin}"
+        [inputStyle]="{width: '100%'}"
         (onSelect)="seleccionarVin($event)"
+        class="w-full"
       >
         <ng-template let-vin pTemplate="item">
           <div class="flex align-items-center">
@@ -26,56 +26,60 @@
           </div>
         </ng-template>
       </p-autoComplete>
-      <small *ngIf="intentoGuardar && mostrarErrorVin" class="p-error">Campo obligatorio</small>
+      <small *ngIf="intentoGuardar && mostrarErrorVin" class="p-error block mt-1">Campo obligatorio</small>
     </div>
-
   </div>
+
   <div class="p-fluid formgrid grid">
     <div class="field col-12">
-      <label>VIN</label>
-      <input pInputText [(ngModel)]="despacho.vin" readonly styleClass="w-full"/>
+      <label class="font-bold block mb-2">VIN</label>
+      <input pInputText [(ngModel)]="despacho.vin" readonly class="w-full"/>
     </div>
     <div class="field col-12 md:col-6">
-      <label>Motorista</label>
+      <label class="font-bold block mb-2">Motorista</label>
       <input pInputText [(ngModel)]="despacho.motorista"
-             [readonly]="modoVisualizacion" styleClass="w-full"/>
+             [readonly]="modoVisualizacion" class="w-full"/>
+    </div>
+    <div class="field col-12 md:col-6">
+      <label class="font-bold block mb-2">Nota de levante</label>
+      <input pInputText [(ngModel)]="despacho.notadelevante" [readonly]="modoVisualizacion" class="w-full" />
     </div>
     <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
-      <label>N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" styleClass="w-full"/>
+      <label class="font-bold block mb-2">N° de BL</label>
+      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" class="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
-      <label>DUCA</label>
-      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" styleClass="w-full"/>
+      <label class="font-bold block mb-2">DUCA</label>
+      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" class="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label>N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" styleClass="w-full"/>
+      <label class="font-bold block mb-2">N° de BL</label>
+      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" class="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label>Tarja</label>
-      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" styleClass="w-full"/>
+      <label class="font-bold block mb-2">Tarja</label>
+      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" class="w-full"/>
     </div>
     <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label>DUCA</label>
+      <label class="font-bold block mb-2">DUCA</label>
       <input pInputText [(ngModel)]="despacho.duca"
-             [readonly]="modoVisualizacion" styleClass="w-full"/>
+             [readonly]="modoVisualizacion" class="w-full"/>
     </div>
     <div class="field col-12">
-      <label for="observaciones">Observaciones</label>
+      <label for="observaciones" class="font-bold block mb-2">Observaciones</label>
       <textarea
         id="observaciones"
         pInputTextarea
-        style="height: 200px; resize: none; overflow: auto; width: 100%;" rows="1"
         [(ngModel)]="despacho.observaciones"
-        name="observaciones" [disabled]="modoVisualizacion" class="w-full">
-      </textarea>
+        [disabled]="modoVisualizacion"
+        class="w-full"
+        rows="5"
+      ></textarea>
     </div>
   </div>
+
   <ng-template pTemplate="footer">
-    <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()">
-    </p-button>
-    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check" (click)="onGuardar()">
-    </p-button>
+    <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()"></p-button>
+    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check" (click)="onGuardar()"></p-button>
   </ng-template>
 </p-dialog>

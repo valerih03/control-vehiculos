@@ -1,87 +1,64 @@
 <form [formGroup]="registroForm" class="p-fluid">
+  <!-- Inputs agrupados -->
+  <div class="grid">
+    <div class="col-12 md:col-4">
+      <input
+        pInputText type="date" formControlName="fechaIngreso"
+        [attr.max]="todayISO" placeholder="Fecha ingreso" class="w-full"
+      />
+      <small
+        class="p-error"
+        *ngIf="registroForm.get('fechaIngreso')?.touched && registroForm.get('fechaIngreso')?.hasError('required')"
+      >Fecha requerida</small>
+    </div>
 
+    <div class="col-12 md:col-4">
+      <input
+        pInputText formControlName="numeroBL" placeholder="N° BL" class="w-full"
+      />
+      <small
+        class="p-error"
+        *ngIf="registroForm.get('numeroBL')?.touched && registroForm.get('numeroBL')?.hasError('required')"
+      >BL requerido</small>
+    </div>
 
-  <div class="p-col-12 md:p-col-9">
-    <p-inputGroup class="border-round ">
+    <div class="col-12 md:col-4">
       <input
-        pInputText
-        type="date"
-        formControlName="fechaIngreso"
-        [attr.max]="todayISO"
-        placeholder="Fecha ingreso"
-        class="w-full p-2"
+        pInputText formControlName="numeroTarja" placeholder="Tarja" class="w-full"
       />
-      <input
-        pInputText
-        formControlName="numeroBL"
-        placeholder="N° BL"
-        class="w-full p-2"
-      />
-      <input
-        pInputText
-        formControlName="numeroTarja"
-        placeholder="Tarja"
-        class="w-full p-2"
-      />
-    </p-inputGroup>
-  </div>
-   <!-- Mensajes de validación -->
-   <div class="p-col-12">
-    <div class="grid grid-nogutter mt-2">
-      <div class="col-12 md:col-4">
-        <small
-          class="p-error"
-          *ngIf="registroForm.get('fechaIngreso')?.touched && registroForm.get('fechaIngreso')?.hasError('required')"
-        >Fecha requerida</small>
-      </div>
-      <div class="col-12 md:col-4">
-        <small
-          class="p-error"
-          *ngIf="registroForm.get('numeroBL')?.touched && registroForm.get('numeroBL')?.hasError('required')"
-        >BL requerido</small>
-      </div>
-      <div class="col-12 md:col-4">
-        <small
-          class="p-error"
-          *ngIf="registroForm.get('numeroTarja')?.touched && registroForm.get('numeroTarja')?.hasError('required')"
-        >Tarja requerida</small>
-      </div>
+      <small
+        class="p-error"
+        *ngIf="registroForm.get('numeroTarja')?.touched && registroForm.get('numeroTarja')?.hasError('required')"
+      >Tarja requerida</small>
     </div>
   </div>
-  <!-- Botón para abrir el formulario de vehículo -->
-  <div class="gap-1 py-5 w-4 px-0 p-button-rounded p-button-primary">
+
+  <!-- Botón "Ingresar vehículo" ahora entre inputs y botones Guardar/Cancelar -->
+  <div class="flex justify-content-end gap-3 mt-4">
     <button
-    pButton
-    type="button"
-    label="Ingresar vehículo"
-    icon="pi pi-car"
-    (click)="openVehiculoForm()"></button>
+      pButton type="button" label="Ingresar vehículo" icon="pi pi-car"
+      (click)="openVehiculoForm()" class="p-button-primary"
+    ></button>
   </div>
 
+  <!-- Botones Guardar y Cancelar -->
+  <div class="flex justify-content-end gap-3 mt-2">
+    <button
+      pButton type="button" label="Cancelar" icon="pi pi-times" severity="danger"
+      (click)="onCancel()" class="p-button-outlined"
+    ></button>
+    <button
+      pButton type="submit" label="Guardar" icon="pi pi-check" (click)="confirmSave()"
+    ></button>
+  </div>
 
-  <!-- Formulario de vehículo embebido -->
-  <div *ngIf="showVehiculoForm" >
+  <!-- Formulario embebido -->
+  <div *ngIf="showVehiculoForm" class="mt-4">
     <app-vehiculoform
       [vehiculo]="registroForm.get('vehiculo')?.value"
       modo="crear"
       (guardar)="onVehiculoGuardar($event)"
       (cancelar)="showVehiculoForm = false"
     ></app-vehiculoform>
-  </div>
-  <!-- Botón de guardar y cancelar -->
-  <div class="flex flex-row w-4 justify-content-center gap-1 py-6 px-0" >
-    <button
-    pButton
-    label="Cancelar"
-    severity="danger"
-    (click)="onCancel()"
-    styleClass="px-4 py-2"
-  ></button>
-  <button
-    pButton
-    label="Guardar"
-    (click)="confirmSave()"
-    styleClass="px-4 py-2 ml-2"
-  ></button>
   </div>
 </form>
