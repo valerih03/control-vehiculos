@@ -415,6 +415,7 @@ procesarRescate(datosRescate: any): void {
     } catch (error: unknown) {
       this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
     }
+    console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
 }
 //mesaje de error
 private handlePdfError(error: Error) {

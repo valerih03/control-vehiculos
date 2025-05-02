@@ -10,77 +10,86 @@ export class VehiculoService {
   constructor() {
     this.cargarDesdeLocalStorage();
   }
+
   private cargarDesdeLocalStorage() {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
-    /* localStorage.removeItem(this.STORAGE_KEY); */
   }
+
   private guardarEnLocalStorage() {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.vehiculos));
   }
-  agregarVehiculo(vehiculo: any) {
-    const vehiculoNormalizado = {
+
+  private normalizarVehiculo(vehiculo: any): any {
+    return {
       ...vehiculo,
-      bl: vehiculo.numeroBL,       // Mapea numeroBL -> bl
-      tarja: vehiculo.numeroTarja, // Mapea numeroTarja -> tarja
-      fecha: vehiculo.fechaIngreso // Mapea fechaIngreso -> fecha
+      vin: vehiculo.vin || '',
+      numeroBL: vehiculo.numeroBL || vehiculo.bl || '',
+      numeroTarja: vehiculo.numeroTarja || vehiculo.tarja || '',
+      fechaIngreso: vehiculo.fechaIngreso || vehiculo.fecha || new Date().toISOString(),
+      despacho: vehiculo.despacho ? {
+        tipo: vehiculo.despacho.tipo || '',
+        motorista: vehiculo.despacho.motorista || '',
+        notadelevante: vehiculo.despacho.notadelevante || '',
+        bl: vehiculo.despacho.bl || vehiculo.numeroBL || vehiculo.bl || '',
+        copiaBL: vehiculo.despacho.copiaBL || '',
+        duca: vehiculo.despacho.duca || '',
+        tarja: vehiculo.despacho.tarja || vehiculo.numeroTarja || vehiculo.tarja || '',
+        observaciones: vehiculo.despacho.observaciones || ''
+      } : null,
+      estado: vehiculo.estado || 'Disponible'
     };
-    // Elimina los nombres antiguos para evitar duplicados
-    /* delete vehiculoNormalizado.numeroBL;
-    delete vehiculoNormalizado.numeroTarja;
-    delete vehiculoNormalizado.fechaIngreso; */
+  }
+
+  agregarVehiculo(vehiculo: any) {
+    const vehiculoNormalizado = this.normalizarVehiculo(vehiculo);
     this.vehiculos.push(vehiculoNormalizado);
     this.guardarEnLocalStorage();
   }
 
   obtenerVehiculoPorVin(vin: string): any | undefined {
-    return this.vehiculos.find(v => v.vin === vin);
+    const vehiculo = this.vehiculos.find(v => v.vin === vin);
+    return vehiculo ? this.normalizarVehiculo(vehiculo) : undefined;
   }
-  obtenerVehiculos() {
-    return [...this.vehiculos];
+
+  obtenerVehiculos(): any[] {
+    return this.vehiculos.map(v => this.normalizarVehiculo(v));
   }
-  actualizarVehiculo(vehiculoActualizado: any) {
+
+  actualizarVehiculo(vehiculoActualizado: any): boolean {
     const index = this.vehiculos.findIndex(v => v.vin === vehiculoActualizado.vin);
     if (index !== -1) {
-      // Mantén la estructura consistente
-      this.vehiculos[index] = {
-        ...vehiculoActualizado,
-        // Asegúrate de mantener estos campos aunque el formulario no los envíe
-        despacho: this.vehiculos[index].despacho,
-        estado: this.vehiculos[index].estado
-      };
+      this.vehiculos[index] = this.normalizarVehiculo(vehiculoActualizado);
       this.guardarEnLocalStorage();
       return true;
     }
     return false;
   }
+
   actualizarDespacho(datosDespacho: any): boolean {
-    const vehiculo = this.vehiculos.find(v => v.vin === datosDespacho.vin);
-    if (!vehiculo) {
-      console.error('Vehículo no encontrado con VIN:', datosDespacho.vin);
-      return false;
-    }
-    if (datosDespacho.bl) {
-      vehiculo.bl = datosDespacho.bl;
-      vehiculo.fecha = new Date().toISOString(); // o usa la fecha del formulario
-      vehiculo.despacho = {
-        tipo: 'DM',
-        duca: datosDespacho.duca,
-        motorista: datosDespacho.motorista,
-        observaciones: datosDespacho.observaciones
-      };
-    }
-    else if (datosDespacho.copiaBL) {
-      vehiculo.copiaBL = datosDespacho.copiaBL;
-      vehiculo.tarja = datosDespacho.tarja;
-      vehiculo.fecha = new Date().toISOString();
-      vehiculo.despacho = {
-        tipo: 'TRANSITO',
-        duca: datosDespacho.duca,
-        motorista: datosDespacho.motorista,
-        observaciones: datosDespacho.observaciones
-      };
-    }
+    const index = this.vehiculos.findIndex(v => v.vin === datosDespacho.vin);
+    if (index === -1) return false;
+
+    const vehiculo = this.vehiculos[index];
+
+    // Actualiza el objeto despacho completo
+    vehiculo.despacho = {
+      tipo: datosDespacho.tipo,
+      vin: datosDespacho.vin,
+      motorista: datosDespacho.motorista,
+      notadelevante: datosDespacho.notadelevante || '',
+      bl: datosDespacho.tipo === 'DM' ? datosDespacho.bl : '',
+      copiaBL: datosDespacho.tipo === 'TRANSITO' ? datosDespacho.copiaBL : '',
+      duca: datosDespacho.duca,
+      tarja: datosDespacho.tipo === 'TRANSITO' ? datosDespacho.tarja : '',
+      observaciones: datosDespacho.observaciones || ''
+    };
+
+    // Actualiza campos directos del vehículo
+    vehiculo.estado = 'Deshabilitado';
+    vehiculo.numeroBL = vehiculo.despacho.bl;
+    vehiculo.numeroTarja = vehiculo.despacho.tarja;
+
     this.guardarEnLocalStorage();
     return true;
   }

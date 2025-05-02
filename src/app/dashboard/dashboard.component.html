@@ -70,11 +70,13 @@
         </td>
         <td>
           <div class="flex gap-1">
-            <button pButton icon="pi pi-pencil"
-                class="p-button-rounded p-button-success p-button-sm w-2rem"
-                (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
-                [disabled]="vehiculo.estado === 'Deshabilitado'"
-                pTooltip="Editar vehículo" tooltipPosition="top">
+            <button
+            pButton
+            icon="pi pi-pencil"
+            class="p-button-rounded p-button-success p-button-sm w-2rem"
+            (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
+            pTooltip="Editar vehículo"
+            tooltipPosition="top">
             </button>
             <button pButton icon="pi pi-list"
                     class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
@@ -147,6 +149,6 @@
 <!-- Dialogo para ingreso de vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-vehiculoform
-    *ngIf="dialogVehiculoVisible"  (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
+    *ngIf="dialogVehiculoVisible"  [modo]="modoFormulario" (guardar)="handleGuardar($event)" (cancelar)="handleCancelar()">
   </app-vehiculoform>
 </p-dialog>
