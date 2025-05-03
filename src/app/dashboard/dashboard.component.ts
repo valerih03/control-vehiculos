@@ -112,6 +112,7 @@ procesarRescate(datosRescate: any): void {
   verDetalleDespacho(vehiculo: any) {
     // buscamos únicamente el vehículo clickeado
     this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculoPorVin(vehiculo.vin);
+    console.log('Detalle de despacho:', this.vehiculoConDespacho);
     this.mostrarDetalleDespacho = true;
   }
   onDespachoGuardado(datos: any) {

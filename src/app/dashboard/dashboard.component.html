@@ -96,38 +96,45 @@
       <label class="font-bold">Tipo de Despacho:</label>
       <div>
         <span class="p-tag" [ngClass]="{
-          'p-tag-info': getSeverity(vehiculoConDespacho.despacho) === 'info',
-          'p-tag-warning': getSeverity(vehiculoConDespacho.despacho) === 'warning'
+          'p-tag-info': getSeverity(vehiculoConDespacho.despacho?.tipo) === 'info',
+          'p-tag-warning': getSeverity(vehiculoConDespacho.despacho?.tipo) === 'warning'
         }">
-          {{ vehiculoConDespacho.despacho || 'No especificado' }}
+          {{ vehiculoConDespacho.despacho?.tipo || 'No especificado' }}
         </span>
       </div>
     </div>
+
     <div class="field"><br>
       <label class="font-bold">Motorista:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.motorista || 'No especificado' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.motorista || 'No especificado' }}</div>
     </div>
+
     <div class="field">
       <label class="font-bold">DUCA:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.duca || 'No especificado' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.duca || 'No especificado' }}</div>
     </div>
-    <div *ngIf="vehiculoConDespacho.despacho === 'DM'" class="field">
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'DM'" class="field">
       <label class="font-bold">N° BL:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.bl || 'No especificado' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.bl || 'No especificado' }}</div>
     </div>
-    <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'TRANSITO'" class="field">
       <label class="font-bold">N° BL:</label>
-      <div class="p-card p-2d">{{ vehiculoConDespacho.copiaBL || 'No especificado' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.copiaBL || 'No especificado' }}</div>
     </div>
-    <div *ngIf="vehiculoConDespacho.despacho === 'TRANSITO'" class="field">
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'TRANSITO'" class="field">
       <label class="font-bold">Tarja:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.tarja || 'No especificado' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.tarja || 'No especificado' }}</div>
     </div>
+
     <div class="field">
       <label class="font-bold">Observaciones:</label>
-      <div class="p-card p-2">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</div>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.observaciones || 'Sin observaciones' }}</div>
     </div>
   </div>
+
   <ng-template pTemplate="footer">
     <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
   </ng-template>
