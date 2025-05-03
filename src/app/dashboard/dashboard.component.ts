@@ -354,7 +354,7 @@ procesarRescate(datosRescate: any): void {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
 
-        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca'];
+        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estado'];
         const data = vehiculosParaExportar.map(v => [
           v.bl || 'N/A',
           v.vin || 'N/A',
@@ -362,13 +362,14 @@ procesarRescate(datosRescate: any): void {
           v.nit || 'N/A',
           v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
           v.marca || 'N/A',
+          v.estado || 'N/A'
         ]);
 
         autoTableModule.default(doc, {
           head: [headers],
           body: data,
           startY: 25,
-          margin: { horizontal: 35 },
+          margin: { horizontal: 20 }, //margen
           tableWidth: 'auto',
           styles: {
             fontSize: 7,
@@ -394,7 +395,8 @@ procesarRescate(datosRescate: any): void {
             3: { cellWidth: 27 },
             4: { cellWidth: 15 },
             5: { cellWidth: 20 },
-            6: { cellWidth: 20 }
+            6: { cellWidth: 20 },
+            7: { cellWidth: 20 }
           }
         });
 
