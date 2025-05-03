@@ -319,104 +319,114 @@ procesarRescate(datosRescate: any): void {
     });
   }
   exportarPDF() {
-    const vehiculosParaExportar =
-  Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
-    ? this.vehiculoSeleccionado
-    : this.selectedVehiculo
-      ? [this.selectedVehiculo]
-      : this.vehiculos;
-    if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'No hay vehículos para exportar'
-      });
-      return;
-    }
-    try {
-      import('jspdf').then((jsPDFModule) => {
-        import('jspdf-autotable').then((autoTableModule) => {
-          const { jsPDF } = jsPDFModule;
-          const doc = new jsPDF('p', 'mm', 'a4');
+  // Obtener los vehículos filtrados actualmente visibles en la tabla
+  const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
 
-          const fecha = new Date().toLocaleString();
-          const titulo = 'REPORTE DE VEHÍCULOS';
-          const pageWidth = doc.internal.pageSize.getWidth();
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'bold');
-          doc.text(titulo, pageWidth / 2, 15, { align: 'center' });
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
-          const headers = ['VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estilo'];
-          const data = vehiculosParaExportar.map(v => [
-            v.vin || 'N/A',
-            v.consignatario || 'N/A',
-            v.nit || 'N/A',
-            v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
-            v.marca || 'N/A',
-            v.estilo || 'N/A'
-          ]);
-          autoTableModule.default(doc, {
-            head: [headers],
-            body: data,
-            startY: 25,
-            margin: { horizontal: 35 },
-            tableWidth: 'auto',
-            styles: {
-              fontSize: 7,
-              cellPadding: 2,
-              overflow: 'linebreak',
-              lineWidth: 0.1,
-              halign: 'center'
-            },
-            headStyles: {
-              fillColor: [13, 71, 161],
-              textColor: 255,
-              fontStyle: 'bold',
-              halign: 'center',
-              fontSize: 7
-            },
-            alternateRowStyles: {
-              fillColor: [240, 240, 240]
-            },
-            columnStyles: {
-              0: { cellWidth: 28 },
-              1: { cellWidth: 25 },
-              2: { cellWidth: 27 },
-              3: { cellWidth: 16 },
-              4: { cellWidth: 20 },
-              5: { cellWidth: 20 }
-            }
-          });
-          const pageCount = doc.getNumberOfPages();
-          for(let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(6);
-            doc.text(
-              `Página ${i} de ${pageCount}`,
-              pageWidth - 15,
-              doc.internal.pageSize.getHeight() - 5
-            );
+  const vehiculosParaExportar =
+    Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
+      ? this.vehiculoSeleccionado
+      : this.selectedVehiculo
+        ? [this.selectedVehiculo]
+        : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
+
+  if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Advertencia',
+      detail: 'No hay vehículos para exportar'
+    });
+    return;
+  }
+
+  try {
+    import('jspdf').then((jsPDFModule) => {
+      import('jspdf-autotable').then((autoTableModule) => {
+        const { jsPDF } = jsPDFModule;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        const fecha = new Date().toLocaleString();
+        const titulo = 'REPORTE DE VEHÍCULOS';
+        const pageWidth = doc.internal.pageSize.getWidth();
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(titulo, pageWidth / 2, 15, { align: 'center' });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
+
+        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca'];
+        const data = vehiculosParaExportar.map(v => [
+          v.bl || 'N/A',
+          v.vin || 'N/A',
+          v.consignatario || 'N/A',
+          v.nit || 'N/A',
+          v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
+          v.marca || 'N/A',
+        ]);
+
+        autoTableModule.default(doc, {
+          head: [headers],
+          body: data,
+          startY: 25,
+          margin: { horizontal: 35 },
+          tableWidth: 'auto',
+          styles: {
+            fontSize: 7,
+            cellPadding: 2,
+            overflow: 'linebreak',
+            lineWidth: 0.1,
+            halign: 'center'
+          },
+          headStyles: {
+            fillColor: [13, 71, 161],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center',
+            fontSize: 7
+          },
+          alternateRowStyles: {
+            fillColor: [240, 240, 240]
+          },
+          columnStyles: {
+            0: { cellWidth: 28 },
+            1: { cellWidth: 28 },
+            2: { cellWidth: 35 },
+            3: { cellWidth: 27 },
+            4: { cellWidth: 15 },
+            5: { cellWidth: 20 },
+            6: { cellWidth: 20 }
           }
-         const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
-          doc.save(fileName);
+        });
 
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Éxito',
-            detail: 'PDF generado correctamente'
-          });
-        }).catch((error: Error) => {
-          this.handlePdfError(error);
+        const pageCount = doc.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(6);
+          doc.text(
+            `Página ${i} de ${pageCount}`,
+            pageWidth - 15,
+            doc.internal.pageSize.getHeight() - 5
+          );
+        }
+
+        const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(fileName);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'PDF generado correctamente'
         });
       }).catch((error: Error) => {
         this.handlePdfError(error);
       });
-    } catch (error: unknown) {
-      this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
-    }
-    console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
+    }).catch((error: Error) => {
+      this.handlePdfError(error);
+    });
+  } catch (error: unknown) {
+    this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
+  }
+  console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
 }
 //mesaje de error
 private handlePdfError(error: Error) {
