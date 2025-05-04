@@ -4,6 +4,8 @@
 <div class="flex justify-content-center flex-wrap">
   <div class="flex align-items-center"><h1>CONTROL DE VEHÍCULOS</h1></div>
 </div>
+
+<!-- Botones -->
 <div class="flex flex-wrap justify-content-center gap-3 card p-4">
   <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus" class="w-full sm:w-auto"></p-button>
   <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="w-full sm:w-auto"></p-button>
@@ -79,7 +81,7 @@
             <button
             pButton
             icon="pi pi-pencil"
-            class="p-button-rounded p-button-success p-button-sm w-2rem"
+            class="p-button-rounded p-button-success p-button"
             (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
             pTooltip="Editar vehículo"
             tooltipPosition="top">
@@ -87,7 +89,7 @@
             <button
               pButton
               icon="pi pi-list"
-              class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
+              class="p-button-rounded p-button-info p-button"
               (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
               [disabled]="vehiculo.estado !== 'Deshabilitado'"
               pTooltip="vehiculo.estado === 'Deshabilitado' ? 'Ver detalle de despacho' : 'Sin despacho'"
