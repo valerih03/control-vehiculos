@@ -27,7 +27,8 @@ import { RescateComponent } from '../rescate/rescate.component';
   imports: [DialogModule, CommonModule, ButtonModule, InputTextModule, CalendarModule, DespacharComponent,
     ToastModule, ConfirmDialogModule, TableModule, RadioButtonModule, SplitButtonModule, CheckboxModule,
     FormsModule, AutoCompleteModule, VehiculoformComponent, RescateComponent],
-  providers: [ConfirmationService, MessageService, RouterModule],
+  providers: [ConfirmationService, MessageService, /* RouterModule, */  VehiculoService,
+    ValidacionService],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -132,9 +133,31 @@ procesarRescate(datosRescate: any): void {
     }
   }
   //Metodo para mostrar el ESTADO de un vehiculo
-  getEstadoVehiculo(vehiculo: any): string {
-    return vehiculo.despacho ? 'Deshabilitado' : 'Disponible';
+    getEstadoVehiculo(vehiculo: any): string {
+    if (vehiculo.despacho) return 'Deshabilitado';
+    if (vehiculo.diasTranscurridos > 20) return 'Abandono';
+    return `Disponible (${20 - vehiculo.diasTranscurridos}d restantes)`;
+}
+getTooltipEstado(vehiculo: any): string {
+  if (vehiculo.estado === 'Deshabilitado') {
+    return `Despachado como ${vehiculo.despacho?.tipo || 'despacho general'}`;
+  } else if (vehiculo.estado === 'Abandono') {
+    return `Vehículo en abandono desde hace ${vehiculo.diasTranscurridos - 20} días`;
+  } else {
+    return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)} días restantes)`;
   }
+}
+  iniciarRescate(vehiculo: any) {
+  // Lógica para iniciar rescate
+  if (this.vehiculoService.iniciarRescate(vehiculo.vin)) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Rescate',
+      detail: 'Proceso de rescate iniciado para VIN: ' + vehiculo.vin
+    });
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
+  }
+}
   obtenerVehiculos(): any[] {
     return this.vehiculos.map(v => ({
       ...v,
@@ -231,6 +254,11 @@ procesarRescate(datosRescate: any): void {
     if (!this.isFiltering) return true;
     return this.isFilteredMatch(vehiculo);
   }
+  filterByBl(event: Event){
+    const value = (event.target as HTMLInputElement ).value.toLowerCase();
+    this.marcaFilter = value;
+    this.applyFilter('bl',event);
+  }
   filterByVin(event: Event) {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
     this.vinFilter = value;
@@ -259,7 +287,7 @@ procesarRescate(datosRescate: any): void {
       this.isFiltering = false;
       return;
     }
-    // Ordenar poniendo primero los que coinciden
+    // Ordenar el filtrado poniendo primero los que coinciden
     this.sortedVehiculos = [...this.vehiculos].sort((a, b) => {
       const aMatches = this.isFilteredMatch(a);
       const bMatches = this.isFilteredMatch(b);
