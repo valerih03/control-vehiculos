@@ -75,17 +75,17 @@
               {{ getEstadoVehiculo(vehiculo) }}
             </span>
             <span *ngIf="vehiculo.estado === 'Disponible'" class="text-xs">
-              ({{ 20 - vehiculo.diasTranscurridos }}d restantes)
+              <!-- ({{ 20 - vehiculo.diasTranscurridos }}d restantes) -->
             </span>
           </div>
         </td>
         <td>
           <div class="flex gap-1">
-            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-sm w-2rem"
+            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button"
               (click)="editarVehiculo(vehiculo); $event.stopPropagation()" pTooltip="Editar vehículo"
               tooltipPosition="top" [disabled]="vehiculo.estado === 'Deshabilitado'">
             </button>
-            <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button-sm w-2rem ml-2"
+            <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button"
               (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" [disabled]="!vehiculo.despacho"
               pTooltip="Ver detalle de despacho" tooltipPosition="top">
             </button>
