@@ -27,6 +27,8 @@ export class DespacharComponent implements OnInit {
   @Input() modoVisualizacion = false;
   @Input() vehiculoParaMostrar: any;
   @Input() vinsRegistrados: any[] = [];
+  @Input() vehiculoEditando: any;
+
 
   @Output() guardarDespacho = new EventEmitter<any>();
 
@@ -52,6 +54,10 @@ export class DespacharComponent implements OnInit {
     private messageService: MessageService,
     private vehiculoService: VehiculoService
   ) {}
+  //edicion de despacho
+  activarEdicion() {
+    this.modoVisualizacion = false;
+  }
   ngOnInit() {
     if (this.modoVisualizacion && this.vehiculoParaMostrar) {
             this.despacho = {
@@ -64,7 +70,9 @@ export class DespacharComponent implements OnInit {
         this.despacho = { ...this.despacho, ...this.despacho.despacho };
       }
       // Establece el tipo correcto
-      this.tipoSeleccionado = this.tiposDespacho.find(t => t.value === this.despacho.tipo) || this.tiposDespacho[0];
+      this.tipoSeleccionado = this.tiposDespacho.find(
+        t => t.value === this.despacho.tipo
+      ) || this.tiposDespacho[0];
     }
   }
   vinFiltrados: any[] = [];
@@ -99,11 +107,35 @@ export class DespacharComponent implements OnInit {
     : 'Despacho DM';
   }
   onShow() {
+    // Resetear estado inicial
     this.intentoGuardar = false;
     this.resetearErrores();
-    this.vinsRegistrados = [];
 
-    if (!this.modoVisualizacion) {
+    // Si hay datos para mostrar (modo edición)
+    if (this.vehiculoParaMostrar) {
+      console.log('Recibiendo datos para edición:', this.vehiculoParaMostrar);
+
+      // Copiar los datos al modelo del formulario
+      this.despacho = {
+        tipo: this.vehiculoParaMostrar.tipo || 'DM',
+        vin: this.vehiculoParaMostrar.vin || '',
+        motorista: this.vehiculoParaMostrar.motorista || '',
+        notadelevante: this.vehiculoParaMostrar.notadelevante || '',
+        bl: this.vehiculoParaMostrar.bl || '',
+        copiaBL: this.vehiculoParaMostrar.copiaBL || '',
+        duca: this.vehiculoParaMostrar.duca || '',
+        tarja: this.vehiculoParaMostrar.tarja || '',
+        observaciones: this.vehiculoParaMostrar.observaciones || ''
+      };
+
+      // Establecer el tipo correcto en el select button
+      this.tipoSeleccionado = this.tiposDespacho.find(
+        t => t.value === (this.despacho.tipo || 'DM')
+      ) || this.tiposDespacho[0];
+
+      console.log('Formulario cargado con:', this.despacho);
+    } else {
+      // Modo creación (formulario vacío)
       this.despacho = {
         tipo: this.tipoSeleccionado.value,
         vin: '',
@@ -115,10 +147,8 @@ export class DespacharComponent implements OnInit {
         tarja: '',
         observaciones: ''
       };
-      this.tipoSeleccionado = { name: 'DM', value: 'DM' };
-      this.vinSeleccionado = null;
     }
-}
+  }
   cerrarDialogo() {
     this.visibleChange.emit(false);
   }

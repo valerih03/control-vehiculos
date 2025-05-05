@@ -79,6 +79,10 @@
   </div>
   <ng-template pTemplate="footer">
     <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()"></p-button>
-    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check" (click)="onGuardar()"></p-button>
+    <p-button *ngIf="modoVisualizacion" label="Editar" icon="pi pi-pencil"
+            (click)="activarEdicion()" class="p-button-outlined p-button-warning"></p-button>
+
+  <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check"
+            (click)="onGuardar()"></p-button>
   </ng-template>
 </p-dialog>

@@ -65,6 +65,8 @@ export class DashboardComponent {
   vehiculoConDespacho: any = null;
   visibleRescate: boolean = false;
 
+  vehiculoEditandoDespacho: any = null;
+  despachoactual: any = null;
 
   nuevoVehiculo = {
     numeroTarja: '',
@@ -77,7 +79,17 @@ export class DashboardComponent {
     nit: '',
     estado: ''
   };
-
+  despacho: any = {
+    tipo: '',
+    vin: '',
+    motorista: '',
+    notadelevante: '',
+    bl: '',
+    copiaBL: '',
+    duca: '',
+    tarja: '',
+    observaciones: ''
+  };
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -111,28 +123,39 @@ procesarRescate(datosRescate: any): void {
 }
   //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
-    // buscamos únicamente el vehículo clickeado
-    this.vehiculoConDespacho = this.vehiculoService.obtenerVehiculoPorVin(vehiculo.vin);
-    console.log('Detalle de despacho:', this.vehiculoConDespacho);
+    // Pasamos el vehículo completo que ya contiene los datos de despacho
+    this.vehiculoConDespacho = vehiculo;
     this.mostrarDetalleDespacho = true;
-  }
-  onDespachoGuardado(datos: any) {
-    const datosCompletos = {
-      ...datos,
-      estado: 'Deshabilitado'
-    };
-    const ok = this.vehiculoService.actualizarDespacho(datos);
-    if (ok) {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Despacho',
-        detail: 'Detalle de despacho guardado correctamente.'
-      });
-      this.vehiculos = this.vehiculoService.obtenerVehiculos();
-      this.dialogOpcionesDespachoVisible = false;
+    console.log('Detalle de despacho:', this.vehiculoConDespacho.despacho);
+}
+onDespachoGuardado(datos: any) {
+  const ok = this.vehiculoService.actualizarDespacho(datos);
+  if (ok) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Despacho',
+      detail: 'Detalle de despacho actualizado correctamente.'
+    });
+
+    // Actualizar la lista de vehículos
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
+
+    // Si estamos viendo el detalle de este vehículo, actualizarlo también
+    if (this.vehiculoConDespacho?.vin === datos.vin) {
+      this.vehiculoConDespacho.despacho = {
+        tipo: datos.tipo,
+        motorista: datos.motorista,
+        bl: datos.bl,
+        copiaBL: datos.copiaBL,
+        duca: datos.duca,
+        tarja: datos.tarja,
+        observaciones: datos.observaciones
+      };
     }
+
+    this.dialogOpcionesDespachoVisible = false;
   }
-  //Metodo para mostrar el ESTADO de un vehiculo
+}//Metodo para mostrar el ESTADO de un vehiculo
     getEstadoVehiculo(vehiculo: any): string {
     if (vehiculo.despacho) return 'Deshabilitado';
     if (vehiculo.diasTranscurridos > 20) return 'Abandono';
@@ -197,6 +220,30 @@ getTooltipEstado(vehiculo: any): string {
     console.log('Vehículo a editar:', this.vehiculoActual);
     this.dialogVehiculoVisible = true;
   }
+  editarDespachoDesdeDetalle(vehiculo: any) {
+    // Prepara los datos del despacho asegurando todas las propiedades necesarias
+    this.despachoactual = {
+      tipo: vehiculo.despacho?.tipo || 'DM',
+      vin: vehiculo.vin,
+      motorista: vehiculo.despacho?.motorista || '',
+      notadelevante: vehiculo.despacho?.notadelevante || '',
+      bl: vehiculo.despacho?.bl || '',
+      copiaBL: vehiculo.despacho?.copiaBL || '',
+      duca: vehiculo.despacho?.duca || '',
+      tarja: vehiculo.despacho?.tarja || '',
+      observaciones: vehiculo.despacho?.observaciones || ''
+    };
+
+    console.log('Datos preparados para edición:', this.despachoactual);
+
+    // Forzar detección de cambios
+    this.cdr.detectChanges();
+
+    // Abrir diálogo después de preparar los datos
+    setTimeout(() => {
+      this.dialogOpcionesDespachoVisible = true;
+    });
+  }
   // Maneja el evento del componente de formulario al guardar
   handleGuardar(vehiculo: any) {
     // Normaliza los datos antes de guardar
@@ -226,7 +273,10 @@ getTooltipEstado(vehiculo: any): string {
     this.dialogVehiculoVisible = false;
     this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
-
+  onDialogShow() {
+    console.log('Diálogo mostrado, datos actuales:', this.despachoactual);
+    this.cdr.detectChanges();
+  }
   // Maneja la cancelación: cierra el diálogo
   handleCancelar() {
     this.dialogVehiculoVisible = false;

@@ -115,8 +115,7 @@
 </p-dialog>
 
 <!-- Diálogo para detalles de despacho -->
-<p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho"
-  [modal]="true">
+<p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{width: '50vw'}">
   <div *ngIf="vehiculoConDespacho">
     <div class="field mb-4">
       <label class="font-bold">Tipo de Despacho:</label>
@@ -162,11 +161,27 @@
   </div>
 
   <ng-template pTemplate="footer">
+    <p-button label="Editar" icon="pi pi-pencil"
+      (click)="editarDespachoDesdeDetalle(vehiculoConDespacho)"
+      [disabled]="!vehiculoConDespacho.despacho">
+    </p-button>
     <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
   </ng-template>
 </p-dialog>
 
-<!-- Diálogo para ingreso de vehiculos -->
+<!-- Diálogo para edición de despacho -->
+<p-dialog header="Editar Despacho - {{despachoactual?.vin}}"
+          [(visible)]="dialogOpcionesDespachoVisible"
+          [modal]="true"
+          [style]="{width: '50vw'}"
+          (onShow)="onDialogShow()">
+  <app-despachar *ngIf="dialogOpcionesDespachoVisible"
+    [(visible)]="dialogOpcionesDespachoVisible"
+    [vehiculoParaMostrar]="despachoactual"
+    [modoVisualizacion]="false"
+    (guardarDespacho)="onDespachoGuardado($event)">
+  </app-despachar>
+</p-dialog>
 <!-- Diálogo para ingreso de vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-vehiculoform
