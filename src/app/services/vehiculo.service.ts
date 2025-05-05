@@ -62,7 +62,8 @@ export class VehiculoService {
         copiaBL: vehiculo.despacho.copiaBL || '',
         duca: vehiculo.despacho.duca || '',
         tarja: vehiculo.despacho.tarja || vehiculo.numeroTarja || vehiculo.tarja || '',
-        observaciones: vehiculo.despacho.observaciones || ''
+        observaciones: vehiculo.despacho.observaciones || '',
+        fechaRescate: vehiculo.fechaRescate || null,
       } : null,
       estado: estadoCalculado,
       fechaUltimoEstado: new Date().toISOString()
@@ -143,15 +144,20 @@ export class VehiculoService {
     return true;
   }
 
-  iniciarRescate(vin: string): boolean {
-    const vehiculo = this.obtenerVehiculoPorVin(vin);
-    if (!vehiculo || vehiculo.estado !== 'Abandono') return false;
-
-    vehiculo.estado = 'Disponible';
-    vehiculo.fechaIngreso = new Date().toISOString(); // Reiniciar contador
-    vehiculo.fechaUltimoEstado = new Date().toISOString();
-    vehiculo.diasTranscurridos = 0;
-
-    return this.actualizarVehiculo(vehiculo);
+  //Para rescatar vehículos abandonados
+  iniciarRescateMasivo(vehiculos: any[], fechaRescate: Date): boolean {
+    try {
+      vehiculos.forEach(vehiculo => {
+        vehiculo.estado = 'Disponible';
+        vehiculo.fechaRescate = fechaRescate.toISOString();
+        vehiculo.fechaIngreso = new Date().toISOString(); // Resetear contador
+        vehiculo.diasTranscurridos = 0;
+        this.actualizarVehiculo(vehiculo);
+      });
+      return true;
+    } catch (error) {
+      console.error('Error en rescate masivo:', error);
+      return false;
+    }
   }
 }

@@ -63,7 +63,11 @@ export class DashboardComponent {
   //detalle de despechos
   mostrarDetalleDespacho = false;
   vehiculoConDespacho: any = null;
-  visibleRescate: boolean = false;
+  //rescate
+  dialogRescateVisible: boolean = false;
+  vehiculosParaRescate: any[] = [];
+  fechaRescate: Date = new Date();
+  blFiltradoActual: string = '';
 
 
   nuevoVehiculo = {
@@ -99,16 +103,6 @@ export class DashboardComponent {
       default: return 'info';
     }
   }
-  mostrarDialogoRescate() {
-    this.visibleRescate = true;
-  }
-seleccionarParaRescate(vehiculo: any): void {
-  this.vehiculoSeleccionado = vehiculo;
-  //this.mostrarDialogoRescate = true;
-}
-procesarRescate(datosRescate: any): void {
-  console.log('Datos del rescate:', datosRescate);
-}
   //PARA EL DETALLES DE DESPACHO
   verDetalleDespacho(vehiculo: any) {
     // buscamos únicamente el vehículo clickeado
@@ -145,17 +139,6 @@ getTooltipEstado(vehiculo: any): string {
     return `Vehículo en abandono desde hace ${vehiculo.diasTranscurridos - 20} días`;
   } else {
     return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)} días restantes)`;
-  }
-}
-  iniciarRescate(vehiculo: any) {
-  // Lógica para iniciar rescate
-  if (this.vehiculoService.iniciarRescate(vehiculo.vin)) {
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Rescate',
-      detail: 'Proceso de rescate iniciado para VIN: ' + vehiculo.vin
-    });
-    this.vehiculos = this.vehiculoService.obtenerVehiculos();
   }
 }
   obtenerVehiculos(): any[] {
@@ -468,5 +451,99 @@ private handlePdfError(error: Error) {
     detail: `No se pudo generar el PDF: ${errorMessage}`
   });
 
+}
+
+//PARA RESCATE
+
+HabilitarBotonRescate(): boolean {
+  // 1. Obtener todos los vehículos con el BL filtrado (exacto)
+  const vehiculosDelBL = this.vehiculos.filter(v =>
+    v.bl?.toString().trim() === this.blFiltradoActual
+  );
+
+  // 2. Verificar condiciones
+  return (
+    this.blFiltradoActual !== '' &&       // Hay un BL filtrado
+    vehiculosDelBL.length > 0 &&          // Existen vehículos con ese BL
+    vehiculosDelBL.every((v: any) =>      // Todos en "Abandono"
+      v.estado === 'Abandono'
+    )
+  );
+}
+
+filtrarPorBL(event: Event) {
+  this.blFiltradoActual = (event.target as HTMLInputElement).value.trim();
+  this.applyFilter('bl', event); // Opcional: si quieres mantener tu filtro general
+}
+
+getVehiculosFiltrados(): any[] {
+  return this.vehiculos.filter(v => this.shouldDisplayRow(v));
+}
+
+// Muestra el diálogo de rescate si se cumplen las condiciones
+verificarRescate() {
+  const vehiculosFiltrados = this.getVehiculosFiltrados();
+
+  // Determinar qué vehículos usar (selección manual o filtrados)
+  this.vehiculosParaRescate =
+    this.vehiculoSeleccionado?.length > 0
+      ? [...this.vehiculoSeleccionado]
+      : vehiculosFiltrados.filter(v => v.estado === 'Abandono');
+
+  // Verificar que todos tengan mismo BL
+  const primerBL = this.vehiculosParaRescate[0]?.bl;
+  const mismoBL = this.vehiculosParaRescate.every(v => v.bl === primerBL);
+
+  if (this.vehiculosParaRescate.length > 0 && mismoBL) {
+    this.dialogRescateVisible = true;
+  } else {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'No se puede rescatar',
+      detail: 'Se requieren vehículos con mismo BL y estado "Abandono"',
+      life: 5000
+    });
+  }
+}
+
+// Procesa el rescate después de confirmar
+procesarRescate(fechaRescate: string) {
+  const fecha = new Date(fechaRescate);
+
+  // Normalización en el filter
+  const vehiculosValidos = (this.vehiculosParaRescate as Array<{ estado: string; bl: string }>)
+    .filter(v => v.estado === 'Abandono' && v.bl === (this.vehiculosParaRescate[0] as { bl: string }).bl);
+
+  // Resto del método idéntico a tu versión original...
+  if (vehiculosValidos.length === 0) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Ningún vehículo cumple las condiciones para rescate',
+      life: 5000
+    });
+    return;
+  }
+
+  // Procesar rescate
+  const success = this.vehiculoService.iniciarRescateMasivo(
+    vehiculosValidos,
+    fecha
+  );
+
+  if (success) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Rescate exitoso',
+      detail: `${vehiculosValidos.length} vehículo(s) actualizados`,
+      life: 3000
+    });
+
+    // Actualizar datos
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
+    this.vehiculoSeleccionado = [];
+    this.dialogRescateVisible = false;
+    this.updateSortedVehiculos();
+  }
 }
 }
