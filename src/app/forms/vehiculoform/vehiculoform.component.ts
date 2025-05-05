@@ -74,25 +74,22 @@ export class VehiculoformComponent implements OnInit, OnChanges {
 
   private inicializarFormulario() {
     this.vehiculoForm = this.fb.group({
-      fechaIngreso: ['', Validators.required],
-      numeroBL: ['', Validators.required],
-      numeroTarja: ['', Validators.required],
-      consignatario: ['', Validators.required],
-      nit: ['', this.validacionService.getValidators('nit')],
+      fechaIngreso: [this.vehiculo.fechaIngreso || '', Validators.required],
+      numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
+      numeroTarja: [this.vehiculo.numeroTarja || '', Validators.required],
+      consignatario: [this.vehiculo.consignatario || '', Validators.required],
+      nit: [this.vehiculo.nit || '', this.validacionService.getValidators('nit')],
       vin: [
-        {value: '', disabled: this.modo === 'editar'},
+        {value: this.vehiculo.vin || '', disabled: this.modo === 'editar'},
         this.validacionService.getValidators('vin')
       ],
-      anio: [null, [Validators.required, Validators.min(1990), Validators.max(2026)]],
-      marca: ['', Validators.required],
-      estilo: ['', Validators.required],
-      color: ['', Validators.required],
-      observaciones: ['']
+      anio: [this.vehiculo.anio || null, [Validators.required, Validators.min(1990), Validators.max(2026)]],
+      marca: [this.vehiculo.marca || '', Validators.required],
+      estilo: [this.vehiculo.estilo || '', Validators.required],
+      color: [this.vehiculo.color || '', Validators.required],
+      observaciones: [this.vehiculo.observaciones || '']
     });
-
-
   }
-
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
@@ -102,22 +99,32 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   }
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['modo'] && this.vehiculoForm) {
-      if (this.modo === 'crear') {
-        this.vehiculoForm.reset(this.defaultVehiculo);
-        this.vehiculoForm.get('fechares')!.disable();
-      } else if (this.modo === 'editar' && changes['vehiculo']) {
-        const v = this.vehiculo;
-        this.vehiculoForm.reset({
-          ...v,
-          realizarRescate: !!v.fechares,
-          fechares: v.fechares || null, // ← aquí sí asignas 'fechares'
-        });
-        if (v.fechares) {
-          this.vehiculoForm.get('fechares')!.enable();
-        } else {
-          this.vehiculoForm.get('fechares')!.disable();
-        }
+    if (changes['vehiculo'] && this.vehiculo) {
+      const v = this.vehiculo;
+       // Convertir el año a Date si es necesario
+    let anioValue = v.anio;
+    if (anioValue && !(anioValue instanceof Date)) {
+      // Si es string o número, convertirlo a Date
+      anioValue = new Date(anioValue.toString());
+    }
+      const formData = {
+        fechaIngreso: v.fechaIngreso || '',
+        numeroBL: v.numeroBL || '',
+        numeroTarja: v.numeroTarja || '',
+        consignatario: v.consignatario || '',
+        nit: v.nit || '',
+        vin: v.vin || '',
+        anio: anioValue || null,
+        marca: v.marca || '',
+        estilo: v.estilo || '',
+        color: v.color || '',
+        observaciones: v.observaciones || ''
+      };
+
+      if (!this.vehiculoForm) {
+        this.inicializarFormulario();
+      } else {
+        this.vehiculoForm.patchValue(formData);
       }
     }
   }

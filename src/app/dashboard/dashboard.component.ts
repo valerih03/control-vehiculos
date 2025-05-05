@@ -190,9 +190,9 @@ getTooltipEstado(vehiculo: any): string {
     this.modoFormulario = 'editar';
     this.vehiculoActual = {
       ...vehiculo,
-      numeroBL: vehiculo.bl,
-      numeroTarja: vehiculo.tarja,
-      fechaIngreso: vehiculo.fecha
+      numeroBL: vehiculo.numeroBL || vehiculo.bl,
+      numeroTarja: vehiculo.numeroTarja || vehiculo.tarja,
+      fechaIngreso: vehiculo.fechaIngreso || vehiculo.fecha
     };
     console.log('Vehículo a editar:', this.vehiculoActual);
     this.dialogVehiculoVisible = true;
