@@ -151,7 +151,7 @@ onDespachoGuardado(datos: any) {
   }
 }//Metodo para mostrar el ESTADO de un vehiculo
 getEstadoVehiculo(vehiculo: any): string {
-  if (vehiculo.despacho) return 'Deshabilitado';
+  if (vehiculo.despacho) return 'Despachado';
   if (vehiculo.diasTranscurridos > 20 && !vehiculo.fechaRescate) return 'Abandono';
   if (vehiculo.fechaRescate) return 'Rescatado';
   return `Disponible (${20 - vehiculo.diasTranscurridos}d restantes)`;
