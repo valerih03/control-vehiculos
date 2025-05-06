@@ -49,7 +49,9 @@
           <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..."
             class="w-full mt-1">
         </th>
-        <th>Estado</th>
+        <th>Estado
+        <input pInputText type="text" (input)="applyFilter('estado', $event)" placeholder="Buscar..."
+          class="w-full mt-1"></th>
         <th>Acciones</th>
       </tr>
     </ng-template>

@@ -301,6 +301,11 @@ getEstadoVehiculo(vehiculo: any): string {
     if (!this.isFiltering) return true;
     return this.isFilteredMatch(vehiculo);
   }
+  filterByEstado(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.currentFilters['estado'] = value;
+    this.applyFilter('estado', event);
+  }
   filterByBl(event: Event){
     const value = (event.target as HTMLInputElement ).value.toLowerCase();
     this.marcaFilter = value;
