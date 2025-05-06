@@ -8,6 +8,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
 
 
 @Component({
@@ -21,7 +22,8 @@ import { ToastModule } from 'primeng/toast';
     DialogModule,
     ButtonModule,
     InputTextModule,
-    ToastModule
+    ToastModule,
+    TableModule
   ],
   templateUrl: './rescate.component.html',
   styleUrls: ['./rescate.component.scss'],
@@ -29,112 +31,44 @@ import { ToastModule } from 'primeng/toast';
 })
 export class RescateComponent implements OnInit {
   @Input() visible: boolean = false;
-  @Input() registroSeleccionado: any = null;
+  @Input() vehiculos: any[] = [];
   @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() alGuardar = new EventEmitter<any>();
+  @Output() confirmar = new EventEmitter<string>();
 
-  formularioRescate: FormGroup;
-  fechaActual: Date;
-  fechaMinima: Date;
-
-  today: Date = new Date();
+  formRescate!: FormGroup;
   todayISO!: string;
-
-  constructor(
-    private fb: FormBuilder,
-    private messageService: MessageService
-  ) {
-    // Inicializamos las fechas
-    const hoy = new Date();
-    this.fechaActual = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-    this.fechaMinima = new Date(2000, 0, 1); // Fecha mínima arbitraria (1/1/2000)
-
-    this.formularioRescate = this.fb.group({
-      realizarRescate: [false, [Validators.requiredTrue]],
-      tarja: [{ value: '', disabled: true }],
-      bl: [{ value: '', disabled: true }],
-      fechaRescate: [{ value: this.fechaActual, disabled: false }, [Validators.required]]
-    });
+  minDate!: string;
+  constructor(private fb: FormBuilder) {
+    this.todayISO = new Date().toISOString().split('T')[0];
   }
 
-  ngOnInit(): void {
-    this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
-  }
+  ngOnInit() {
+    this.inicializarFormulario();
 
-  // Getters seguros para los controles
-  get realizarRescateControl(): FormControl {
-    return this.formularioRescate.get('realizarRescate') as FormControl;
-  }
-
-  get fechaRescateControl(): FormControl {
-    return this.formularioRescate.get('fechaRescate') as FormControl;
-  }
-
-  get tarjaControl(): FormControl {
-    return this.formularioRescate.get('tarja') as FormControl;
-  }
-
-  get blControl(): FormControl {
-    return this.formularioRescate.get('bl') as FormControl;
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['registroSeleccionado'] && this.registroSeleccionado) {
-      this.actualizarCampos();
+    if(this.vehiculos.length > 0){
+      const fechaIngreso = new Date(this.vehiculos[0].fechaIngreso);
+      fechaIngreso.setDate(fechaIngreso.getDate()+20);
+      this.minDate = fechaIngreso.toISOString().split('T')[0];
     }
   }
 
-  private actualizarCampos(): void {
-    this.formularioRescate.patchValue({
-      tarja: this.registroSeleccionado?.numeroTarja || '',
-      bl: this.registroSeleccionado?.numeroBL || ''
+  private inicializarFormulario(): void {
+    this.formRescate = this.fb.group({
+      fechaRescate: [this.todayISO, Validators.required] // Valor inicial como string
     });
   }
 
-  confirmarRescate(): void {
-    this.realizarRescateControl.setValue(true);
+  onConfirm() {
+    if (this.formRescate.valid) {
+      // Convertimos a Date si es necesario
+      const fecha = new Date(this.formRescate.value.fechaRescate);
+      this.confirmar.emit(fecha.toISOString());
+      this.visibleChange.emit(false);
+    }
   }
 
-  guardar(): void {
-    if (this.formularioRescate.invalid) {
-      this.mostrarErrorValidacion();
-      return;
-    }
-    // Validación adicional de fecha por si acaso
-    const fechaSeleccionada = new Date(this.fechaRescateControl.value);
-    if (fechaSeleccionada > this.fechaActual) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No puede seleccionar una fecha futura',
-        life: 5000
-      });
-      return;
-    }
-    const datosRescate = {
-      tarja: this.registroSeleccionado.numeroTarja,
-      bl: this.registroSeleccionado.numeroBL,
-      fechaRescate: this.fechaRescateControl.value,
-      vin: this.registroSeleccionado.vin
-    };
-    this.alGuardar.emit(datosRescate);
-    this.cerrar();
-    console.log('Datos de rescate guardados:', datosRescate);
-  }
-  private mostrarErrorValidacion(): void {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Debe confirmar el rescate y seleccionar una fecha válida',
-      life: 5000
-    });
-  }
-  cerrar(): void {
-    this.formularioRescate.reset({
-      realizarRescate: false,
-      fechaRescate: this.fechaActual
-    });
-    this.visible = false;
-    this.visibleChange.emit(this.visible);
+  onCancel() {
+    this.visibleChange.emit(false);
+    this.formRescate.reset({ fechaRescate: this.todayISO });
   }
 }

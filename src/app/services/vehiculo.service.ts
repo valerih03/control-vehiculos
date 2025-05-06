@@ -30,6 +30,7 @@ export class VehiculoService {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
     this.verificarEstadosVehiculos(); // Verificar estados al cargar
+    //localStorage.clear();
   }
 
   private guardarEnLocalStorage() {
@@ -41,10 +42,17 @@ export class VehiculoService {
     const hoy = new Date();
     const diasTranscurridos = Math.floor((hoy.getTime() - fechaIngreso.getTime()) / (1000 * 60 * 60 * 24));
 
-    let estadoCalculado = vehiculo.estado; // Respeta estado existente
-    if (!estadoCalculado) {
-      estadoCalculado = vehiculo.despacho ? 'Deshabilitado' :
-                       (diasTranscurridos > 20 ? 'Abandono' : 'Disponible');
+    let estadoCalculado = '';
+
+    if (vehiculo.despacho) {
+      estadoCalculado = 'Deshabilitado';
+    } else if (vehiculo.fechaRescate) {
+      // Si ha sido rescatado, sin importar los días, sigue disponible
+      estadoCalculado = 'Disponible (Rescatado)';
+    } else if (diasTranscurridos > 20) {
+      estadoCalculado = 'Abandono';
+    } else {
+      estadoCalculado = 'Disponible';
     }
 
     return {
@@ -53,17 +61,7 @@ export class VehiculoService {
       numeroBL: vehiculo.numeroBL || vehiculo.bl || '',
       numeroTarja: vehiculo.numeroTarja || vehiculo.tarja || '',
       fechaIngreso: fechaIngreso.toISOString(),
-      diasTranscurridos: diasTranscurridos,
-      despacho: vehiculo.despacho ? {
-        tipo: vehiculo.despacho.tipo || '',
-        motorista: vehiculo.despacho.motorista || '',
-        notadelevante: vehiculo.despacho.notadelevante || '',
-        bl: vehiculo.despacho.bl || vehiculo.numeroBL || vehiculo.bl || '',
-        copiaBL: vehiculo.despacho.copiaBL || '',
-        duca: vehiculo.despacho.duca || '',
-        tarja: vehiculo.despacho.tarja || vehiculo.numeroTarja || vehiculo.tarja || '',
-        observaciones: vehiculo.despacho.observaciones || ''
-      } : null,
+      diasTranscurridos,
       estado: estadoCalculado,
       fechaUltimoEstado: new Date().toISOString()
     };
@@ -143,15 +141,19 @@ export class VehiculoService {
     return true;
   }
 
-  iniciarRescate(vin: string): boolean {
-    const vehiculo = this.obtenerVehiculoPorVin(vin);
-    if (!vehiculo || vehiculo.estado !== 'Abandono') return false;
-
-    vehiculo.estado = 'Disponible';
-    vehiculo.fechaIngreso = new Date().toISOString(); // Reiniciar contador
-    vehiculo.fechaUltimoEstado = new Date().toISOString();
-    vehiculo.diasTranscurridos = 0;
-
-    return this.actualizarVehiculo(vehiculo);
+  //Para rescatar vehículos abandonados
+  iniciarRescateMasivo(vehiculos: any[], fechaRescate: Date): boolean {
+    try {
+      vehiculos.forEach(vehiculo => {
+        vehiculo.estado = 'Disponible';
+        vehiculo.fechaRescate = fechaRescate.toISOString();
+        vehiculo.diasTranscurridos = 0;
+        this.actualizarVehiculo(vehiculo);
+      });
+      return true;
+    } catch (error) {
+      console.error('Error en rescate masivo:', error);
+      return false;
+    }
   }
 }
