@@ -90,6 +90,14 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       observaciones: [this.vehiculo.observaciones || '']
     });
   }
+  resetForm() {
+    this.vehiculoForm.reset(this.defaultVehiculo);
+    // Marca todos los controles como 'untouched' para limpiar los mensajes de error
+    Object.keys(this.vehiculoForm.controls).forEach(key => {
+      this.vehiculoForm.get(key)?.markAsUntouched();
+    });
+  }
+
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
@@ -165,6 +173,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
 
     //Si todo es válido, emitimos para guardar/actualizar
     this.guardar.emit(this.vehiculoForm.getRawValue());
+    this.resetForm();
   }
   // Helper para mapear formControlName
   private obtenerEtiqueta(cn: string) {
@@ -183,6 +192,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     return labels[cn] || cn;
   }
  onCancel() {
-    this.cancelar.emit();
+  this.resetForm();
+  this.cancelar.emit();
   }
 }
