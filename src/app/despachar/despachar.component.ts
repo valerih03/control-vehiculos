@@ -281,6 +281,7 @@ export class DespacharComponent implements OnInit {
     console.log('Datos de despacho a guardar:', datosDespacho);
     this.guardarDespacho.emit(datosDespacho);
     this.visibleChange.emit(false);
+    this.resetearSeleccion();
   }
 validarFormulario(): boolean {
   let valido = true;

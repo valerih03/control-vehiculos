@@ -30,7 +30,7 @@ export class VehiculoService {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
     this.verificarEstadosVehiculos(); // Verificar estados al cargar
-    //localStorage.clear();
+    /* localStorage.clear(); */
   }
 
   private guardarEnLocalStorage() {
