@@ -65,7 +65,9 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     private validacionService: ValidacionService,
     private messageService: MessageService
   ) {}
-  maxAnio = new Date(2026, 11, 31);  // diciembre es 11 (0-indexed)
+  // En lugar de una fecha fija 2026
+  currentYear = new Date().getFullYear();
+  maxAnio = new Date(this.currentYear + 1, 11, 31); // Diciembre del año siguiente  // diciembre es 11 (0-indexed)
 
   ngOnInit() {
     this.inicializarFormulario();
@@ -83,7 +85,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         {value: this.vehiculo.vin || '', disabled: this.modo === 'editar'},
         this.validacionService.getValidators('vin')
       ],
-      anio: [this.vehiculo.anio || null, [Validators.required, Validators.min(1990), Validators.max(2026)]],
+      anio: [this.vehiculo.anio || null, [Validators.required, Validators.min(1900), Validators.max(this.currentYear + 1)]],
       marca: [this.vehiculo.marca || '', Validators.required],
       estilo: [this.vehiculo.estilo || '', Validators.required],
       color: [this.vehiculo.color || '', Validators.required],
@@ -101,9 +103,21 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
-    return ctrl
-      ? this.validacionService.getErrorMessages(campo as any, ctrl)
-      : [];
+    if (!ctrl) return [];
+
+    if (campo === 'anio') {
+      if (ctrl.hasError('required')) {
+        return ['El año es requerido'];
+      }
+      if (ctrl.hasError('min')) {
+        return ['El año no puede ser menor a 1990'];
+      }
+      if (ctrl.hasError('max')) {
+        return [`El año no puede ser mayor a ${this.currentYear + 1}`];
+      }
+    }
+
+    return this.validacionService.getErrorMessages(campo as any, ctrl);
   }
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
   ngOnChanges(changes: SimpleChanges) {

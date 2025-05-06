@@ -73,7 +73,6 @@
       </div>
     </div>
   </div>
-  <!-- Año -->
   <div class="field grid mb-4">
     <label for="año" class="col-12 md:col-2 font-bold">Año</label>
     <div class="col-12 md:col-10">
@@ -83,12 +82,12 @@
         view="year"
         dateFormat="yy"
         [yearNavigator]="true"
-        yearRange="1990:2026"
+        [yearRange]="'1990:' + (currentYear + 1)"
         [maxDate]="maxAnio"
         class="w-full"
       ></p-calendar>
-      <div class="p-error mt-1" *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
-        <small class="text-sm">El año está fuera del rango permitido (1990-2026)</small>
+      <div class="p-error mt-1" *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.invalid">
+        <small class="text-sm">El año debe estar entre 1990 y {{currentYear + 1}}</small>
       </div>
     </div>
   </div>

@@ -196,12 +196,21 @@ onDespachoGuardado(datos: any) {
   // Método para editar: asigna el vehículo seleccionado y cambia el modo
   editarVehiculo(vehiculo: any) {
     this.modoFormulario = 'editar';
+
+    // Convertir el año a Date si es necesario
+    let anioValue = vehiculo.anio;
+    if (anioValue && !(anioValue instanceof Date)) {
+      anioValue = new Date(anioValue.toString());
+    }
+
     this.vehiculoActual = {
       ...vehiculo,
       numeroBL: vehiculo.numeroBL || vehiculo.bl,
       numeroTarja: vehiculo.numeroTarja || vehiculo.tarja,
-      fechaIngreso: vehiculo.fechaIngreso || vehiculo.fecha
+      fechaIngreso: vehiculo.fechaIngreso || vehiculo.fecha,
+      anio: anioValue  // Aseguramos que sea un objeto Date
     };
+
     console.log('Vehículo a editar:', this.vehiculoActual);
     this.dialogVehiculoVisible = true;
   }
