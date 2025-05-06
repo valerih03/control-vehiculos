@@ -12,11 +12,12 @@ import { EditorModule } from 'primeng/editor';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TagModule } from 'primeng/tag';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { TooltipModule } from 'primeng/tooltip';
 @Component({
   selector: 'app-despachar',
   standalone: true,
   imports: [ CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule,
-    DropdownModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule, AutoCompleteModule ],
+    DropdownModule,TooltipModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule, AutoCompleteModule ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
@@ -88,19 +89,24 @@ export class DespacharComponent implements OnInit {
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
 
-    // Solo vehículos con estado válido, sin despacho y con VIN válido
-    const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
-      .filter(v => {
-        const tieneVin = v.vin && v.vin.trim() !== '';
-        const sinDespacho = !v.despacho || Object.keys(v.despacho).length === 0;
-        const estadoValido = (
-          v.estado === 'Disponible' ||
-          v.estado === 'En revisión' ||
-          (v.estado === 'Abandonado' && v.rescate === true)
-        );
+    // Obtener todos los vehículos con estados actualizados
+    const todosVehiculos = this.vehiculoService.obtenerVehiculos();
 
-        return tieneVin && sinDespacho && estadoValido;
-      });
+    console.log('Todos los vehículos:', todosVehiculos); // Para depuración
+
+    const vehiculosDisponibles = todosVehiculos.filter(v => {
+      const tieneVin = v.vin && v.vin.trim() !== '';
+      const sinDespacho = !v.despacho || Object.keys(v.despacho).length === 0;
+      const estadoValido = (
+        v.estado.includes('Disponible') || // Incluye "Disponible (Xd restantes)"
+        v.estado === 'En revisión' ||
+        v.estado === 'Rescatado'
+      );
+
+      return tieneVin && sinDespacho && estadoValido;
+    });
+
+    console.log('Vehículos disponibles:', vehiculosDisponibles); // Para depuración
 
     this.vinFiltrados = vehiculosDisponibles
       .filter(v => v.vin.toLowerCase().includes(query))
@@ -108,12 +114,13 @@ export class DespacharComponent implements OnInit {
         vin: v.vin,
         marca: v.marca || 'Sin marca',
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A',
-        estado: v.estado
+        estado: v.estado,
+        fechaRescate: v.fechaRescate
       }));
-      this.vinSeleccionado = null; // Resetear selección al filtrar
-  }
 
-  getHeaderText(): string {
+    this.vinSeleccionado = null;
+  }
+    getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho - ${this.despacho.tipo || 'Sin tipo'}`;
     }

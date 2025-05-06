@@ -150,11 +150,12 @@ onDespachoGuardado(datos: any) {
     this.dialogOpcionesDespachoVisible = false;
   }
 }//Metodo para mostrar el ESTADO de un vehiculo
-    getEstadoVehiculo(vehiculo: any): string {
-    if (vehiculo.despacho) return 'Deshabilitado';
-    if (vehiculo.diasTranscurridos > 20) return 'Abandono';
-    return `Disponible (${20 - vehiculo.diasTranscurridos}d restantes)`;
-  }
+getEstadoVehiculo(vehiculo: any): string {
+  if (vehiculo.despacho) return 'Deshabilitado';
+  if (vehiculo.diasTranscurridos > 20 && !vehiculo.fechaRescate) return 'Abandono';
+  if (vehiculo.fechaRescate) return 'Rescatado';
+  return `Disponible (${20 - vehiculo.diasTranscurridos}d restantes)`;
+}
   getTooltipEstado(vehiculo: any): string {
     if (vehiculo.estado === 'Deshabilitado') {
       return `Despachado como ${vehiculo.despacho?.tipo || 'general'}`;
@@ -169,7 +170,9 @@ onDespachoGuardado(datos: any) {
   obtenerVehiculos(): any[] {
     return this.vehiculos.map(v => ({
       ...v,
-      estado: v.despacho ? 'Deshabilitado' : 'Disponible'
+      estado: v.despacho ? 'Deshabilitado' :
+             (v.diasTranscurridos > 20 && !v.fechaRescate ? 'Abandono' :
+             (v.fechaRescate ? 'Rescatado' : 'Disponible'))
     }));
   }
   actualizarDespacho(datos: any): boolean {

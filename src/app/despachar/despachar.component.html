@@ -24,10 +24,15 @@
         <div class="flex align-items-center justify-content-between">
           <span>{{ vin.vin }}</span>
           <span class="ml-2 p-tag" [ngClass]="{
-            'p-tag-success': vin.estado === 'Disponible',
-            'p-tag-warning': vin.estado === 'En revisión'
+            'p-tag-success': vin.estado === 'Disponible' || vin.estado === 'Rescatado',
+            'p-tag-warning': vin.estado === 'En revisión',
+            'p-tag-danger': vin.estado === 'Abandono'
           }">
             {{ vin.estado }}
+            <i *ngIf="vin.estado === 'Rescatado'"
+               class="pi pi-check-circle ml-1"
+               [pTooltip]="'Rescatado el ' + (vin.fechaRescate | date:'shortDate')"
+               tooltipPosition="top"></i>
           </span>
         </div>
       </ng-template>

@@ -97,7 +97,16 @@ export class VehiculoService {
   }
 
   obtenerVehiculos(): any[] {
-    return this.vehiculos.map(v => this.normalizarVehiculo(v));
+    return this.vehiculos.map(v => {
+      const estado = this.calcularEstado(v);
+      return { ...v, estado };
+    });
+  }
+  private calcularEstado(vehiculo: any): string {
+    if (vehiculo.despacho) return 'Deshabilitado';
+    if (vehiculo.fechaRescate) return 'Rescatado';
+    if (vehiculo.diasTranscurridos > 20) return 'Abandono';
+    return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)}d restantes)`;
   }
 
   actualizarVehiculo(vehiculoActualizado: any): boolean {
