@@ -127,20 +127,23 @@ export class DashboardComponent {
     }
   }
   //Metodo para mostrar el ESTADO de un vehiculo
-    getEstadoVehiculo(vehiculo: any): string {
-    if (vehiculo.despacho) return 'Deshabilitado';
-    if (vehiculo.diasTranscurridos > 20) return 'Abandono';
+  getEstadoVehiculo(vehiculo: any): string {
+    if (vehiculo.estado === 'Deshabilitado') return 'Deshabilitado';
+    if (vehiculo.estado === 'Abandono') return 'Abandono';
+    if (vehiculo.fechaRescate) return 'Disponible (Rescatado)';
     return `Disponible (${20 - vehiculo.diasTranscurridos}d restantes)`;
-}
-getTooltipEstado(vehiculo: any): string {
-  if (vehiculo.estado === 'Deshabilitado') {
-    return `Despachado como ${vehiculo.despacho?.tipo || 'despacho general'}`;
-  } else if (vehiculo.estado === 'Abandono') {
-    return `Vehículo en abandono desde hace ${vehiculo.diasTranscurridos - 20} días`;
-  } else {
-    return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)} días restantes)`;
   }
-}
+  getTooltipEstado(vehiculo: any): string {
+    if (vehiculo.estado === 'Deshabilitado') {
+      return `Despachado como ${vehiculo.despacho?.tipo || 'general'}`;
+    } else if (vehiculo.estado === 'Abandono') {
+      return `En abandono desde hace ${vehiculo.diasTranscurridos - 20} días`;
+    } else if (vehiculo.fechaRescate) {
+      return `Vehículo fue rescatado el ${new Date(vehiculo.fechaRescate).toLocaleDateString()}`;
+    } else {
+      return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)} días restantes)`;
+    }
+  }
   obtenerVehiculos(): any[] {
     return this.vehiculos.map(v => ({
       ...v,

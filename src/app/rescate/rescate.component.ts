@@ -37,12 +37,19 @@ export class RescateComponent implements OnInit {
 
   formRescate!: FormGroup;
   todayISO!: string;
+  minDate!: string;
   constructor(private fb: FormBuilder) {
     this.todayISO = new Date().toISOString().split('T')[0];
   }
 
   ngOnInit() {
     this.inicializarFormulario();
+
+    if(this.vehiculos.length > 0){
+      const fechaIngreso = new Date(this.vehiculos[0].fechaIngreso);
+      fechaIngreso.setDate(fechaIngreso.getDate()+20);
+      this.minDate = fechaIngreso.toISOString().split('T')[0];
+    }
   }
 
   private inicializarFormulario(): void {

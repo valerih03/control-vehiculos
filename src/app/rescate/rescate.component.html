@@ -36,6 +36,7 @@
           pInputText
           type="date"
           formControlName="fechaRescate"
+          [attr.min]="minDate"
           [attr.max]="todayISO"
           class="w-full"
           id="fechaRescate"
