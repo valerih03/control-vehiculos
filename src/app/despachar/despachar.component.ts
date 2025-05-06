@@ -87,17 +87,32 @@ export class DespacharComponent implements OnInit {
 
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
+
+    // Solo vehículos con estado válido, sin despacho y con VIN válido
     const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
-        .filter(v => v.vin && !v.despacho && v.estado !== 'Deshabilitado');
+      .filter(v => {
+        const tieneVin = v.vin && v.vin.trim() !== '';
+        const sinDespacho = !v.despacho || Object.keys(v.despacho).length === 0;
+        const estadoValido = (
+          v.estado === 'Disponible' ||
+          v.estado === 'En revisión' ||
+          (v.estado === 'Abandonado' && v.rescate === true)
+        );
+
+        return tieneVin && sinDespacho && estadoValido;
+      });
 
     this.vinFiltrados = vehiculosDisponibles
-        .filter(v => v.vin.toLowerCase().includes(query))
-        .map(v => ({
-            vin: v.vin,
-            marca: v.marca || 'Sin marca',
-            anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
-        }));
-}
+      .filter(v => v.vin.toLowerCase().includes(query))
+      .map(v => ({
+        vin: v.vin,
+        marca: v.marca || 'Sin marca',
+        anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A',
+        estado: v.estado
+      }));
+      this.vinSeleccionado = null; // Resetear selección al filtrar
+  }
+
   getHeaderText(): string {
     if (this.modoVisualizacion) {
       return `Detalle de Despacho - ${this.despacho.tipo || 'Sin tipo'}`;
@@ -168,49 +183,71 @@ export class DespacharComponent implements OnInit {
   }
   seleccionarVin(event: any) {
     if (!event?.value?.vin) {
-        this.despacho.vin = '';
-        this.resetearErrores();
-        return;
+      this.despacho.vin = '';
+      this.resetearErrores();
+      return;
     }
+
     const vin = event.value.vin;
-    const vehiculo = this.vehiculoService.obtenerVehiculos()
-        .find(v => v.vin === vin);
+    const vehiculo = this.vehiculoService.obtenerVehiculoPorVin(vin);
+
+    // Validación reforzada
     if (!vehiculo) {
-        this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'VIN no encontrado'
-        });
-        return;
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'VIN no encontrado en el sistema'
+      });
+      this.resetearSeleccion();
+      return;
     }
-    // Verificar que el vehículo esté disponible
-    if (vehiculo.despacho || vehiculo.estado === 'Deshabilitado') {
-        this.messageService.add({
-            severity: 'warn',
-            summary: 'Advertencia',
-            detail: 'Este VIN ya ha sido despachado'
-        });
-        this.despacho.vin = '';
-        this.vinSeleccionado = null;
-        return;
+
+    if (vehiculo.despacho && Object.keys(vehiculo.despacho).length > 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'VIN no disponible',
+        detail: 'Este vehículo ya tiene un despacho registrado'
+      });
+      this.resetearSeleccion();
+      return;
     }
+
+    if (vehiculo.estado === 'Deshabilitado' || vehiculo.estado === 'Abandonado') {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'VIN no disponible',
+        detail: `Este vehículo está en estado "${vehiculo.estado}" y no puede ser despachado`
+      });
+      this.resetearSeleccion();
+      return;
+    }
+
+    // Si pasa todas las validaciones
     this.vinSeleccionado = event.value;
     this.despacho.vin = vin;
     this.despacho.tipo = this.tipoSeleccionado.value;
+
     // Limpiar campos para nuevo despacho
     this.despacho = {
-        vin: vin,
-        motorista: '',
-        notadelevante: '',
-        bl: '',
-        copiaBL: '',
-        duca: '',
-        tarja: '',
-        observaciones: ''
+      vin: vin,
+      motorista: '',
+      notadelevante: '',
+      bl: '',
+      copiaBL: '',
+      duca: '',
+      tarja: '',
+      observaciones: ''
     };
+
     this.cambiarTipoDespacho();
     this.resetearErrores();
-}
+  }
+
+  private resetearSeleccion() {
+    this.despacho.vin = '';
+    this.vinSeleccionado = null;
+    this.resetearErrores();
+  }
   private resetearErrores(): void {
     this.mostrarErrorVin = false;
     this.mostrarErrorMotorista = false;
