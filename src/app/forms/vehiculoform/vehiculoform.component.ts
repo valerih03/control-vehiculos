@@ -40,7 +40,8 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     private validacionService: ValidacionService,
     private messageService: MessageService
   ) {}
-  maxAnio = new Date(2026, 11, 31);  // diciembre es 11 (0-indexed)
+  currentYear = new Date().getFullYear();
+  maxAnio = new Date(this.currentYear + 1, 11, 31); 
 
   ngOnInit() {
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');

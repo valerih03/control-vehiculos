@@ -14,6 +14,7 @@ export class VehiculoService {
   private cargarDesdeLocalStorage() {
     const datos = localStorage.getItem(this.STORAGE_KEY);
     this.vehiculos = datos ? JSON.parse(datos) : [];
+    localStorage.clear(); // Limpiar el localStorage después de cargar los datos
   }
 
   private guardarEnLocalStorage() {

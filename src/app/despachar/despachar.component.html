@@ -21,8 +21,13 @@
         class="w-full"
       >
         <ng-template let-vin pTemplate="item">
-          <div class="flex align-items-center">
+          <div class="flex align-items-center justify-content-between">
             <span>{{ vin.vin }}</span>
+            <span class="ml-2 p-tag" [ngClass]="{
+              'p-tag-success': vin.estado === 'Disponible' || vin.estado === 'Rescatado',
+              'p-tag-warning': vin.estado === 'En revisión',
+              'p-tag-danger': vin.estado === 'Abandono'
+            }"></span>
           </div>
         </ng-template>
       </p-autoComplete>

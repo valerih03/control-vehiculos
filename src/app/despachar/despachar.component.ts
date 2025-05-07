@@ -57,12 +57,21 @@ export class DespacharComponent implements OnInit {
     private despachoService: DespachoService   // Servicio agregado
   ) {}
 
-  ngOnInit() {
+   ngOnInit() {
     if (this.modoVisualizacion && this.vehiculoParaMostrar) {
-      this.despacho = { ...this.vehiculoParaMostrar };
-      this.tipoSeleccionado = this.vehiculoParaMostrar.bl
-        ? this.tiposDespacho[0]
-        : this.tiposDespacho[1];
+            this.despacho = {
+        ...this.vehiculoParaMostrar,
+        ...(this.vehiculoParaMostrar.despacho || {})
+      };
+      console.log('Datos cargados para visualización:', this.despacho);
+
+      if (this.despacho.despacho) {
+        this.despacho = { ...this.despacho, ...this.despacho.despacho };
+      }
+      // Establece el tipo correcto
+      this.tipoSeleccionado = this.tiposDespacho.find(
+        t => t.value === this.despacho.tipo
+      ) || this.tiposDespacho[0];
     }
   }
 

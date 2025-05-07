@@ -2,32 +2,37 @@
 <p-confirmDialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmDialog>
 
 <div class="flex justify-content-center flex-wrap">
-  <div class="flex align-items-center"><h1>CONTROL DE VEHÍCULOS</h1></div>
+  <div class="flex align-items-center">
+    <h1>CONTROL DE VEHÍCULOS</h1>
+  </div>
 </div>
 
-<!-- Botones -->
 <div class="flex flex-wrap justify-content-center gap-3 card p-4">
   <p-button (click)="showCrearDialog()" label="Ingresar Datos" icon="pi pi-plus" class="w-full sm:w-auto"></p-button>
-  <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search" class="w-full sm:w-auto"></p-button>
-  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck" class="w-full sm:w-auto"></p-button>
+  <p-button (click)="dialogConsultaVisible = true" label="Consultar Datos" icon="pi pi-search"
+    class="w-full sm:w-auto"></p-button>
+  <p-button (click)="dialogOpcionesDespachoVisible = true" label="Realizar Despacho" icon="pi pi-truck"
+    class="w-full sm:w-auto"></p-button>
 </div>
 
 <!-- Diálogo de Opciones de Despacho -->
-<app-despachar
-    [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible" (guardarDespacho)="onDespachoGuardado($event)">
+<app-despachar [vinsRegistrados]="vehiculos" [(visible)]="dialogOpcionesDespachoVisible"
+  (guardarDespacho)="onDespachoGuardado($event)">
 </app-despachar>
 
 <!-- Diálogo de Consulta -->
-<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true" [styleClass]="'w-screen md:w-10 max-h-screen overflow-y-auto'">
-  <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin" responsiveLayout="scroll">
+<p-dialog header="Consulta de Vehículos" [(visible)]="dialogConsultaVisible" [modal]="true"
+  [styleClass]="'w-screen md:w-15 max-h-screen overflow-y-auto'">
+  <p-table [value]="vehiculos" selectionMode="multiple" [(selection)]="vehiculoSeleccionado" dataKey="vin"
+    responsiveLayout="scroll">
     <ng-template pTemplate="header">
       <tr>
         <th class="w-3rem"></th>
         <th>Fecha Ingreso</th>
-        <th>BL</th>
-        <th>Tarja
-          <input pInputText type="text" (input)="applyFilter('tarja', $event)" placeholder="Buscar..." class="w-full mt-1">
+        <th>BL
+          <input pInputText type="text" (input)="filtrarPorBL($event)" placeholder="Filtrar BL" class="w-full mt-1">
         </th>
+        <th>Tarja</th>
         <th>
           Consignatario
           <input pInputText type="text" (input)="applyFilter('consignatario', $event)" placeholder="Buscar..." class="w-full mt-1">
@@ -35,19 +40,22 @@
         <th>NIT</th>
         <th>
           VIN
-          <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..." class="w-full mt-1">
+          <input pInputText type="text" (input)="applyFilter('vin', $event)" placeholder="Buscar..."
+            class="w-full mt-10">
         </th>
         <th>Año</th>
         <th>
           Marca
-          <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..." class="w-full mt-1">
+          <input pInputText type="text" (input)="applyFilter('marca', $event)" placeholder="Buscar..."
+            class="w-full mt-1">
         </th>
-        <th>Estado</th>
+        <th>Estado
+        <input pInputText type="text" (input)="applyFilter('estado', $event)" placeholder="Buscar..."
+          class="w-full mt-1"></th>
         <th>Acciones</th>
-
-        <!-- <th>Tarja</th> -->
-          </tr>
+      </tr>
     </ng-template>
+
     <ng-template pTemplate="body" let-vehiculo>
       <tr [pSelectableRow]="vehiculo" *ngIf="shouldDisplayRow(vehiculo)">
         <td><p-tableCheckbox [value]="vehiculo"></p-tableCheckbox></td>
@@ -61,127 +69,114 @@
         <td [innerHTML]="getHighlightedText(vehiculo.marca, 'marca')"></td>
         <td>
           <div class="flex align-items-center gap-2">
-            <span class="p-tag"
-                  [ngClass]="{
+            <span class="p-tag" [ngClass]="{
                     'p-tag-success': vehiculo.estado === 'Disponible',
-                    'p-tag-warning': vehiculo.estado === 'Deshabilitado' && vehiculo.tipoSalida === 'TRANSITO',
-                    'p-tag-danger': vehiculo.estado === 'Deshabilitado' && vehiculo.tipoSalida === 'DM',
-                  }"
-                  [pTooltip]="vehiculo.despacho
-                  ? 'Despachado como ' + (vehiculo.despacho.tipo || vehiculo.despacho)
-                  : 'Disponible para despacho'"
-                  tooltipPosition="top">
+                    'p-tag-warning': vehiculo.estado === 'Abandono',
+                    'p-tag-danger': vehiculo.estado === 'Deshabilitado'
+                  }" [pTooltip]="getTooltipEstado(vehiculo)" tooltipPosition="top">
               {{ getEstadoVehiculo(vehiculo) }}
             </span>
-
+            <span *ngIf="vehiculo.estado === 'Disponible'" class="text-xs">
+              <!-- ({{ 20 - vehiculo.diasTranscurridos }}d restantes) -->
+            </span>
           </div>
         </td>
         <td>
           <div class="flex gap-1">
-            <button
-            pButton
-            icon="pi pi-pencil"
-            class="p-button-rounded p-button-success p-button"
-            (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
-            pTooltip="Editar vehículo"
-            tooltipPosition="top">
+            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success p-button"
+              (click)="editarVehiculo(vehiculo); $event.stopPropagation()" pTooltip="Editar vehículo"
+              tooltipPosition="top" [disabled]="vehiculo.estado === 'Deshabilitado'">
             </button>
-            <button
-              pButton
-              icon="pi pi-list"
-              class="p-button-rounded p-button-info p-button"
-              (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()"
-              [disabled]="vehiculo.estado !== 'Deshabilitado'"
-              pTooltip="vehiculo.estado === 'Deshabilitado' ? 'Ver detalle de despacho' : 'Sin despacho'"
+            <button pButton icon="pi pi-list" class="p-button-rounded p-button-info p-button"
+              (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" [disabled]="!vehiculo.despacho"
+              pTooltip="Ver detalle de despacho" tooltipPosition="top">
+            </button>
+            <!-- <button *ngIf="vehiculo.estado === 'Abandono'" pButton icon="pi pi-exclamation-triangle"
+              class="p-button-rounded p-button-warning p-button-sm w-2rem ml-2"
+              (click)="iniciarRescate(vehiculo); $event.stopPropagation()" pTooltip="Iniciar proceso de rescate"
               tooltipPosition="top">
-            </button>
-
+            </button> -->
           </div>
         </td>
-        <!-- <td>{{ vehiculo.tarja }}</td> -->
       </tr>
     </ng-template>
   </p-table>
-  <!-- Detalle de despacho y vehiculo -->
-<p-dialog
-header="Detalle de Despacho - {{ vehiculoConDespacho?.vin }}"
-[(visible)]="mostrarDetalleDespacho"
-[modal]="true"
->
-<div *ngIf="vehiculoConDespacho && vehiculoDetalle">
-  <!-- BL y Tarja desde Vehiculo -->
-  <div class="field mb-4">
-    <label class="font-bold">N° BL (Vehículo):</label>
-    <div class="p-card p-2">
-      {{ vehiculoDetalle.numeroBL || 'No especificado' }}
-    </div>
-  </div>
-  <div class="field mb-4">
-    <label class="font-bold">Tarja (Vehículo):</label>
-    <div class="p-card p-2">
-      {{ vehiculoDetalle.tarja || 'No especificado' }}
-    </div>
-  </div>
 
-  <!-- El resto desde Despacho -->
-  <div class="field mb-4">
-    <label class="font-bold">Fecha de Despacho:</label>
-    <div class="p-card p-2">
-      {{ vehiculoConDespacho.fechaDespacho | date:'dd/MM/yyyy' }}
+  <div class="flex flex-wrap gap-3 card p-4">
+    <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
+    <div class="flex gap-2">
+      <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
+    </div>
+    <div class="flex gap-2">
+     <!--  <p-button label="Realizar Rescate" (click)="verificarRescate()" [disabled]="!HabilitarBotonRescate()" icon="pi pi-life-ring" styleClass="p-button-warning"> -->
+      <!-- </p-button> -->
     </div>
   </div>
-  <div class="field mb-4">
-    <label class="font-bold">Tipo de Salida:</label>
-    <span
-      class="p-tag"
-      [ngClass]="{
-        'p-tag-info': getSeverity(vehiculoConDespacho.tipoSalida)==='info',
-        'p-tag-warning': getSeverity(vehiculoConDespacho.tipoSalida)==='warning'
-      }"
-    >
-      {{ vehiculoConDespacho.tipoSalida }}
-    </span>
-  </div>
-  <div class="field mb-4">
-    <label class="font-bold">Motorista:</label>
-    <div class="p-card p-2">{{ vehiculoConDespacho.motorista }}</div>
-  </div>
-  <div class="field mb-4">
-    <label class="font-bold">DUCA:</label>
-    <div class="p-card p-2">{{ vehiculoConDespacho.duca }}</div>
-  </div>
-  <div class="field mb-4">
-    <label class="font-bold">Nota de Levante:</label>
-    <div class="p-card p-2">{{ vehiculoConDespacho.notaLevante }}</div>
-  </div>
-  <div class="field mb-4">
-    <label class="font-bold">Observaciones:</label>
-    <div class="p-card p-2">{{ vehiculoConDespacho.observaciones || 'Sin observaciones' }}</div>
-  </div>
-</div>
-
-<ng-template pTemplate="footer">
-  <p-button
-    label="Cerrar"
-    icon="pi pi-times"
-    (click)="mostrarDetalleDespacho = false"
-  ></p-button>
-</ng-template>
-</p-dialog>
 </p-dialog>
 
-<!-- Dialogo para ingreso de vehiculos -->
-<p-dialog
-  header="Control de vehículos"
-  *ngIf="dialogVehiculoVisible"
-  [(visible)]="dialogVehiculoVisible"
-  [modal]="true"
-  (onHide)="dialogVehiculoVisible = false"
->
+<!-- Diálogo para detalles de despacho -->
+<p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{width: '50vw'}">
+  <div *ngIf="vehiculoConDespacho">
+    <div class="field mb-4">
+      <label class="font-bold">Tipo de Despacho:</label>
+      <div>
+        <span class="p-tag" [ngClass]="{
+          'p-tag-info': getSeverity(vehiculoConDespacho.despacho?.tipo) === 'info',
+          'p-tag-warning': getSeverity(vehiculoConDespacho.despacho?.tipo) === 'warning'
+        }">
+          {{ vehiculoConDespacho.despacho?.tipo || 'No especificado' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="field"><br>
+      <label class="font-bold">Motorista:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.motorista || 'No especificado' }}</div>
+    </div>
+
+    <div class="field">
+      <label class="font-bold">DUCA:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.duca || 'No especificado' }}</div>
+    </div>
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'DM'" class="field">
+      <label class="font-bold">N° BL:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.bl || 'No especificado' }}</div>
+    </div>
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'TRANSITO'" class="field">
+      <label class="font-bold">N° BL:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.copiaBL || 'No especificado' }}</div>
+    </div>
+
+    <div *ngIf="vehiculoConDespacho.despacho?.tipo === 'TRANSITO'" class="field">
+      <label class="font-bold">Tarja:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.tarja || 'No especificado' }}</div>
+    </div>
+
+    <div class="field">
+      <label class="font-bold">Observaciones:</label>
+      <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.observaciones || 'Sin observaciones' }}</div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
+  </ng-template>
+</p-dialog>
+<!-- Diálogo para ingreso de vehiculos -->
+<p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-vehiculoform
-    [vehiculo]="vehiculoActual"
     [modo]="modoFormulario"
+    [vehiculo]="vehiculoActual"
     (guardar)="handleGuardar($event)"
-    (cancelar)="handleCancelar()"
-  ></app-vehiculoform>
+    (cancelar)="handleCancelar()">
+  </app-vehiculoform>
 </p-dialog>
+
+<!-- Componente de rescate -->
+<!-- <app-rescate
+  [visible]="dialogRescateVisible"
+  [vehiculos]="vehiculosParaRescate"
+  (visibleChange)="dialogRescateVisible = $event"
+  (confirmar)="procesarRescate($event)">
+</app-rescate> -->

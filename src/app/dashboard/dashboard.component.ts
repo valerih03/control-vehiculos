@@ -69,6 +69,7 @@ export class DashboardComponent implements OnInit {
  vehiculoActual: Partial<Vehiculo> = {};
  modoFormulario: 'crear' | 'editar' = 'crear';
  vehiculoSeleccionado: Vehiculo | null = null;
+ blFiltradoActual: string = '';
 
   constructor(
     private confirmationService: ConfirmationService,
@@ -105,7 +106,7 @@ export class DashboardComponent implements OnInit {
       default: return 'info';
     }
   }
-
+  // Mostrar detalle de despacho
   verDetalleDespacho(v: Vehiculo): void {
     const d = this.despachoService.obtenerDespachoPorVin(v.vin);
     if (!d) {
@@ -143,7 +144,17 @@ export class DashboardComponent implements OnInit {
       ? 'Deshabilitado'
       : 'Disponible';
   }
-
+  getTooltipEstado(vehiculo: any): string {
+    if (vehiculo.estado === 'Deshabilitado') {
+      return `Despachado como ${vehiculo.despacho?.tipo || 'general'}`;
+    } else if (vehiculo.estado === 'Abandono') {
+      return `En abandono desde hace ${vehiculo.diasTranscurridos - 20} días`;
+    } else if (vehiculo.fechaRescate) {
+      return `Vehículo fue rescatado el ${new Date(vehiculo.fechaRescate).toLocaleDateString()}`;
+    } else {
+      return `Disponible (${20 - (vehiculo.diasTranscurridos || 0)} días restantes)`;
+    }
+  }
   // Filtrado de autocompletar VINs
   search(event: { query: string }): void {
     const term = event.query.toLowerCase();
@@ -157,7 +168,11 @@ export class DashboardComponent implements OnInit {
     if (!this.isFiltering) return true;
     return this.isFilteredMatch(vehiculo);
   }
-
+  filterByBl(event: Event){
+    const value = (event.target as HTMLInputElement ).value.toLowerCase();
+    this.marcaFilter = value;
+    this.applyFilter('bl',event);
+  }
   filterByVin(event: Event): void {
     this.vinFilter = (event.target as HTMLInputElement).value.toLowerCase();
     this.applyFilter('vin', event);
@@ -167,33 +182,44 @@ export class DashboardComponent implements OnInit {
     this.marcaFilter = (event.target as HTMLInputElement).value.toLowerCase();
     this.applyFilter('marca', event);
   }
+  filtrarPorBL(event: Event) {
+    this.blFiltradoActual = (event.target as HTMLInputElement).value.trim();
+    this.applyFilter('bl', event); // Opcional: si quieres mantener tu filtro general
+  }
 
-  applyFilter(field: string, event: Event): void {
+  applyFilter(field: string, event: Event) {
     const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    if (value) this.currentFilters[field] = value;
-    else delete this.currentFilters[field];
-    this.isFiltering = Object.keys(this.currentFilters).length > 0;
+    // Actualizar estado de filtrado
+    this.isFiltering = value.length > 0 || Object.keys(this.currentFilters).length > 0;
+    if (value) {
+      this.currentFilters[field] = value;
+    } else {
+      delete this.currentFilters[field];
+      this.isFiltering = Object.keys(this.currentFilters).length > 0;
+    }
     this.updateSortedVehiculos();
   }
-
-  updateSortedVehiculos(): void {
-    if (!this.isFiltering) {
+  updateSortedVehiculos() {
+    if (Object.keys(this.currentFilters).length === 0) {
       this.sortedVehiculos = [...this.vehiculos];
+      this.isFiltering = false;
       return;
     }
+    // Ordenar el filtrado poniendo primero los que coinciden
     this.sortedVehiculos = [...this.vehiculos].sort((a, b) => {
-      const aMatch = this.matchFilters(a);
-      const bMatch = this.matchFilters(b);
-      return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+      const aMatches = this.isFilteredMatch(a);
+      const bMatches = this.isFilteredMatch(b);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
     });
+    this.isFiltering = true;
   }
-
   private matchFilters(item: any): boolean {
     return Object.entries(this.currentFilters).every(([field, val]) =>
       item[field]?.toString().toLowerCase().includes(val)
     );
   }
-
   getHighlightedText(text: string | null | undefined, field: string): string {
     if (!text) return 'N/A';
     let result = text.toString();
@@ -231,63 +257,128 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  exportarPDF(): void {
+  exportarPDF() {
+    // Obtener los vehículos filtrados actualmente visibles en la tabla
+    const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
+
     const vehiculosParaExportar =
-      Array.isArray(this.selectedVehiculos) && this.selectedVehiculos.length > 0
-        ? this.selectedVehiculos
+      Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
+        ? this.vehiculoSeleccionado
         : this.selectedVehiculo
           ? [this.selectedVehiculo]
-          : this.vehiculos;
+          : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
+
     if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
-      this.messageService.add({ severity: 'warn', summary: 'Advertencia', detail: 'No hay vehículos para exportar' });
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'No hay vehículos para exportar'
+      });
       return;
     }
+
     try {
-      import('jspdf').then(jsPDFModule => {
-        import('jspdf-autotable').then(autoTableModule => {
+      import('jspdf').then((jsPDFModule) => {
+        import('jspdf-autotable').then((autoTableModule) => {
           const { jsPDF } = jsPDFModule;
           const doc = new jsPDF('p', 'mm', 'a4');
+
           const fecha = new Date().toLocaleString();
+          const titulo = 'REPORTE DE VEHÍCULOS';
+          const pageWidth = doc.internal.pageSize.getWidth();
           doc.setFontSize(14);
-          doc.text('REPORTE DE VEHÍCULOS', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+          doc.setFont('helvetica', 'bold');
+          doc.text(titulo, pageWidth / 2, 15, { align: 'center' });
           doc.setFontSize(8);
-          doc.text(`Generado: ${fecha}`, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-          const headers = ['VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estilo'];
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
+
+          const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estado'];
           const data = vehiculosParaExportar.map(v => [
+            v.bl || 'N/A',
             v.vin || 'N/A',
             v.consignatario || 'N/A',
             v.nit || 'N/A',
-            v.fechaIngreso ? new Date(v.fechaIngreso).toLocaleDateString() : 'N/A',
+            v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
             v.marca || 'N/A',
-            v.estilo || 'N/A'
+            v.estado || 'N/A'
           ]);
+
           autoTableModule.default(doc, {
-            head: [headers], body: data, startY: 25,
-            margin: { horizontal: 35 }, tableWidth: 'auto',
-            styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', lineWidth: 0.1, halign: 'center' },
-            headStyles: { fillColor: [13, 71, 161], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7 },
-            alternateRowStyles: { fillColor: [240, 240, 240] },
-            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 25 }, 2: { cellWidth: 27 }, 3: { cellWidth: 16 }, 4: { cellWidth: 20 }, 5: { cellWidth: 20 } }
+            head: [headers],
+            body: data,
+            startY: 25,
+            margin: { horizontal: 20 }, //margen
+            tableWidth: 'auto',
+            styles: {
+              fontSize: 7,
+              cellPadding: 2,
+              overflow: 'linebreak',
+              lineWidth: 0.1,
+              halign: 'center'
+            },
+            headStyles: {
+              fillColor: [13, 71, 161],
+              textColor: 255,
+              fontStyle: 'bold',
+              halign: 'center',
+              fontSize: 7
+            },
+            alternateRowStyles: {
+              fillColor: [240, 240, 240]
+            },
+            columnStyles: {
+              0: { cellWidth: 28 },
+              1: { cellWidth: 28 },
+              2: { cellWidth: 35 },
+              3: { cellWidth: 27 },
+              4: { cellWidth: 15 },
+              5: { cellWidth: 20 },
+              6: { cellWidth: 20 },
+              7: { cellWidth: 20 }
+            }
           });
+
           const pageCount = doc.getNumberOfPages();
-          for (let i = 1; i <= pageCount; i++) {
+          for(let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(6);
-            doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.getWidth() - 15, doc.internal.pageSize.getHeight() - 5);
+            doc.text(
+              `Página ${i} de ${pageCount}`,
+              pageWidth - 15,
+              doc.internal.pageSize.getHeight() - 5
+            );
           }
+
           const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
           doc.save(fileName);
-          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'PDF generado correctamente' });
-        }).catch(error => this.handlePdfError(error));
-      }).catch(error => this.handlePdfError(error));
-    } catch (error) {
-      this.handlePdfError(error as Error);
-    }
-  }
 
-  private handlePdfError(error: Error): void {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'PDF generado correctamente'
+          });
+        }).catch((error: Error) => {
+          this.handlePdfError(error);
+        });
+      }).catch((error: Error) => {
+        this.handlePdfError(error);
+      });
+    } catch (error: unknown) {
+      this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
+    }
+    console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
+  }
+  //mesaje de error
+  private handlePdfError(error: Error) {
     console.error('Error al generar PDF:', error);
-    this.messageService.add({ severity: 'error', summary: 'Error', detail: `No se pudo generar PDF: ${error.message}` });
+    const errorMessage = error.message || 'Error desconocido al generar PDF';
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: `No se pudo generar el PDF: ${errorMessage}`
+    });
+
   }
 
   // Diálogo vehículo
