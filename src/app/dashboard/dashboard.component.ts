@@ -72,6 +72,11 @@ export class DashboardComponent implements OnInit {
  modoFormulario: 'crear' | 'editar' = 'crear';
  vehiculoSeleccionado: Vehiculo | null = null;
 
+// rescate
+dialogRescateVisible = false;
+vehiculosParaRescate: Vehiculo[] = [];
+blFiltradoActual = '';
+
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -334,5 +339,55 @@ handleCancelar(): void {
     summary: 'Cancelado',
     detail: 'Operación cancelada.'
   });
+}
+
+//PARA RESCATE
+habilitarBotonRescate(): boolean {
+  if (!this.blFiltradoActual) return false;
+  const todos = this.vehiculos.filter(v => v.numeroBL === this.blFiltradoActual);
+  return todos.length > 0 && todos.every(v => v.estado === 'Abandono');
+}
+
+filtrarPorBL(event: Event): void {
+  this.blFiltradoActual = (event.target as HTMLInputElement).value.trim();
+}
+
+verificarRescate(): void {
+  const candidatos = this.selectedVehiculos.length > 0
+    ? [...this.selectedVehiculos]
+    : this.vehiculos.filter(v =>
+        this.shouldDisplayRow(v) &&
+        v.estado === 'Abandono' &&
+        v.numeroBL === this.blFiltradoActual
+      );
+
+  if (candidatos.length === 0) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'No se puede rescatar',
+      detail: 'Selecciona vehículos con mismo BL y estado "Abandono"',
+    });
+    return;
+  }
+
+  this.vehiculosParaRescate = candidatos;
+  this.dialogRescateVisible = true;
+}
+
+procesarRescate(rescate: Rescate): void {
+  this.vehiculosParaRescate.forEach(v => {
+    v.estado = 'Rescatado';
+    this.vehiculoService.actualizarVehiculo(v);
+  });
+
+  this.messageService.add({
+    severity: 'success',
+    summary: 'Rescate exitoso',
+    detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como rescatados.`,
+  });
+
+  this.vehiculos = this.vehiculoService.obtenerVehiculos();
+  this.updateSortedVehiculos();
+  this.dialogRescateVisible = false;
 }
 }
