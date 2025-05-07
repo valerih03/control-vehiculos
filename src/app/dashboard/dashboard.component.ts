@@ -23,7 +23,9 @@ import { ChangeDetectorRef } from '@angular/core';
 import { VehiculoformComponent } from '../forms/vehiculoform/vehiculoform.component';
 import { Vehiculo } from '../interfaces/vehiculo';
 import { Despacho } from '../interfaces/despacho';
-
+import { Rescate } from '../interfaces/rescate';
+import { RescateService } from '../services/rescate.service';
+import { RescateComponent } from '../rescate/rescate/rescate.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -32,7 +34,7 @@ import { Despacho } from '../interfaces/despacho';
     CalendarModule, DespacharComponent, ToastModule,
     ConfirmDialogModule, TableModule, RadioButtonModule,
     SplitButtonModule, CheckboxModule, FormsModule,
-    AutoCompleteModule, VehiculoformComponent
+    AutoCompleteModule, VehiculoformComponent, RescateComponent
   ],
   providers: [ConfirmationService, MessageService, RouterModule],
   templateUrl: './dashboard.component.html',
