@@ -1,6 +1,6 @@
 export interface Vehiculo {
   id: number;
-  fechaIngreso: Date;
+  fechaIngreso: Date | string;
   tarja: string;
   numeroBL: string;
   consignatario: string;
