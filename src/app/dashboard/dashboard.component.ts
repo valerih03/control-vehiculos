@@ -459,7 +459,7 @@ getEstadoVehiculo(vehiculo: any): string {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
 
-        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estado'];
+        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Observaciones', 'Estado'];
         const data = vehiculosParaExportar.map(v => [
           v.bl || 'N/A',
           v.vin || 'N/A',
@@ -467,6 +467,7 @@ getEstadoVehiculo(vehiculo: any): string {
           v.nit || 'N/A',
           v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
           v.marca || 'N/A',
+          v.observaciones || 'N/A',
           v.estado || 'N/A'
         ]);
 
@@ -474,11 +475,11 @@ getEstadoVehiculo(vehiculo: any): string {
           head: [headers],
           body: data,
           startY: 25,
-          margin: { horizontal: 22 }, //margen
+          margin: { horizontal: 10 }, //margen
           tableWidth: 'auto',
           styles: {
             fontSize: 7,
-            cellPadding: 2,
+            cellPadding: 1,
             overflow: 'linebreak',
             lineWidth: 0.1,
             halign: 'center'
@@ -501,7 +502,8 @@ getEstadoVehiculo(vehiculo: any): string {
             4: { cellWidth: 15 },
             5: { cellWidth: 20 },
             6: { cellWidth: 20 },
-            7: { cellWidth: 20 }
+            7: { cellWidth: 20 },
+            8: { cellWidth: 20 }
           }
         });
 
