@@ -112,6 +112,13 @@
 <!-- Diálogo para detalles de despacho -->
 <p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{width: '50vw'}">
   <div *ngIf="vehiculoConDespacho">
+    <!-- fecha de despacho -->
+    <div class="field mb-4">
+      <label class="font-bold">Fecha de Despacho:</label>
+      <div class="p-card p-2">
+        {{ (vehiculoConDespacho?.despacho?.fechaDespacho | date:'dd/MM/yyyy') ?? 'No especificado' }}
+      </div>
+    </div>
     <div class="field mb-4">
       <label class="font-bold">Tipo de Despacho:</label>
       <div>
@@ -154,12 +161,7 @@
       <div class="p-card p-2">{{ vehiculoConDespacho.despacho?.observaciones || 'Sin observaciones' }}</div>
     </div>
   </div>
-
   <ng-template pTemplate="footer">
-    <p-button label="Editar" icon="pi pi-pencil"
-      (click)="editarDespachoDesdeDetalle(vehiculoConDespacho)"
-      [disabled]="!vehiculoConDespacho.despacho">
-    </p-button>
     <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
   </ng-template>
 </p-dialog>

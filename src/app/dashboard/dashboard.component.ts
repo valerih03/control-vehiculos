@@ -21,6 +21,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
 import { VehiculoformComponent } from "../forms/vehiculoform/vehiculoform.component";
 import { RescateComponent } from '../rescate/rescate.component';
+import { ViewChild, ElementRef } from '@angular/core';
 //para excel
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -99,6 +100,11 @@ export class DashboardComponent {
     tarja: '',
     observaciones: ''
   };
+  @ViewChild('inputBL') inputBL!: ElementRef;
+@ViewChild('inputConsignatario') inputConsignatario!: ElementRef;
+@ViewChild('inputVin') inputVin!: ElementRef;
+@ViewChild('inputMarca') inputMarca!: ElementRef;
+@ViewChild('inputEstado') inputEstado!: ElementRef;
   constructor(
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
@@ -310,44 +316,39 @@ getEstadoVehiculo(vehiculo: any): string {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
     this.currentFilters['estado'] = value;
     this.applyFilter('estado', event);
-    // Actualizar el estado de filtrado
-    this.clearFilters();
-    this.isFiltering = true;
+}
 
-  }
-  filterByBl(event: Event){
-    const value = (event.target as HTMLInputElement ).value.toLowerCase();
-    this.marcaFilter = value;
-    this.applyFilter('bl',event);
-    this.clearFilters();
-    this.isFiltering = true;
-  }
-  filterByVin(event: Event) {
+filterByBl(event: Event) {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
-    this.vinFilter = value;
+    this.currentFilters['bl'] = value;
+    this.applyFilter('bl', event);
+}
+
+filterByVin(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.currentFilters['vin'] = value;
     this.applyFilter('vin', event);
-    this.clearFilters();
-    this.isFiltering = true;
-  }
-  filterByMarca(event: Event) {
+}
+
+filterByMarca(event: Event) {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
-    this.marcaFilter = value;
+    this.currentFilters['marca'] = value;
     this.applyFilter('marca', event);
-    this.clearFilters();
-    this.isFiltering = true;
-  }
-  applyFilter(field: string, event: Event) {
-    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
-    // Actualizar estado de filtrado
-    this.isFiltering = value.length > 0 || Object.keys(this.currentFilters).length > 0;
-    if (value) {
+}
+
+applyFilter(field: string, event: Event) {
+  const input = event.target as HTMLInputElement;
+  const value = input.value.trim().toLowerCase();
+
+  if (value) {
       this.currentFilters[field] = value;
-    } else {
+  } else {
       delete this.currentFilters[field];
-      this.isFiltering = Object.keys(this.currentFilters).length > 0;
-    }
-    this.updateSortedVehiculos();
   }
+
+  this.isFiltering = Object.keys(this.currentFilters).length > 0;
+  this.updateSortedVehiculos();
+}
   updateSortedVehiculos() {
     if (Object.keys(this.currentFilters).length === 0) {
       this.sortedVehiculos = [...this.vehiculos];
@@ -365,12 +366,12 @@ getEstadoVehiculo(vehiculo: any): string {
     this.isFiltering = true;
   }
   // METODO PARA LIMPIAR FILTROS
-  clearFilters() {
+  clearAllFilters() {
     this.currentFilters = {};
-    this.searchQuery = '';
-    this.vinFilter = '';
     this.marcaFilter = '';
+    this.vinFilter = '';
     this.isFiltering = false;
+
     this.updateSortedVehiculos();
   }
 
@@ -536,6 +537,8 @@ getEstadoVehiculo(vehiculo: any): string {
     this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
   }
   console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
+  this.clearAllFilters();
+
 }
 //mesaje de error
 private handlePdfError(error: Error) {
@@ -592,6 +595,7 @@ private handlePdfError(error: Error) {
 
       }
       const rows = table?.querySelectorAll('tr');
+      this.clearAllFilters();
     }
 
 //PARA RESCATE
@@ -614,7 +618,7 @@ HabilitarBotonRescate(): boolean {
 
 filtrarPorBL(event: Event) {
   this.blFiltradoActual = (event.target as HTMLInputElement).value.trim();
-  this.applyFilter('bl', event); // Opcional: si quieres mantener tu filtro general
+  this.applyFilter('bl', event);
 }
 
 getVehiculosFiltrados(): any[] {
@@ -645,6 +649,7 @@ verificarRescate() {
       life: 5000
     });
   }
+  this.clearAllFilters();
 }
 
 // Procesa el rescate después de confirmar

@@ -1,3 +1,4 @@
+import { CalendarModule } from 'primeng/calendar';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -13,11 +14,12 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TagModule } from 'primeng/tag';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { TooltipModule } from 'primeng/tooltip';
+import { formatDate } from '@angular/common';
 @Component({
   selector: 'app-despachar',
   standalone: true,
   imports: [ CommonModule, ButtonModule, DialogModule, InputTextModule, FormsModule,
-    DropdownModule,TooltipModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule, AutoCompleteModule ],
+    DropdownModule, CalendarModule, TooltipModule, SelectButtonModule, EditorModule, InputTextareaModule,TagModule, AutoCompleteModule ],
   templateUrl: './despachar.component.html',
   styleUrls: ['./despachar.component.css']
 })
@@ -34,9 +36,13 @@ export class DespacharComponent implements OnInit {
   @Output() guardarDespacho = new EventEmitter<any>();
 
   vinSeleccionado: any = null;
+    //fechadedespacho
+    today: Date = new Date();
+    todayISO!: string;
 
   despacho: any = {
     tipo: '',
+    fechaDespacho: new Date(),
     vin: '',
     motorista: '',
     notadelevante: '',
@@ -75,9 +81,11 @@ export class DespacharComponent implements OnInit {
         t => t.value === this.despacho.tipo
       ) || this.tiposDespacho[0];
     }
+    this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
   }
   vinFiltrados: any[] = [];
   // Variables para control de errores
+  mostrarErrorFechaDespacho = false;
   mostrarErrorVin = false;
   mostrarErrorMotorista = false;
   mostrarErrorBl = false;
@@ -111,6 +119,7 @@ export class DespacharComponent implements OnInit {
     this.vinFiltrados = vehiculosDisponibles
       .filter(v => v.vin.toLowerCase().includes(query))
       .map(v => ({
+        fechaDespacho: v.fechaDespacho,
         vin: v.vin,
         marca: v.marca || 'Sin marca',
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A',
@@ -140,6 +149,7 @@ export class DespacharComponent implements OnInit {
       // Copiar los datos al modelo del formulario
       this.despacho = {
         tipo: this.vehiculoParaMostrar.tipo || 'DM',
+        fechaDespacho: this.vehiculoParaMostrar.fechaDespacho || new Date(),
         vin: this.vehiculoParaMostrar.vin || '',
         motorista: this.vehiculoParaMostrar.motorista || '',
         notadelevante: this.vehiculoParaMostrar.notadelevante || '',
@@ -160,6 +170,7 @@ export class DespacharComponent implements OnInit {
       // Modo creación (formulario vacío)
       this.despacho = {
         tipo: this.tipoSeleccionado.value,
+        fechaDespacho: new Date(),
         vin: '',
         motorista: '',
         notadelevante: '',
@@ -179,6 +190,7 @@ export class DespacharComponent implements OnInit {
     this.despacho = {
       tipo: this.tipoSeleccionado.value,
       vin: vinActual,
+      fechaDespacho: new Date(),
       motorista: this.despacho.motorista,
       notadelevante: '',
       bl: '',
@@ -236,6 +248,7 @@ export class DespacharComponent implements OnInit {
 
     // Limpiar campos para nuevo despacho
     this.despacho = {
+      fechaDespacho: new Date(),
       vin: vin,
       motorista: '',
       notadelevante: '',
@@ -256,6 +269,7 @@ export class DespacharComponent implements OnInit {
     this.resetearErrores();
   }
   private resetearErrores(): void {
+    this.mostrarErrorFechaDespacho = false;
     this.mostrarErrorVin = false;
     this.mostrarErrorMotorista = false;
     this.mostrarErrorBl = false;
@@ -288,6 +302,9 @@ validarFormulario(): boolean {
   if (this.intentoGuardar) {
     this.mostrarErrorVin = !this.despacho.vin;
     if (this.mostrarErrorVin) valido = false;
+    //fechadespacho
+    this.mostrarErrorFechaDespacho = !this.despacho.fechaDespacho;
+    if (this.mostrarErrorFechaDespacho) valido = false;
 
     this.mostrarErrorMotorista = !this.despacho.motorista;
     if (this.mostrarErrorMotorista) valido = false;

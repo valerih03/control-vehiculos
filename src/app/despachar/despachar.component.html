@@ -42,7 +42,17 @@
   </div>
 
   <div class="p-fluid formgrid grid">
-    <div class="field col-12">
+    <div class="field col-12 md:col-6">
+      <label class="font-bold block mb-2">Fecha de despacho</label>
+      <input
+        pInputText type="date"
+        [attr.max]="todayISO" class="w-full"
+      />
+      <small class="p-error" *ngIf="mostrarErrorFechaDespacho">
+        La fecha de despacho es requerida
+      </small>
+    </div>
+  </div>  <div class="field col-12">
       <label class="font-bold block mb-2">VIN</label>
       <input pInputText [(ngModel)]="despacho.vin" readonly class="w-full"/>
     </div>
@@ -87,7 +97,6 @@
         rows="5"
       ></textarea>
     </div>
-  </div>
   <ng-template pTemplate="footer">
     <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()"></p-button>
     <p-button *ngIf="modoVisualizacion" label="Editar" icon="pi pi-pencil"
