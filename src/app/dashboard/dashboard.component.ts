@@ -26,6 +26,8 @@ import { Despacho } from '../interfaces/despacho';
 import { Rescate } from '../interfaces/rescate';
 import { RescateService } from '../services/rescate.service';
 import { RescateComponent } from '../rescate/rescate/rescate.component';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -94,28 +96,40 @@ blFiltradoActual = '';
   }
 
 
-
   private cargarDatos(): void {
-    this.vehiculos = this.vehiculoService.obtenerVehiculos().map(v => ({
-      ...v,
-      estado: this.tieneDespacho(v.vin) ? 'Deshabilitado' : 'Disponible'
-    }));
+    this.vehiculoService.actualizarEstadosAbandono(30);
+
+    this.vehiculos = this.vehiculoService.obtenerVehiculos().map(v => {
+      if (this.rescateService.obtenerRescatePorBL(v.numeroBL)) {
+        v.estado = 'Rescatado';
+      }
+      else if (this.despachoService.obtenerDespachoPorVin(v.vin)) {
+        v.estado = 'Despachado';
+      }
+      else if (v.estado === 'Abandono') {
+      }
+      else {
+        v.estado = 'Disponible';
+      }
+      return v;
+    });
+
     this.filteredVehiculos = [...this.vehiculos];
     this.updateSortedVehiculos();
   }
 
   getSeverity(tipoDespacho: string): string {
-    switch (tipoDespacho) {
-      case 'DM': return 'info';
-      case 'TRANSITO': return 'warning';
-      default: return 'info';
-    }
+      switch (tipoDespacho) {
+        case 'DM': return 'info';
+        case 'TRANSITO': return 'warning';
+        default: return 'info';
+      }
   }
-//PARA DETALLE DESPACHO
- tieneDespacho(vin: string): boolean {
-    return !!this.despachoService.obtenerDespachoPorVin(vin);
+  //PARA DETALLE DESPACHO
+  tieneDespacho(vin: string): boolean {
+      return !!this.despachoService.obtenerDespachoPorVin(vin);
   }
-verDetalleDespacho(v: Vehiculo): void {
+  verDetalleDespacho(v: Vehiculo): void {
     const d = this.despachoService.obtenerDespachoPorVin(v.vin);
     if (!d) {
       this.messageService.add({
@@ -128,66 +142,83 @@ verDetalleDespacho(v: Vehiculo): void {
     this.vehiculoConDespacho   = d;
     this.vehiculoDetalle = v;
     this.mostrarDetalleDespacho = true;
+    console.log('Vehículo con despacho:', this.vehiculoConDespacho);
+
   }
   // Guardar o actualizar despacho vinculado por VIN
-  onDespachoGuardado(datos: any): void {
+  onDespachoGuardado(datos: Despacho): void {
     const despachos = this.despachoService.obtenerDespachos();
     const existente = despachos.find(d => d.vin === datos.vin);
+
     if (existente) {
+      // Editamos un despacho existente
       datos.idDespacho = existente.idDespacho;
       this.despachoService.actualizarDespacho(datos);
-      this.messageService.add({ severity: 'success', summary: 'Despacho', detail: 'Despacho actualizado.' });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Despacho',
+        detail: 'Despacho actualizado.'
+      });
     } else {
+      // Creamos un despacho nuevo
       this.despachoService.agregarDespacho(datos);
-      this.messageService.add({ severity: 'success', summary: 'Despacho', detail: 'Despacho registrado.' });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Despacho',
+        detail: 'Despacho registrado.'
+      });
+      console.log('Nuevo despacho:', datos);
+    }
+
+    const veh = this.vehiculoService.obtenerVehiculoPorVin(datos.vin);
+    if (veh) {
+      veh.estado = 'Despachado';
+      this.vehiculoService.actualizarVehiculo(veh);
     }
     this.dialogOpcionesDespachoVisible = false;
-    this.cargarDatos();           // recarga estado y despacho
-    this.selectedVehiculos = [];
+    this.cargarDatos();
   }
 
   // Obtener estado dinámicamente
-  getEstadoVehiculo(vehiculo: any): string {
-    return this.despachoService.obtenerDespachos().some(d => d.vin === vehiculo.vin)
-      ? 'Deshabilitado'
-      : 'Disponible';
+  getEstadoVehiculo(vehiculo: Vehiculo): string {
+    return vehiculo.estado;
   }
 
   getHighlightedText(text: string | undefined, field: keyof Vehiculo): string {
-    if (!text) return 'N/A';
-    const term = this.currentFilters[field] ?? '';
-    if (!term) return text;
-    const regex = new RegExp(term, 'gi');
-    return text.replace(regex, match => `<span class="highlight-text">${match}</span>`);
+      if (!text) return 'N/A';
+      const term = this.currentFilters[field] ?? '';
+      if (!term) return text;
+      const regex = new RegExp(term, 'gi');
+      return text.replace(regex, match => `<span class="highlight-text">${match}</span>`);
   }
 
   onVehiculoSelect(event: any): void {
-    this.selectedVehiculo = event;
+      this.selectedVehiculo = event;
   }
 
   clearSearch(): void {
-    this.selectedVehiculo = null;
-    this.searchQuery = '';
-    this.currentFilters = {};
-    this.updateSortedVehiculos();
+      this.selectedVehiculo = null;
+      this.searchQuery = '';
+      this.currentFilters = {};
+      this.updateSortedVehiculos();
   }
 
   applyHighlight(field: keyof Vehiculo, event: Event): void {
-    const value = (event.target as HTMLInputElement)
-      .value.trim()
-      .toLowerCase();
+      const value = (event.target as HTMLInputElement)
+        .value.trim()
+        .toLowerCase();
 
-    if (value) {
-      this.currentFilters[field] = value;
-    } else {
-      delete this.currentFilters[field];
-    }
+      if (value) {
+        this.currentFilters[field] = value;
+      } else {
+        delete this.currentFilters[field];
+      }
 
-    this.isFiltering = Object.keys(this.currentFilters).length > 0;
-    this.updateSortedVehiculos();
+      this.isFiltering = Object.keys(this.currentFilters).length > 0;
+      this.updateSortedVehiculos();
   }
 
-// PARA PDF
+  // PARA PDF
   exportarPDF() {
     // Obtener los vehículos filtrados actualmente visibles en la tabla
     const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
@@ -224,7 +255,7 @@ verDetalleDespacho(v: Vehiculo): void {
           doc.setFont('helvetica', 'normal');
           doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
 
-          const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Estado'];
+          const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Observaciones', 'Estado'];
           const data = vehiculosParaExportar.map(v => [
             v.bl || 'N/A',
             v.vin || 'N/A',
@@ -232,6 +263,7 @@ verDetalleDespacho(v: Vehiculo): void {
             v.nit || 'N/A',
             v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
             v.marca || 'N/A',
+            v.observaciones || 'N/A',
             v.estado || 'N/A'
           ]);
 
@@ -239,11 +271,11 @@ verDetalleDespacho(v: Vehiculo): void {
             head: [headers],
             body: data,
             startY: 25,
-            margin: { horizontal: 20 }, //margen
+            margin: { horizontal: 10 }, //margen
             tableWidth: 'auto',
             styles: {
               fontSize: 7,
-              cellPadding: 2,
+              cellPadding: 1,
               overflow: 'linebreak',
               lineWidth: 0.1,
               halign: 'center'
@@ -266,7 +298,8 @@ verDetalleDespacho(v: Vehiculo): void {
               4: { cellWidth: 15 },
               5: { cellWidth: 20 },
               6: { cellWidth: 20 },
-              7: { cellWidth: 20 }
+              7: { cellWidth: 20 },
+              8: { cellWidth: 20 }
             }
           });
 
@@ -299,7 +332,10 @@ verDetalleDespacho(v: Vehiculo): void {
       this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
     }
     console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
+    this.clearAllFilters();
+
   }
+  //mesaje de error
   private handlePdfError(error: Error) {
     console.error('Error al generar PDF:', error);
     const errorMessage = error.message || 'Error desconocido al generar PDF';
@@ -311,233 +347,287 @@ verDetalleDespacho(v: Vehiculo): void {
 
   }
 
-  // Diálogo vehículo
-showCrearDialog(): void {
-  this.modoFormulario = 'crear';
-  this.vehiculoActual = {} as Vehiculo;      // Vehículo vacío tipado
-  this.dialogVehiculoVisible = true;
-  console.log(this.modoFormulario);
-}
-editarVehiculo(vehiculo: Vehiculo): void {
-  this.modoFormulario = 'editar';
-  this.vehiculoActual = { ...vehiculo };     // Copia el vehículo a editar
-  this.dialogVehiculoVisible = true;
-  console.log('Vehículo a editar:', this.vehiculoActual);
-}
-handleGuardar(registro: Vehiculo): void {
-  // 'registro' ya contiene todas las propiedades de Vehiculo
-  if (this.modoFormulario === 'crear') {
-    this.vehiculoService.agregarVehiculo(registro);
+    // Diálogo vehículo
+  showCrearDialog(): void {
+    this.modoFormulario = 'crear';
+    this.vehiculoActual = {} as Vehiculo;      // Vehículo vacío tipado
+    this.dialogVehiculoVisible = true;
+    console.log(this.modoFormulario);
+  }
+  editarVehiculo(vehiculo: Vehiculo): void {
+    this.modoFormulario = 'editar';
+    this.vehiculoActual = { ...vehiculo };     // Copia el vehículo a editar
+    this.dialogVehiculoVisible = true;
+    console.log('Vehículo a editar:', this.vehiculoActual);
+  }
+  handleGuardar(registro: Vehiculo): void {
+    // 'registro' ya contiene todas las propiedades de Vehiculo
+    if (this.modoFormulario === 'crear') {
+      this.vehiculoService.agregarVehiculo(registro);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Guardado',
+        detail: 'Vehículo ingresado correctamente.'
+      });
+    } else {
+      this.vehiculoService.actualizarVehiculo(registro);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Actualizado',
+        detail: 'Vehículo actualizado correctamente.'
+      });
+    }
+    this.dialogVehiculoVisible = false;
+    this.cargarDatos();  // Recarga la lista con el nuevo/actualizado
+  }
+  handleCancelar(): void {
+    this.dialogVehiculoVisible = false;
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Cancelado',
+      detail: 'Operación cancelada.'
+    });
+  }
+
+  //PARA RESCATE
+  habilitarBotonRescate(): boolean {
+    if (!this.blFiltradoActual) return false;
+    const todos = this.vehiculos.filter(v => v.numeroBL === this.blFiltradoActual);
+    return todos.length > 0 && todos.every(v => v.estado === 'Abandono');
+  }
+  filtrarPorBL(event: Event): void {
+    const val = (event.target as HTMLInputElement).value.trim();
+    this.blFiltradoActual = val;
+
+    // Usamos la clave real de Vehiculo: 'numeroBL'
+    if (val) {
+      this.currentFilters['numeroBL'] = val.toLowerCase();
+    } else {
+      delete this.currentFilters['numeroBL'];
+    }
+
+    this.isFiltering = Object.keys(this.currentFilters).length > 0;
+    this.updateSortedVehiculos();
+  }
+  verificarRescate(): void {
+    const candidatos = this.selectedVehiculos.length > 0
+      ? [...this.selectedVehiculos]
+      : this.vehiculos.filter(v =>
+          this.shouldDisplayRow(v) &&
+          v.estado === 'Abandono' &&
+          v.numeroBL === this.blFiltradoActual
+        );
+
+    if (candidatos.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No se puede rescatar',
+        detail: 'Selecciona vehículos con mismo BL y estado "Abandono"',
+      });
+      return;
+    }
+
+    this.vehiculosParaRescate = candidatos;
+    this.dialogRescateVisible = true;
+  }
+  procesarRescate(rescate: Rescate): void {
+    this.vehiculosParaRescate.forEach(v => {
+      v.estado = 'Rescatado';
+      this.vehiculoService.actualizarVehiculo(v);
+    });
+
     this.messageService.add({
       severity: 'success',
-      summary: 'Guardado',
-      detail: 'Vehículo ingresado correctamente.'
+      summary: 'Rescate exitoso',
+      detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como rescatados.`,
     });
-  } else {
-    this.vehiculoService.actualizarVehiculo(registro);
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Actualizado',
-      detail: 'Vehículo actualizado correctamente.'
-    });
-  }
-  this.dialogVehiculoVisible = false;
-  this.cargarDatos();  // Recarga la lista con el nuevo/actualizado
-}
-handleCancelar(): void {
-  this.dialogVehiculoVisible = false;
-  this.messageService.add({
-    severity: 'info',
-    summary: 'Cancelado',
-    detail: 'Operación cancelada.'
-  });
-}
 
-//PARA RESCATE
-habilitarBotonRescate(): boolean {
-  if (!this.blFiltradoActual) return false;
-  const todos = this.vehiculos.filter(v => v.numeroBL === this.blFiltradoActual);
-  return todos.length > 0 && todos.every(v => v.estado === 'Abandono');
-}
-filtrarPorBL(event: Event): void {
-  const val = (event.target as HTMLInputElement).value.trim();
-  this.blFiltradoActual = val;
-
-  // Usamos la clave real de Vehiculo: 'numeroBL'
-  if (val) {
-    this.currentFilters['numeroBL'] = val.toLowerCase();
-  } else {
-    delete this.currentFilters['numeroBL'];
+    this.vehiculos = this.vehiculoService.obtenerVehiculos();
+    this.updateSortedVehiculos();
+    this.dialogRescateVisible = false;
   }
 
-  this.isFiltering = Object.keys(this.currentFilters).length > 0;
-  this.updateSortedVehiculos();
-}
-verificarRescate(): void {
-  const candidatos = this.selectedVehiculos.length > 0
-    ? [...this.selectedVehiculos]
-    : this.vehiculos.filter(v =>
-        this.shouldDisplayRow(v) &&
-        v.estado === 'Abandono' &&
-        v.numeroBL === this.blFiltradoActual
-      );
+  //PARA FILTRADOS
+  getTooltipEstado(vehiculo: Vehiculo): string {
+    const hoy = new Date();
+    const ingreso = new Date(vehiculo.fechaIngreso);
+    const diffMs = hoy.getTime() - ingreso.getTime();
+    const diasTranscurridos = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (candidatos.length === 0) {
-    this.messageService.add({
-      severity: 'warn',
-      summary: 'No se puede rescatar',
-      detail: 'Selecciona vehículos con mismo BL y estado "Abandono"',
-    });
-    return;
-  }
-
-  this.vehiculosParaRescate = candidatos;
-  this.dialogRescateVisible = true;
-}
-procesarRescate(rescate: Rescate): void {
-  this.vehiculosParaRescate.forEach(v => {
-    v.estado = 'Rescatado';
-    this.vehiculoService.actualizarVehiculo(v);
-  });
-
-  this.messageService.add({
-    severity: 'success',
-    summary: 'Rescate exitoso',
-    detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como rescatados.`,
-  });
-
-  this.vehiculos = this.vehiculoService.obtenerVehiculos();
-  this.updateSortedVehiculos();
-  this.dialogRescateVisible = false;
-}
-
-//PARA FILTRADOS
-getTooltipEstado(vehiculo: Vehiculo): string {
-  const hoy = new Date();
-  const ingreso = new Date(vehiculo.fechaIngreso);
-  const diffMs = hoy.getTime() - ingreso.getTime();
-  const diasTranscurridos = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  switch (vehiculo.estado) {
-    case 'Deshabilitado': {
-      const desp = this.despachoService.obtenerDespachoPorVin(vehiculo.vin);
-      const tipo = desp?.tipoSalida ?? 'general';
-      return `Despachado como ${tipo}`;
-    }
-    case 'Abandono': {
-      const diasAbandono = Math.max(0, diasTranscurridos - 20);
-      return `En abandono desde hace ${diasAbandono} día(s)`;
-    }
-    case 'Rescatado': {
-      // Buscamos el rescate asociado a este BL
-      const rescate = this.rescateService.obtenerRescatePorBL(vehiculo.numeroBL);
-      if (rescate) {
-        const fechaRes = new Date(rescate.fechaRescate);
-        return `Fue rescatado el ${fechaRes.toLocaleDateString()}`;
+    switch (vehiculo.estado) {
+      case 'Despachado': {
+        const desp = this.despachoService.obtenerDespachoPorVin(vehiculo.vin);
+        const tipo = desp?.tipoSalida ?? 'general';
+        return `Despachado como ${this.despachoService.obtenerTipoSalidaPorVin(tipo)}`;
       }
-      return 'Rescatado';
-    }
-    default: {
-      // Disponible
-      const diasRestantes = Math.max(0, 20 - diasTranscurridos);
-      return `Disponible (${diasRestantes} día(s) restantes)`;
+      case 'Abandono': {
+        const diasAbandono = Math.max(0, diasTranscurridos - 20);
+        return `En abandono desde hace ${diasAbandono} día(s)`;
+      }
+      case 'Rescatado': {
+        // Buscamos el rescate asociado a este BL
+        const rescate = this.rescateService.obtenerRescatePorBL(vehiculo.numeroBL);
+        if (rescate) {
+          const fechaRes = new Date(rescate.fechaRescate);
+          return `Fue rescatado el ${fechaRes.toLocaleDateString()}`;
+        }
+        return 'Rescatado';
+      }
+      default: {
+        // Disponible
+        const diasRestantes = Math.max(0, 20 - diasTranscurridos);
+        return `Disponible (${diasRestantes} día(s) restantes)`;
+      }
     }
   }
-}
-applyFilter(field: keyof Vehiculo, event: Event): void {
-  const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
-  if (value) {
-    this.currentFilters[field] = value;
-  } else {
-    delete this.currentFilters[field];
+  applyFilter(field: keyof Vehiculo, event: Event): void {
+    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    if (value) {
+      this.currentFilters[field] = value;
+    } else {
+      delete this.currentFilters[field];
+    }
+    this.isFiltering = Object.keys(this.currentFilters).length > 0;
+    this.updateSortedVehiculos();
   }
-  this.isFiltering = Object.keys(this.currentFilters).length > 0;
-  this.updateSortedVehiculos();
-}
-shouldDisplayRow(veh: Vehiculo): boolean {
-  if (!this.isFiltering) return true;
+  shouldDisplayRow(veh: Vehiculo): boolean {
+    if (!this.isFiltering) return true;
 
-  // Convertimos a [keyof Vehiculo, string][]
-  const entries = Object.entries(this.currentFilters) as Array<[keyof Vehiculo, string]>;
+    // Convertimos a [keyof Vehiculo, string][]
+    const entries = Object.entries(this.currentFilters) as Array<[keyof Vehiculo, string]>;
 
-  return entries.every(([field, term]) => {
-    if (!term.trim()) return true;  // ignorar filtros vacíos
-    const value = veh[field];
-    return value != null && value.toString().toLowerCase().includes(term);
-  });
-}
-updateSortedVehiculos(): void {
-  if (!this.isFiltering) {
-    this.sortedVehiculos = [...this.vehiculos];
-  } else {
-    this.sortedVehiculos = [...this.vehiculos].sort((a, b) => {
-      const aMatch = this.shouldDisplayRow(a);
-      const bMatch = this.shouldDisplayRow(b);
-      return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+    return entries.every(([field, term]) => {
+      if (!term.trim()) return true;  // ignorar filtros vacíos
+      const value = veh[field];
+      return value != null && value.toString().toLowerCase().includes(term);
     });
   }
-}
-filterByEstado(event: Event) {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  this.currentFilters['estado'] = value;
-  this.applyFilter('estado', event);
-}
-filterByBl(event: Event){
-  const value = (event.target as HTMLInputElement ).value.toLowerCase();
-  this.marcaFilter = value;
-  this.applyFilter('numeroBL',event);
-}
-filterByVin(event: Event) {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  this.vinFilter = value;
-  this.applyFilter('vin', event);
-}
-filterByMarca(event: Event) {
-  const value = (event.target as HTMLInputElement).value.toLowerCase();
-  this.marcaFilter = value;
-  this.applyFilter('marca', event);
-}
-search(event: { query: string }) {
-  const query = event.query.toLowerCase();
-  this.filteredVehiculos = this.vehiculos.filter(vehiculo => {
-    const bl = vehiculo.numeroBL ? vehiculo.numeroBL.toLowerCase() : '';
-    const vin = vehiculo.vin ? vehiculo.vin.toLowerCase() : '';
-    const consignatario = vehiculo.consignatario ? vehiculo.consignatario.toLowerCase() : '';
-    const marca = vehiculo.marca ? vehiculo.marca.toLowerCase() : '';
-    const estilo = vehiculo.estilo ? vehiculo.estilo.toLowerCase() : '';
+  updateSortedVehiculos(): void {
+    if (!this.isFiltering) {
+      this.sortedVehiculos = [...this.vehiculos];
+    } else {
+      this.sortedVehiculos = [...this.vehiculos].sort((a, b) => {
+        const aMatch = this.shouldDisplayRow(a);
+        const bMatch = this.shouldDisplayRow(b);
+        return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+      });
+    }
+  }
+  filterByEstado(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.currentFilters['estado'] = value;
+    this.applyFilter('estado', event);
+  }
+  filterByBl(event: Event){
+    const value = (event.target as HTMLInputElement ).value.toLowerCase();
+    this.marcaFilter = value;
+    this.applyFilter('numeroBL',event);
+  }
+  filterByVin(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.vinFilter = value;
+    this.applyFilter('vin', event);
+  }
+  filterByMarca(event: Event) {
+    const value = (event.target as HTMLInputElement).value.toLowerCase();
+    this.marcaFilter = value;
+    this.applyFilter('marca', event);
+  }
+  search(event: { query: string }) {
+    const query = event.query.toLowerCase();
+    this.filteredVehiculos = this.vehiculos.filter(vehiculo => {
+      const bl = vehiculo.numeroBL ? vehiculo.numeroBL.toLowerCase() : '';
+      const vin = vehiculo.vin ? vehiculo.vin.toLowerCase() : '';
+      const consignatario = vehiculo.consignatario ? vehiculo.consignatario.toLowerCase() : '';
+      const marca = vehiculo.marca ? vehiculo.marca.toLowerCase() : '';
+      const estilo = vehiculo.estilo ? vehiculo.estilo.toLowerCase() : '';
 
-    return vin.includes(query) ||
-    bl.includes(query) ||
-           consignatario.includes(query) ||
-           marca.includes(query) ||
-           estilo.includes(query);
-  });
-}
-isFilteredMatch(vehiculo: Vehiculo): boolean {
-  // Convertimos a [keyof Vehiculo, string][]
-  const entries = Object.entries(this.currentFilters) as Array<[keyof Vehiculo, string]>;
+      return vin.includes(query) ||
+      bl.includes(query) ||
+            consignatario.includes(query) ||
+            marca.includes(query) ||
+            estilo.includes(query);
+    });
+  }
+  isFilteredMatch(vehiculo: Vehiculo): boolean {
+    // Convertimos a [keyof Vehiculo, string][]
+    const entries = Object.entries(this.currentFilters) as Array<[keyof Vehiculo, string]>;
 
-  // Si no hay filtros activos, no resaltamos nada
-  if (entries.length === 0) {
-    return false;
+    // Si no hay filtros activos, no resaltamos nada
+    if (entries.length === 0) {
+      return false;
+    }
+
+    // Para cada filtro no vacío, comprobamos coincidencia
+    return entries.every(([field, term]) => {
+      term = term.trim().toLowerCase();
+      if (!term) {
+        // saltar filtros vacíos
+        return true;
+      }
+      const value = vehiculo[field];
+      return (
+        value != null &&
+        value
+          .toString()
+          .toLowerCase()
+          .includes(term)
+      );
+    });
+  }
+  clearAllFilters() {
+    this.currentFilters = {};
+    this.marcaFilter = '';
+    this.vinFilter = '';
+    this.isFiltering = false;
+
+    this.updateSortedVehiculos();
   }
 
-  // Para cada filtro no vacío, comprobamos coincidencia
-  return entries.every(([field, term]) => {
-    term = term.trim().toLowerCase();
-    if (!term) {
-      // saltar filtros vacíos
-      return true;
+  //EXPORTAR A EXCEL
+  exportarExcel() {
+    // Obtener los vehículos filtrados actualmente visibles en la tabla
+    const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
+
+    const vehiculosParaExportar =
+      Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
+        ? this.vehiculoSeleccionado
+        : this.selectedVehiculo
+          ? [this.selectedVehiculo]
+          : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
+
+    if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'No hay vehículos para exportar'
+      });
+      return;
     }
-    const value = vehiculo[field];
-    return (
-      value != null &&
-      value
-        .toString()
-        .toLowerCase()
-        .includes(term)
-    );
-  });
-}
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(vehiculosParaExportar);
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Vehículos');
+
+    const fileName = ` Reporte de vehiculos ingresados_${new Date().toISOString().slice(0, 10)}.xlsx `;
+    XLSX.writeFile(workbook, fileName);
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Excel generado correctamente'
+    });
+    //estilo de la tabla
+    const table = document.querySelector('table');
+    if (table) {
+      table.style.borderCollapse = 'collapse';
+      table.style.width = '100%';
+      table.style.fontSize = '12px';
+      table.style.textAlign = 'center';
+      table.style.marginTop = '20px';
+      table.style.border = '1px solid #000';
+
+    }
+    const rows = table?.querySelectorAll('tr');
+  }
 
 }

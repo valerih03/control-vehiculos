@@ -79,11 +79,11 @@
               [ngClass]="{
                 'p-tag-success': vehiculo.estado === 'Disponible',
                 'p-tag-warning': vehiculo.estado === 'Abandono',
-                'p-tag-danger': vehiculo.estado === 'Deshabilitado'
+                'p-tag-danger': vehiculo.estado === 'Despachado'
               }"
               [pTooltip]="getTooltipEstado(vehiculo)"
               tooltipPosition="top">
-              {{ getEstadoVehiculo(vehiculo) }}
+              {{ vehiculo.estado }}
             </span>
             <span *ngIf="vehiculo.estado === 'Disponible'" class="text-xs">
               <!-- ({{ 20 - vehiculo.diasTranscurridos }}d restantes) -->
@@ -99,7 +99,7 @@
               (click)="editarVehiculo(vehiculo); $event.stopPropagation()"
               pTooltip="Editar vehículo"
               tooltipPosition="top"
-              [disabled]="vehiculo.estado === 'Deshabilitado'">
+              [disabled]="vehiculo.estado === 'Despachado'">
             </button>
             <button
               pButton
@@ -117,18 +117,12 @@
   </p-table>
 
   <div class="flex flex-wrap gap-3 card p-4">
-    <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
+    <p-button label="Exportar a PDF" icon="pi pi-file-pdf" styleClass="p-button-danger" (click)="exportarPDF()"></p-button>
+    <p-button label="Exportar a Excel" icon="pi pi-file-excel" styleClass="p-button-success" (click)="exportarExcel()"></p-button>
+    <p-button label="Realizar Rescate" icon="pi pi-life-ring" styleClass="p-button-warning" (click)="verificarRescate()" [disabled]="!habilitarBotonRescate()"></p-button>
+
     <div class="flex gap-2">
       <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
-    </div>
-    <div class="flex gap-2">
-      <p-button
-        label="Realizar Rescate"
-        icon="pi pi-life-ring"
-        styleClass="p-button-warning"
-        (click)="verificarRescate()"
-        [disabled]="!habilitarBotonRescate()">
-      </p-button>
     </div>
   </div>
 </p-dialog>

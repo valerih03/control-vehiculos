@@ -13,7 +13,7 @@ import { EditorModule } from 'primeng/editor';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TagModule } from 'primeng/tag';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-
+import { formatDate } from '@angular/common';
 @Component({
   selector: 'app-despachar',
   standalone: true,
@@ -34,6 +34,10 @@ export class DespacharComponent implements OnInit {
 
   vinSeleccionado: any = null;
 
+  //fechadedespacho
+  today: Date = new Date();
+  todayISO!: string;
+
   despacho: any = {
     tipo: '',
     vin: '',
@@ -51,6 +55,18 @@ export class DespacharComponent implements OnInit {
     { name: 'TRANSITO', value: 'TRANSITO' }
   ];
 
+  vinFiltrados: any[] = [];
+  // Variables para control de errores
+  mostrarErrorVin = false;
+  mostrarErrorMotorista = false;
+  mostrarErrorBl = false;
+  mostrarErrorCopiaBl = false;
+  mostrarErrorDuca = false;
+  mostrarErrorTarja = false;
+  mostrarErrorFechaDespacho = false;
+  intentoGuardar = false;
+
+
   constructor(
     private messageService: MessageService,
     private vehiculoService: VehiculoService,
@@ -64,17 +80,9 @@ export class DespacharComponent implements OnInit {
         ? this.tiposDespacho[0]
         : this.tiposDespacho[1];
     }
+    this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
   }
 
-  vinFiltrados: any[] = [];
-  // Variables para control de errores
-  mostrarErrorVin = false;
-  mostrarErrorMotorista = false;
-  mostrarErrorBl = false;
-  mostrarErrorCopiaBl = false;
-  mostrarErrorDuca = false;
-  mostrarErrorTarja = false;
-  intentoGuardar = false;
 
   filtrarVins(event: any) {
     const query = event.query.toLowerCase();
@@ -84,13 +92,14 @@ export class DespacharComponent implements OnInit {
     const vehiculosDisponibles = this.vehiculoService.obtenerVehiculos()
       .filter(v => {
         const tieneDespacho = despachos.some(d => d.vin === v.vin);
-        return v.vin && !tieneDespacho && v.estado !== 'Deshabilitado';
+        return v.vin && !tieneDespacho && v.estado !== 'Despachado';
       });
 
     // Filtrar por el query
     this.vinFiltrados = vehiculosDisponibles
       .filter(v => v.vin.toLowerCase().includes(query))
       .map(v => ({
+        fechaDespacho: v.fechaDespacho,
         vin: v.vin,
         marca: v.marca || 'Sin marca',
         anio: v.anio ? new Date(v.anio).getFullYear() : 'N/A'
@@ -115,6 +124,7 @@ export class DespacharComponent implements OnInit {
     if (!this.modoVisualizacion) {
       this.despacho = {
         tipo: this.tipoSeleccionado.value,
+        fechaDespacho: new Date(),
         vin: '',
         motorista: '',
         notadelevante: '',
@@ -138,6 +148,7 @@ export class DespacharComponent implements OnInit {
     this.despacho = {
       tipo: this.tipoSeleccionado.value,
       vin: vinActual,
+      fechaDespacho: new Date(),
       motorista: this.despacho.motorista,
       notadelevante: '',
       bl: '',
@@ -170,7 +181,7 @@ export class DespacharComponent implements OnInit {
 
     // Verificar despacho existente con el servicio de despacho
     const yaDespachado = this.despachoService.obtenerDespachos().some(d => d.vin === vin);
-    if (yaDespachado || vehiculo.estado === 'Deshabilitado') {
+    if (yaDespachado || vehiculo.estado === 'Despachado') {
       this.messageService.add({
         severity: yaDespachado ? 'warn' : 'warn',
         summary: 'Advertencia',
@@ -190,6 +201,7 @@ export class DespacharComponent implements OnInit {
     // Preparar formulario para nuevo despacho
     this.despacho = {
       vin: vin,
+      fechaDespacho: new Date(),
       motorista: '',
       notadelevante: '',
       bl: '',
@@ -209,6 +221,7 @@ export class DespacharComponent implements OnInit {
     this.mostrarErrorCopiaBl = false;
     this.mostrarErrorDuca = false;
     this.mostrarErrorTarja = false;
+    this.mostrarErrorFechaDespacho = false;
   }
 
   onGuardar() {
@@ -224,7 +237,7 @@ export class DespacharComponent implements OnInit {
     const datosDespacho = {
       ...this.despacho,
       tipo: this.tipoSeleccionado.value,
-      estado: 'Deshabilitado'
+      estado: 'Despachado',
     };
     console.log('Datos de despacho a guardar:', datosDespacho);
     this.guardarDespacho.emit(datosDespacho);
@@ -236,6 +249,9 @@ export class DespacharComponent implements OnInit {
     if (this.intentoGuardar) {
       this.mostrarErrorVin = !this.despacho.vin;
       if (this.mostrarErrorVin) valido = false;
+
+      this.mostrarErrorFechaDespacho = !this.despacho.fechaDespacho;
+    if (this.mostrarErrorFechaDespacho) valido = false;
 
       this.mostrarErrorMotorista = !this.despacho.motorista;
       if (this.mostrarErrorMotorista) valido = false;
