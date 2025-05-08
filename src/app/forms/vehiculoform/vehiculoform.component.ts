@@ -129,8 +129,28 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       // Si es string o número, convertirlo a Date
       anioValue = new Date(anioValue.toString());
     }
+      // Procesar fechaIngreso
+      let fechaIngresoValue = v.fechaIngreso;
+      if (fechaIngresoValue) {
+        // Si es un objeto Date, convertirlo a string yyyy-MM-dd
+        if (fechaIngresoValue instanceof Date) {
+          fechaIngresoValue = formatDate(fechaIngresoValue, 'yyyy-MM-dd', 'en-US');
+        }
+        // Si es un string ISO (ej: "2024-05-20T00:00:00Z"), extraer solo la fecha
+        else if (typeof fechaIngresoValue === 'string' && fechaIngresoValue.includes('T')) {
+          fechaIngresoValue = fechaIngresoValue.split('T')[0];
+        }
+        // Si es un string en otro formato, convertirlo a Date y luego a yyyy-MM-dd
+        else if (typeof fechaIngresoValue === 'string') {
+          const date = new Date(fechaIngresoValue);
+          if (!isNaN(date.getTime())) {
+            fechaIngresoValue = formatDate(date, 'yyyy-MM-dd', 'en-US');
+          }
+        }
+      }
+
       const formData = {
-        fechaIngreso: v.fechaIngreso || '',
+        fechaIngreso: fechaIngresoValue || '',
         numeroBL: v.numeroBL || '',
         numeroTarja: v.numeroTarja || '',
         consignatario: v.consignatario || '',

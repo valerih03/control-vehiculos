@@ -91,11 +91,6 @@
               (click)="verDetalleDespacho(vehiculo); $event.stopPropagation()" [disabled]="!vehiculo.despacho"
               pTooltip="Ver detalle de despacho" tooltipPosition="top">
             </button>
-            <!-- <button *ngIf="vehiculo.estado === 'Abandono'" pButton icon="pi pi-exclamation-triangle"
-              class="p-button-rounded p-button-warning p-button-sm w-2rem ml-2"
-              (click)="iniciarRescate(vehiculo); $event.stopPropagation()" pTooltip="Iniciar proceso de rescate"
-              tooltipPosition="top">
-            </button> -->
           </div>
         </td>
       </tr>
@@ -104,6 +99,7 @@
 
   <div class="flex flex-wrap gap-3 card p-4">
     <p-button label="Exportar a PDF" icon="pi pi-file-pdf" (click)="exportarPDF()"></p-button>
+    <p-button label="Exportar a Excel" icon="pi pi-file-excel" (click)="exportarExcel()"></p-button>
     <div class="flex gap-2">
       <p-button label="Cerrar" icon="pi pi-times" (click)="dialogConsultaVisible = false"></p-button>
     </div>
@@ -113,7 +109,6 @@
     </div>
   </div>
 </p-dialog>
-
 <!-- Diálogo para detalles de despacho -->
 <p-dialog header="Detalle de Despacho - {{vehiculoConDespacho?.vin}}" [(visible)]="mostrarDetalleDespacho" [modal]="true" [style]="{width: '50vw'}">
   <div *ngIf="vehiculoConDespacho">
@@ -168,20 +163,6 @@
     <p-button label="Cerrar" icon="pi pi-times" (click)="mostrarDetalleDespacho = false"></p-button>
   </ng-template>
 </p-dialog>
-
-<!-- Diálogo para edición de despacho -->
-<p-dialog header="Editar Despacho - {{despachoactual?.vin}}"
-          [(visible)]="dialogOpcionesDespachoVisible"
-          [modal]="true"
-          [style]="{width: '50vw'}"
-          (onShow)="onDialogShow()">
-  <app-despachar *ngIf="dialogOpcionesDespachoVisible"
-    [(visible)]="dialogOpcionesDespachoVisible"
-    [vehiculoParaMostrar]="despachoactual"
-    [modoVisualizacion]="false"
-    (guardarDespacho)="onDespachoGuardado($event)">
-  </app-despachar>
-</p-dialog>
 <!-- Diálogo para ingreso de vehiculos -->
 <p-dialog header="Control de vehículos" [modal]="true" [(visible)]="dialogVehiculoVisible">
   <app-vehiculoform
@@ -191,7 +172,6 @@
     (cancelar)="handleCancelar()">
   </app-vehiculoform>
 </p-dialog>
-
 <!-- Componente de rescate -->
 <app-rescate
   [visible]="dialogRescateVisible"

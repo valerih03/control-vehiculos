@@ -21,6 +21,11 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChangeDetectorRef } from '@angular/core';
 import { VehiculoformComponent } from "../forms/vehiculoform/vehiculoform.component";
 import { RescateComponent } from '../rescate/rescate.component';
+//para excel
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -305,21 +310,31 @@ getEstadoVehiculo(vehiculo: any): string {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
     this.currentFilters['estado'] = value;
     this.applyFilter('estado', event);
+    // Actualizar el estado de filtrado
+    this.clearFilters();
+    this.isFiltering = true;
+
   }
   filterByBl(event: Event){
     const value = (event.target as HTMLInputElement ).value.toLowerCase();
     this.marcaFilter = value;
     this.applyFilter('bl',event);
+    this.clearFilters();
+    this.isFiltering = true;
   }
   filterByVin(event: Event) {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
     this.vinFilter = value;
     this.applyFilter('vin', event);
+    this.clearFilters();
+    this.isFiltering = true;
   }
   filterByMarca(event: Event) {
     const value = (event.target as HTMLInputElement).value.toLowerCase();
     this.marcaFilter = value;
     this.applyFilter('marca', event);
+    this.clearFilters();
+    this.isFiltering = true;
   }
   applyFilter(field: string, event: Event) {
     const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
@@ -349,6 +364,16 @@ getEstadoVehiculo(vehiculo: any): string {
     });
     this.isFiltering = true;
   }
+  // METODO PARA LIMPIAR FILTROS
+  clearFilters() {
+    this.currentFilters = {};
+    this.searchQuery = '';
+    this.vinFilter = '';
+    this.marcaFilter = '';
+    this.isFiltering = false;
+    this.updateSortedVehiculos();
+  }
+
   checkMatches(vehiculo: any): boolean {
     return Object.entries(this.currentFilters).every(([field, searchTerm]) => {
       const fieldValue = vehiculo[field]?.toString().toLowerCase() || '';
@@ -449,7 +474,7 @@ getEstadoVehiculo(vehiculo: any): string {
           head: [headers],
           body: data,
           startY: 25,
-          margin: { horizontal: 20 }, //margen
+          margin: { horizontal: 22 }, //margen
           tableWidth: 'auto',
           styles: {
             fontSize: 7,
@@ -521,6 +546,51 @@ private handlePdfError(error: Error) {
   });
 
 }
+//EXPORTAR A EXCEL
+    exportarExcel() {
+      // Obtener los vehículos filtrados actualmente visibles en la tabla
+      const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
+
+      const vehiculosParaExportar =
+        Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
+          ? this.vehiculoSeleccionado
+          : this.selectedVehiculo
+            ? [this.selectedVehiculo]
+            : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
+
+      if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: 'No hay vehículos para exportar'
+        });
+        return;
+      }
+      const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(vehiculosParaExportar);
+      const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Vehículos');
+
+      const fileName = `Reporte de vehiculos ingresados_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Excel generado correctamente'
+      });
+      //estilo de la tabla
+      const table = document.querySelector('table');
+      if (table) {
+        table.style.borderCollapse = 'collapse';
+        table.style.width = '100%';
+        table.style.fontSize = '12px';
+        table.style.textAlign = 'center';
+        table.style.marginTop = '20px';
+        table.style.border = '1px solid #000';
+
+      }
+      const rows = table?.querySelectorAll('tr');
+    }
 
 //PARA RESCATE
 
