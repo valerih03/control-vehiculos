@@ -47,68 +47,59 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     this.initForm();
   }
 
-    // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
-    ngOnChanges(changes: SimpleChanges): void {
-      if (!this.vehiculoForm) {
-        this.initForm();
+  // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
+  ngOnChanges(changes: SimpleChanges): void {
+    // 1) Inicialización si no existe el form
+    if (!this.vehiculoForm) {
+      this.initForm();
+    }
+
+    // 2) Cuando cambian inputs: modo crear vs editar
+    if (changes['modo'] || changes['vehiculo']) {
+      if (this.modo === 'crear') {
+        this.vehiculoForm.reset({ /* valores iniciales */ });
       }
-
-      if (changes['modo'] || changes['vehiculo']) {
-        if (this.modo === 'crear') {
-          this.vehiculoForm.reset({
-            fechaIngreso: null,
-            numeroBL:     '',
-            numeroTarja:  '',
-            consignatario:'',
-            nit:          '',
-            vin:          '',
-            anio:         null,
-            marca:        '',
-            estilo:       '',
-            color:        '',
-            observaciones:''
-          });
-        } else if (this.modo === 'editar' && this.vehiculo) {
-          const v = this.vehiculo;
-
-          // Normalizar fechaIngreso a Date o null
-          let fechaIngresoDate: Date | null = null;
-          if (v.fechaIngreso) {
-            // Si viene como Date
-            if (v.fechaIngreso instanceof Date) {
-              fechaIngresoDate = v.fechaIngreso;
-            } else if (typeof v.fechaIngreso === 'string') {
-              // Intentar parsear cualquier formato ISO
-              const d = new Date(v.fechaIngreso);
-              if (!isNaN(d.getTime())) {
-                fechaIngresoDate = d;
-              }
-            }
+      else if (this.modo === 'editar' && this.vehiculo) {
+        // ——— Aquí dentro SI debe ir tu lógica de conversión de fecha y año ———
+        let fechaIngresoDate: Date | null = null;
+        if (this.vehiculo.fechaIngreso) {
+          const d = new Date(this.vehiculo.fechaIngreso);
+          if (!isNaN(d.getTime())) {
+            fechaIngresoDate = d;
           }
-
-          // Convertir anio:number a Date en 1 de enero de ese año
-          let anioDate: Date | null = null;
-          if (typeof v.anio === 'number') {
-            anioDate = new Date(v.anio, 0, 1);
-          }
-
-          this.vehiculoForm.reset({
-            fechaIngreso: fechaIngresoDate,
-            numeroBL:     v.numeroBL    ?? '',
-            numeroTarja:  (v as any).numeroTarja ?? v.tarja ?? '',
-            consignatario:v.consignatario ?? '',
-            nit:          v.nit         ?? '',
-            vin:          v.vin         ?? '',
-            anio:         anioDate,
-            marca:        v.marca       ?? '',
-            estilo:       v.estilo      ?? '',
-            color:        v.color       ?? '',
-            observaciones:v.observaciones ?? ''
-          });
         }
+        const fechaIngresoISO = fechaIngresoDate
+          ? formatDate(fechaIngresoDate, 'yyyy-MM-dd', 'en-US')
+          : null;
+
+        let anioDate: Date | null = null;
+        if (this.vehiculo.anio != null) {
+          const añoNum = typeof this.vehiculo.anio === 'number'
+            ? this.vehiculo.anio
+            : parseInt(this.vehiculo.anio as any, 10);
+          if (!isNaN(añoNum)) {
+            anioDate = new Date(añoNum, 0, 1);
+          }
+        }
+
+        this.vehiculoForm.reset({
+          fechaIngreso: fechaIngresoISO,
+          numeroBL:     this.vehiculo.numeroBL    ?? '',
+          numeroTarja:  this.vehiculo.numeroTarja       ?? '',
+          consignatario:this.vehiculo.consignatario ?? '',
+          nit:          this.vehiculo.nit         ?? '',
+          vin:          this.vehiculo.vin         ?? '',
+          anio:         anioDate,
+          marca:        this.vehiculo.marca       ?? '',
+          estilo:       this.vehiculo.estilo      ?? '',
+          color:        this.vehiculo.color       ?? '',
+          observaciones:this.vehiculo.observaciones ?? ''
+        });
       }
     }
-    private initForm(): void {
+  }
+
+  private initForm(): void {
       this.vehiculoForm = this.fb.group({
         fechaIngreso: [null, Validators.required],
         numeroBL:     ['', Validators.required],
@@ -122,7 +113,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         color:        ['', Validators.required],
         observaciones:['']
       });
-    }
+  }
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);

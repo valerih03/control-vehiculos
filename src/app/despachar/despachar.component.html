@@ -14,6 +14,7 @@
         formControlName="tipoSalida"
         [options]="tiposDespacho"
         optionLabel="name"
+        optionValue="value"
         class="w-full">
       </p-selectButton>
       <small *ngIf="despachoForm.get('tipoSalida')?.invalid && despachoForm.get('tipoSalida')?.touched"

@@ -1,7 +1,7 @@
 export interface Vehiculo {
   id: number;
   fechaIngreso: Date | string;
-  tarja: string;
+  numeroTarja: string;
   numeroBL: string;
   consignatario: string;
   vin: string;
