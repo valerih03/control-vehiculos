@@ -49,55 +49,74 @@ export class VehiculoformComponent implements OnInit, OnChanges {
 
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
   ngOnChanges(changes: SimpleChanges): void {
-    // 1) Inicialización si no existe el form
-    if (!this.vehiculoForm) {
-      this.initForm();
+  if (!this.vehiculoForm) {
+    this.initForm();
+  }
+
+  if (changes['modo'] || changes['vehiculo']) {
+    if (this.modo === 'crear') {
+      this.vehiculoForm.reset({
+        fechaIngreso: null,
+        numeroBL:     '',
+        numeroTarja:  '',
+        consignatario:'',
+        nit:          '',
+        vin:          '',
+        anio:         null,
+        marca:        '',
+        estilo:       '',
+        color:        '',
+        observaciones:''
+      });
     }
+    else if (this.modo === 'editar' && this.vehiculo) {
+      const v = this.vehiculo;
 
-    // 2) Cuando cambian inputs: modo crear vs editar
-    if (changes['modo'] || changes['vehiculo']) {
-      if (this.modo === 'crear') {
-        this.vehiculoForm.reset({ /* valores iniciales */ });
-      }
-      else if (this.modo === 'editar' && this.vehiculo) {
-        // ——— Aquí dentro SI debe ir tu lógica de conversión de fecha y año ———
-        let fechaIngresoDate: Date | null = null;
-        if (this.vehiculo.fechaIngreso) {
-          const d = new Date(this.vehiculo.fechaIngreso);
-          if (!isNaN(d.getTime())) {
-            fechaIngresoDate = d;
-          }
+      // Fecha de ingreso
+      let fechaIngresoISO: string | null = null;
+      if (v.fechaIngreso) {
+        const d = new Date(v.fechaIngreso);
+        if (!isNaN(d.getTime())) {
+          fechaIngresoISO = formatDate(d, 'yyyy-MM-dd', 'en-US');
         }
-        const fechaIngresoISO = fechaIngresoDate
-          ? formatDate(fechaIngresoDate, 'yyyy-MM-dd', 'en-US')
-          : null;
+      }
 
+      // Año: acepta number o ISO-string
         let anioDate: Date | null = null;
-        if (this.vehiculo.anio != null) {
-          const añoNum = typeof this.vehiculo.anio === 'number'
-            ? this.vehiculo.anio
-            : parseInt(this.vehiculo.anio as any, 10);
-          if (!isNaN(añoNum)) {
-            anioDate = new Date(añoNum, 0, 1);
+
+        if (v.anio !== null && v.anio !== undefined) {
+          // Intenta convertir a fecha directamente
+          try {
+            const potentialDate = new Date(v.anio);
+            if (!isNaN(potentialDate.getTime())) {
+              anioDate = new Date(potentialDate.getFullYear(), 0, 1);
+            }
+          } catch (e) {
+            // Si falla, verifica si es un número o string de año
+            if (typeof v.anio === 'number') {
+              anioDate = new Date(v.anio, 0, 1);
+            } else if (typeof v.anio === 'string' && /^\d{4}$/.test(v.anio)) {
+              anioDate = new Date(parseInt(v.anio, 10), 0, 1);
+            }
           }
         }
 
-        this.vehiculoForm.reset({
-          fechaIngreso: fechaIngresoISO,
-          numeroBL:     this.vehiculo.numeroBL    ?? '',
-          numeroTarja:  this.vehiculo.numeroTarja       ?? '',
-          consignatario:this.vehiculo.consignatario ?? '',
-          nit:          this.vehiculo.nit         ?? '',
-          vin:          this.vehiculo.vin         ?? '',
-          anio:         anioDate,
-          marca:        this.vehiculo.marca       ?? '',
-          estilo:       this.vehiculo.estilo      ?? '',
-          color:        this.vehiculo.color       ?? '',
-          observaciones:this.vehiculo.observaciones ?? ''
-        });
-      }
+      this.vehiculoForm.reset({
+        fechaIngreso: fechaIngresoISO,
+        numeroBL:     v.numeroBL      ?? '',
+        numeroTarja:  v.numeroTarja   ?? '',
+        consignatario:v.consignatario ?? '',
+        nit:          v.nit           ?? '',
+        vin:          v.vin           ?? '',
+        anio:         anioDate,
+        marca:        v.marca         ?? '',
+        estilo:       v.estilo        ?? '',
+        color:        v.color         ?? '',
+        observaciones:v.observaciones ?? ''
+      });
     }
   }
+}
 
   private initForm(): void {
       this.vehiculoForm = this.fb.group({

@@ -87,7 +87,10 @@
         [yearNavigator]="true"
         yearRange="1990:2026"
         [maxDate]="maxAnio"
+        [showIcon]="true"
+        inputId="yearInput"
         class="w-full"
+        [ngClass]="{'p-invalid': vehiculoForm.get('anio')?.invalid && vehiculoForm.get('anio')?.touched}"
       ></p-calendar>
       <div class="p-error mt-1" *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.hasError('anioInvalido')">
         <small class="text-sm">El año está fuera del rango permitido (1990-2026)</small>
