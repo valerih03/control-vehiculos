@@ -459,7 +459,7 @@ blFiltradoActual = '';
       case 'Despachado': {
         const desp = this.despachoService.obtenerDespachoPorVin(vehiculo.vin);
         const tipo = desp?.tipoSalida ?? 'general';
-        return `Despachado como ${this.despachoService.obtenerTipoSalidaPorVin(tipo)}`;
+        return `Despachado como ${(tipo)}`;
       }
       case 'Abandono': {
         const diasAbandono = Math.max(0, diasTranscurridos - 20);
