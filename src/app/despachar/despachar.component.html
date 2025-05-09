@@ -1,107 +1,110 @@
-<p-dialog header="{{ getHeaderText() }}" [(visible)]="visible" (onShow)="onShow()" (onHide)="cerrarDialogo()" [modal]="true" [style]="{width: '50vw'}">
-  <div class="p-fluid formgrid grid" *ngIf="!modoVisualizacion">
+<p-dialog
+  header="{{ modoVisualizacion ? 'Detalle de Despacho' : getHeaderText() }}"
+  [(visible)]="visible"
+  (onShow)="onShow()"
+  (onHide)="cerrarDialogo()"
+  [modal]="true"
+  [style]="{ width: '50vw' }">
+
+  <form [formGroup]="despachoForm" class="p-fluid formgrid grid">
+    <!-- Tipo de Salida -->
     <div class="field col-12">
-      <label class="font-bold block mb-2">Tipo de Despacho</label>
-      <p-selectButton [options]="tiposDespacho" [(ngModel)]="tipoSeleccionado"
-                     optionLabel="name" (onChange)="cambiarTipoDespacho()" class="w-full">
+      <label>Tipo de Despacho</label>
+      <p-selectButton
+        formControlName="tipoSalida"
+        [options]="tiposDespacho"
+        optionLabel="name"
+        class="w-full">
       </p-selectButton>
+      <small *ngIf="despachoForm.get('tipoSalida')?.invalid && despachoForm.get('tipoSalida')?.touched"
+             class="p-error">
+        Debes seleccionar DM o TRANSITO
+      </small>
     </div>
+
+    <!-- Autocomplete VIN -->
     <div class="field col-12">
-      <label for="vinAutoComplete" class="font-bold block mb-2">Buscar VIN registrado</label>
+      <label>Buscar VIN registrado</label>
       <p-autoComplete
-        inputId="vinAutoComplete"
-        [(ngModel)]="vinSeleccionado"
+        formControlName="vin"
         [suggestions]="vinFiltrados"
         (completeMethod)="filtrarVins($event)"
         field="vin"
         [dropdown]="true"
         placeholder="Seleccione un VIN"
-        [inputStyle]="{width: '100%'}"
         (onSelect)="seleccionarVin($event)"
-        class="w-full"
-      >
-      <ng-template let-vin pTemplate="item">
-        <div class="flex align-items-center justify-content-between">
-          <span>{{ vin.vin }}</span>
-          <span class="ml-2 p-tag" [ngClass]="{
-            'p-tag-success': vin.estado === 'Disponible' || vin.estado === 'Rescatado',
-            'p-tag-warning': vin.estado === 'En revisión',
-            'p-tag-danger': vin.estado === 'Abandono'
-          }">
-            {{ vin.estado }}
-            <i *ngIf="vin.estado === 'Rescatado'"
-               class="pi pi-check-circle ml-1"
-               pTooltip="'Rescatado el ' + (vin.fechaRescate | date:'shortDate')"
-               tooltipPosition="top"></i>
-          </span>
-        </div>
-      </ng-template>
+        class="w-full">
       </p-autoComplete>
-      <small *ngIf="intentoGuardar && mostrarErrorVin" class="p-error block mt-1">Campo obligatorio</small>
+      <small *ngIf="despachoForm.get('vin')?.invalid && despachoForm.get('vin')?.touched"
+             class="p-error">
+        VIN obligatorio
+      </small>
     </div>
-  </div>
 
-  <div class="p-fluid formgrid grid">
-    <!-- Campo de fecha de despacho añadido aquí -->
-    <div class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">Fecha de despacho</label>
+    <!-- Fecha despacho -->
+    <div class="field col-6">
+      <label>Fecha de despacho</label>
       <input
-        pInputText type="date" formControlName="fechaDespacho"
-        [attr.max]="todayISO" class="w-full"
-      />
-      <small *ngIf="mostrarErrorFechaDespacho" class="p-error block mt-1">La fecha de despacho es requerida</small>
+        pInputText type="date"
+        formControlName="fechaDespacho"
+        [attr.max]="todayISO"
+        class="w-full"/>
+      <small *ngIf="despachoForm.get('fechaDespacho')?.invalid && despachoForm.get('fechaDespacho')?.touched"
+             class="p-error">
+        Fecha requerida
+      </small>
     </div>
 
+    <!-- DUCA -->
+    <div class="field col-6">
+      <label>DUCA</label>
+      <input pInputText formControlName="duca" class="w-full"/>
+      <small *ngIf="despachoForm.get('duca')?.invalid && despachoForm.get('duca')?.touched"
+             class="p-error">
+        DUCA obligatorio
+      </small>
+    </div>
+
+    <!-- Motorista -->
+    <div class="field col-6">
+      <label>Motorista</label>
+      <input pInputText formControlName="motorista" class="w-full"/>
+      <small *ngIf="despachoForm.get('motorista')?.invalid && despachoForm.get('motorista')?.touched"
+             class="p-error">
+        Motorista obligatorio
+      </small>
+    </div>
+
+    <!-- Nota de Levante -->
+    <div class="field col-6">
+      <label>Nota de Levante</label>
+      <input pInputText formControlName="notaLevante" class="w-full"/>
+    </div>
+
+    <!-- Observaciones -->
     <div class="field col-12">
-      <label class="font-bold block mb-2">VIN</label>
-      <input pInputText [(ngModel)]="despacho.vin" readonly class="w-full"/>
-    </div>
-    <div class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">Motorista</label>
-      <input pInputText [(ngModel)]="despacho.motorista"
-             [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">Nota de levante</label>
-      <input pInputText [(ngModel)]="despacho.notadelevante" [readonly]="modoVisualizacion" class="w-full" />
-    </div>
-    <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.bl" [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div *ngIf="tipoSeleccionado.value==='DM'" class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">DUCA</label>
-      <input pInputText [(ngModel)]="despacho.duca" [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">N° de BL</label>
-      <input pInputText [(ngModel)]="despacho.copiaBL" [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">Tarja</label>
-      <input pInputText [(ngModel)]="despacho.tarja" [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div *ngIf="tipoSeleccionado.value==='TRANSITO'" class="field col-12 md:col-6">
-      <label class="font-bold block mb-2">DUCA</label>
-      <input pInputText [(ngModel)]="despacho.duca"
-             [readonly]="modoVisualizacion" class="w-full"/>
-    </div>
-    <div class="field col-12">
-      <label for="observaciones" class="font-bold block mb-2">Observaciones</label>
+      <label>Observaciones</label>
       <textarea
-        id="observaciones"
+        formControlName="observaciones"
         pInputTextarea
-        [(ngModel)]="despacho.observaciones"
-        [disabled]="modoVisualizacion"
-        class="w-full"
-        rows="5"
-      ></textarea>
+        rows="4"
+        class="w-full">
+      </textarea>
     </div>
-  </div>
-  <ng-template pTemplate="footer">
-    <p-button label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarDialogo()"></p-button>
+  </form>
 
-    <p-button *ngIf="!modoVisualizacion" label="Guardar" icon="pi pi-check"
-            (click)="onGuardar()"></p-button>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cerrar"
+      icon="pi pi-times"
+      class="p-button-text"
+      (click)="cerrarDialogo()">
+    </p-button>
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      (click)="onGuardar()"
+      [disabled]="despachoForm.invalid || modoVisualizacion">
+    </p-button>
   </ng-template>
 </p-dialog>
