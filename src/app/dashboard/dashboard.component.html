@@ -133,22 +133,7 @@
   [(visible)]="mostrarDetalleDespacho"
   [modal]="true"
   [style]="{width: '50vw'}">
-  <div *ngIf="vehiculoConDespacho && vehiculoDetalle">
-    <!-- BL y Tarja desde Vehiculo -->
-    <div class="field mb-4">
-      <label class="font-bold">N° BL (Vehículo):</label>
-      <div class="p-card p-2">
-        {{ vehiculoDetalle.numeroBL || 'No especificado' }}
-      </div>
-    </div>
-    <div class="field mb-4">
-      <label class="font-bold">Tarja (Vehículo):</label>
-      <div class="p-card p-2">
-        {{ vehiculoDetalle.tarja || 'No especificado' }}
-      </div>
-    </div>
-
-    <!-- El resto desde Despacho -->
+  <div *ngIf="vehiculoConDespacho">
     <div class="field mb-4">
       <label class="font-bold">Fecha de Despacho:</label>
       <div class="p-card p-2">

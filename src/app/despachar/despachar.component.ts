@@ -135,11 +135,4 @@ export class DespacharComponent implements OnInit {
     this.visibleChange.emit(false);
   }
 
-  getHeaderText(): string {
-  const tipo = this.despachoForm.get('tipoSalida')!.value;
-  return this.modoVisualizacion
-    ? 'Detalle de Despacho'
-    : `Despacho ${tipo}`;
-}
-
 }
