@@ -258,11 +258,11 @@ blFiltradoActual = '';
 
           const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Observaciones', 'Estado'];
           const data = vehiculosParaExportar.map(v => [
-            v.bl || 'N/A',
+            v.numeroBL || 'N/A',
             v.vin || 'N/A',
             v.consignatario || 'N/A',
             v.nit || 'N/A',
-            v.fecha ? new Date(v.fecha).toLocaleDateString() : 'N/A',
+            v.fechaIngreso ? new Date(v.fechaIngreso).toLocaleDateString() : 'N/A',
             v.marca || 'N/A',
             v.observaciones || 'N/A',
             v.estado || 'N/A'
