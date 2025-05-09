@@ -52,15 +52,15 @@
         </small>
       </div>
     </div>
-
+  </form>
     <!-- Footer con botones -->
     <ng-template pTemplate="footer">
       <div class="flex justify-content-end gap-2">
         <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
                 (click)="onCancel()"></button>
         <button pButton type="submit" label="Confirmar" icon="pi pi-check" class="p-button-success"
-                [disabled]="formRescate.invalid"></button>
+                [disabled]="formRescate.invalid"(click)="onConfirm()"></button>
       </div>
     </ng-template>
-  </form>
+
 </p-dialog>

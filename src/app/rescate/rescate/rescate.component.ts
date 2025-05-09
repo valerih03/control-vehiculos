@@ -90,6 +90,7 @@ export class RescateComponent implements OnInit, OnChanges {
     // emite el rescate creado
     this.rescateCreado.emit(nuevo);
     this.visibleChange.emit(false);
+    console.log('Rescate creado:', nuevo);
   }
 
   onCancel(): void {
