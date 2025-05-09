@@ -28,6 +28,7 @@ import { RescateService } from '../services/rescate.service';
 import { RescateComponent } from '../rescate/rescate/rescate.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { formatDate } from '@angular/common';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -586,48 +587,50 @@ blFiltradoActual = '';
 
   //EXPORTAR A EXCEL
   exportarExcel() {
-    // Obtener los vehículos filtrados actualmente visibles en la tabla
-    const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
-
-    const vehiculosParaExportar =
-      Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
-        ? this.vehiculoSeleccionado
-        : this.selectedVehiculo
-          ? [this.selectedVehiculo]
-          : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
-
-    if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'No hay vehículos para exportar'
-      });
-      return;
-    }
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(vehiculosParaExportar);
-    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Vehículos');
-
-    const fileName = ` Reporte de vehiculos ingresados_${new Date().toISOString().slice(0, 10)}.xlsx `;
-    XLSX.writeFile(workbook, fileName);
-
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Excel generado correctamente'
-    });
-    //estilo de la tabla
-    const table = document.querySelector('table');
-    if (table) {
-      table.style.borderCollapse = 'collapse';
-      table.style.width = '100%';
-      table.style.fontSize = '12px';
-      table.style.textAlign = 'center';
-      table.style.marginTop = '20px';
-      table.style.border = '1px solid #000';
-
-    }
-    const rows = table?.querySelectorAll('tr');
+  const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
+  const vehiculosParaExportar =
+    Array.isArray(this.selectedVehiculos) && this.selectedVehiculos.length > 0
+      ? this.selectedVehiculos
+      : this.selectedVehiculo
+        ? [this.selectedVehiculo]
+        : vehiculosFiltrados;
+  if (!vehiculosParaExportar.length) {
+    this.messageService.add({ severity:'warn', summary:'Advertencia', detail:'No hay vehículos para exportar' });
+    return;
   }
+
+  // 1) Mapear a datos “planos”
+  const exportData = vehiculosParaExportar.map(v => ({
+    BL:           v.numeroBL,
+    VIN:          v.vin,
+    Consignatario:v.consignatario,
+    NIT:          v.nit,
+    FechaIngreso: typeof v.fechaIngreso === 'string'
+                     ? v.fechaIngreso
+                     : formatDate(v.fechaIngreso as Date, 'yyyy-MM-dd', 'en-US'),
+    Marca:        v.marca,
+    Observaciones:v.observaciones,
+    Estado:       v.estado
+  }));
+
+  // 2) Crear worksheet y workbook
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+  // (Opcional) Ajustar anchos de columna:
+  ws['!cols'] = [
+    { wch: 15 }, { wch: 18 }, { wch: 25 },
+    { wch: 18 }, { wch: 15 }, { wch: 20 },
+    { wch: 30 }, { wch: 12 }
+  ];
+  const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Vehículos');
+
+  // 3) Escribir como array y descargar con FileSaver
+  const wbout: ArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/octet-stream' });
+  const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0,10)}.xlsx`;
+  saveAs(blob, fileName);
+
+  this.messageService.add({ severity:'success', summary:'Éxito', detail:'Excel generado correctamente' });
+}
 
 }
