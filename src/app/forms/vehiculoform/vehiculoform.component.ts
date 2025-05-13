@@ -41,7 +41,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     private messageService: MessageService
   ) {}
   currentYear = new Date().getFullYear();
-  maxAnio = new Date(this.currentYear + 1, 11, 31); 
+  maxAnio = new Date(this.currentYear + 1, 11, 31);
 
   ngOnInit() {
     this.todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
@@ -49,7 +49,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   }
 
   // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
-  ngOnChanges(changes: SimpleChanges): void {
+ngOnChanges(changes: SimpleChanges): void {
   if (!this.vehiculoForm) {
     this.initForm();
   }
@@ -81,27 +81,13 @@ export class VehiculoformComponent implements OnInit, OnChanges {
           fechaIngresoISO = formatDate(d, 'yyyy-MM-dd', 'en-US');
         }
       }
-
-      // Año: acepta number o ISO-string
-        let anioDate: Date | null = null;
-
-        if (v.anio !== null && v.anio !== undefined) {
-          // Intenta convertir a fecha directamente
-          try {
-            const potentialDate = new Date(v.anio);
-            if (!isNaN(potentialDate.getTime())) {
-              anioDate = new Date(potentialDate.getFullYear(), 0, 1);
-            }
-          } catch (e) {
-            // Si falla, verifica si es un número o string de año
-            if (typeof v.anio === 'number') {
-              anioDate = new Date(v.anio, 0, 1);
-            } else if (typeof v.anio === 'string' && /^\d{4}$/.test(v.anio)) {
-              anioDate = new Date(parseInt(v.anio, 10), 0, 1);
-            }
-          }
+      let anioDate: Date | null = null;
+      if (v.anio !== null && v.anio !== undefined) {
+        const anioNumerico = typeof v.anio === 'string' ? parseInt(v.anio, 10) : v.anio;
+        if (!isNaN(anioNumerico) && anioNumerico >= 1900 && anioNumerico <= 2100) {
+          anioDate = new Date(anioNumerico, 0, 1);
         }
-
+      }
       this.vehiculoForm.reset({
         fechaIngreso: fechaIngresoISO,
         numeroBL:     v.numeroBL      ?? '',
@@ -157,8 +143,15 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       });
       return;
     }
-    this.guardar.emit(this.vehiculoForm.getRawValue() as Vehiculo);
-    console.log('Vehículo guardado:', this.vehiculoForm.getRawValue());
+     const vehiculoData = { ...this.vehiculoForm.getRawValue() };
+
+  //Convertir el campo 'anio' (Date) a solo número
+  if (vehiculoData.anio instanceof Date) {
+    vehiculoData.anio = vehiculoData.anio.getFullYear();
+  }
+
+  this.guardar.emit(vehiculoData as Vehiculo);
+  console.log('Vehículo guardado:', vehiculoData);
   }
  onCancel() {
     this.cancelar.emit();
