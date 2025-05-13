@@ -474,11 +474,15 @@ blFiltradoActual = '';
     { header: 'VIN',           field: 'vin' },
     { header: 'Consignatario', field: 'consignatario' },
     { header: 'NIT',           field: 'nit' },
-    { header: 'Fecha Ingreso', field: v =>
-        typeof v.fechaIngreso === 'string'
-          ? v.fechaIngreso
-          : formatDate(v.fechaIngreso as Date,'yyyy-MM-dd','en-US')
-    },
+     {
+  header: 'Fecha Ingreso',
+  field: v => {
+    const date = new Date(v.fechaIngreso);
+    return isNaN(date.getTime())
+      ? ''
+      : formatDate(date, 'yyyy-MM-dd', 'en-US');
+  },
+},
     { header: 'Marca',         field: 'marca' },
     { header: 'Observaciones', field: 'observaciones'   },
     { header: 'Estado',        field: 'estado' }
@@ -496,12 +500,17 @@ blFiltradoActual = '';
 
 //excel
   excelColumns: ExportColumn<Vehiculo>[] = [
-    { header: 'Fecha Ingreso',   field: v =>
-        typeof v.fechaIngreso === 'string'
-          ? v.fechaIngreso
-          : formatDate(v.fechaIngreso as Date,'yyyy-MM-dd','en-US'),
-      width: 15
-    },
+    {
+  header: 'Fecha Ingreso',
+  field: v => {
+    const date = new Date(v.fechaIngreso);
+    return isNaN(date.getTime())
+      ? ''
+      : formatDate(date, 'yyyy-MM-dd', 'en-US');
+  },
+  width: 15
+},
+
     { header: 'BL',              field: 'numeroBL',      width: 15 },
     { header: 'Tarja',           field: 'numeroTarja',   width: 15 },
     { header: 'Consignatario',   field: 'consignatario', width: 25 },
