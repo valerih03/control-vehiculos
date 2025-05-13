@@ -460,7 +460,7 @@ applyFilter(field: string, event: Event) {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
 
-        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Observaciones', 'Estado'];
+        const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha Ingreso', 'Marca', 'Observaciones', 'Estado'];
         const data = vehiculosParaExportar.map(v => [
           v.bl || 'N/A',
           v.vin || 'N/A',
@@ -583,18 +583,6 @@ private handlePdfError(error: Error) {
         summary: 'Éxito',
         detail: 'Excel generado correctamente'
       });
-      //estilo de la tabla
-      const table = document.querySelector('table');
-      if (table) {
-        table.style.borderCollapse = 'collapse';
-        table.style.width = '100%';
-        table.style.fontSize = '12px';
-        table.style.textAlign = 'center';
-        table.style.marginTop = '20px';
-        table.style.border = '1px solid #000';
-
-      }
-      const rows = table?.querySelectorAll('tr');
       this.clearAllFilters();
     }
 
