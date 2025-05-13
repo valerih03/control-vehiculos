@@ -48,68 +48,92 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     this.initForm();
   }
 
-    // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
-    ngOnChanges(changes: SimpleChanges): void {
-      if (changes['modo'] && this.vehiculoForm) {
-        if (this.modo === 'crear') {
-          this.vehiculoForm.reset();
-        } else if (this.modo === 'editar' && changes['vehiculo']) {
-          const v = this.vehiculo;
-          this.vehiculoForm.reset({
-            fechaIngreso: v.fechaIngreso ? new Date(v.fechaIngreso) : null,
-            numeroBL: v.numeroBL || '',
-            numeroTarja: (v as any).numeroTarja ?? v.tarja ?? '',
-            consignatario: v.consignatario || '',
-            nit: v.nit || '',
-            vin: v.vin || '',
-            anio: v.anio
-              ? typeof v.anio === 'string'
-                ? new Date(v.anio)
-                : new Date(v.anio)
-              : null,
-            marca: v.marca || '',
-            estilo: v.estilo || '',
-            color: v.color || '',
-            observaciones: v.observaciones || ''
-          });
-        }
-      }
-    }
+  // ngOnChanges se invoca cuando cambian los Inputs (por ejemplo, cuando se asigna un vehículo para editar)
+  ngOnChanges(changes: SimpleChanges): void {
+  if (!this.vehiculoForm) {
+    this.initForm();
+  }
 
-    private initForm(): void {
-      this.vehiculoForm = this.fb.group({
-        fechaIngreso: [
-          this.vehiculo.fechaIngreso ? new Date(this.vehiculo.fechaIngreso) : null,
-          Validators.required
-        ],
-        numeroBL: [this.vehiculo.numeroBL || '', Validators.required],
-        numeroTarja: [
-          (this.vehiculo as any).numeroTarja ?? this.vehiculo.tarja ?? '',
-          Validators.required
-        ],
-        consignatario: [this.vehiculo.consignatario || '', Validators.required],
-        nit: [
-          this.vehiculo.nit || '',
-          this.validacionService.getValidators('nit')
-        ],
-        vin: [
-          this.vehiculo.vin || '',
-          this.validacionService.getValidators('vin')
-        ],
-        anio: [
-          this.vehiculo.anio
-            ? typeof this.vehiculo.anio === 'string'
-              ? new Date(this.vehiculo.anio)
-              : new Date(this.vehiculo.anio)
-            : null,
-          [Validators.required]
-        ],
-        marca: [this.vehiculo.marca || '', Validators.required],
-        estilo: [this.vehiculo.estilo || '', Validators.required],
-        color: [this.vehiculo.color || '', Validators.required],
-        observaciones: [this.vehiculo.observaciones || '']
+  if (changes['modo'] || changes['vehiculo']) {
+    if (this.modo === 'crear') {
+      this.vehiculoForm.reset({
+        fechaIngreso: null,
+        numeroBL:     '',
+        numeroTarja:  '',
+        consignatario:'',
+        nit:          '',
+        vin:          '',
+        anio:         null,
+        marca:        '',
+        estilo:       '',
+        color:        '',
+        observaciones:''
       });
     }
+    else if (this.modo === 'editar' && this.vehiculo) {
+      const v = this.vehiculo;
+
+      // Fecha de ingreso
+      let fechaIngresoISO: string | null = null;
+      if (v.fechaIngreso) {
+        const d = new Date(v.fechaIngreso);
+        if (!isNaN(d.getTime())) {
+          fechaIngresoISO = formatDate(d, 'yyyy-MM-dd', 'en-US');
+        }
+      }
+
+      // Año: acepta number o ISO-string
+        let anioDate: Date | null = null;
+
+        if (v.anio !== null && v.anio !== undefined) {
+          // Intenta convertir a fecha directamente
+          try {
+            const potentialDate = new Date(v.anio);
+            if (!isNaN(potentialDate.getTime())) {
+              anioDate = new Date(potentialDate.getFullYear(), 0, 1);
+            }
+          } catch (e) {
+            // Si falla, verifica si es un número o string de año
+            if (typeof v.anio === 'number') {
+              anioDate = new Date(v.anio, 0, 1);
+            } else if (typeof v.anio === 'string' && /^\d{4}$/.test(v.anio)) {
+              anioDate = new Date(parseInt(v.anio, 10), 0, 1);
+            }
+          }
+        }
+
+      this.vehiculoForm.reset({
+        fechaIngreso: fechaIngresoISO,
+        numeroBL:     v.numeroBL      ?? '',
+        numeroTarja:  v.numeroTarja   ?? '',
+        consignatario:v.consignatario ?? '',
+        nit:          v.nit           ?? '',
+        vin:          v.vin           ?? '',
+        anio:         anioDate,
+        marca:        v.marca         ?? '',
+        estilo:       v.estilo        ?? '',
+        color:        v.color         ?? '',
+        observaciones:v.observaciones ?? ''
+      });
+    }
+  }
+}
+
+  private initForm(): void {
+      this.vehiculoForm = this.fb.group({
+        fechaIngreso: [null, Validators.required],
+        numeroBL:     ['', Validators.required],
+        numeroTarja:  ['', Validators.required],
+        consignatario:['', Validators.required],
+        nit:          ['', this.validacionService.getValidators('nit')],
+        vin:          ['', this.validacionService.getValidators('vin')],
+        anio:         [null, [Validators.required]],
+        marca:        ['', Validators.required],
+        estilo:       ['', Validators.required],
+        color:        ['', Validators.required],
+        observaciones:['']
+      });
+  }
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
@@ -124,15 +148,11 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     if (this.vehiculoForm.invalid) {
       Object.entries(this.vehiculoForm.controls).forEach(([name, ctrl]) => {
         if (ctrl.invalid) {
-          let mensajes = this.getErrores(name);
-          if (name === 'vin') {
-            mensajes = mensajes.filter(msg =>
-              !msg.toLowerCase().includes('debe tener')
+          this.validacionService
+            .getErrorMessages(name as any, ctrl)
+            .forEach(msg =>
+              this.messageService.add({ severity: 'error', summary: 'Error', detail: msg })
             );
-          }
-          mensajes.forEach(msg =>
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: msg })
-          );
         }
       });
       return;

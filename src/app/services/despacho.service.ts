@@ -46,4 +46,8 @@ export class DespachoService {
   obtenerDespachoPorVin(vin: string): Despacho | undefined {
     return this.despachos.find(d => d.vin === vin);
   }
+  obtenerTipoSalidaPorVin(vin: string): string | undefined {
+    const despacho = this.despachos.find(d => d.vin === vin);
+    return despacho ? despacho.tipoSalida : undefined;
+  }
 }

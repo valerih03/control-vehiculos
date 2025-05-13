@@ -1,0 +1,66 @@
+<p-toast position="top-right"></p-toast>
+
+<p-dialog
+  header="Realizar Rescate"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '50vw' }"
+  (onHide)="onCancel()">
+
+  <form [formGroup]="formRescate" (ngSubmit)="onConfirm()">
+    <div class="p-fluid grid">
+      <!-- BL (solo lectura) -->
+      <div class="field col-12 md:col-6">
+        <label for="bl">N° BL</label>
+        <input id="bl" type="text" pInputText [value]="numerobl" readonly class="w-full" />
+      </div>
+
+      <!-- Tabla de vehículos asociados -->
+      <div *ngIf="vehiculos.length > 0" class="col-12">
+        <h4>Vehículos con BL {{ numerobl }}:</h4>
+        <p-table [value]="vehiculos" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>BL</th><th>VIN</th><th>Marca</th><th>Estado</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-v>
+            <tr>
+              <td>{{ v.bl }}</td>
+              <td>{{ v.vin }}</td>
+              <td>{{ v.marca }}</td>
+              <td>{{ v.estado }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Fecha de Rescate -->
+      <div class="field col-12 mt-3">
+        <label for="fechaRescate">Fecha de Rescate</label>
+        <input
+          id="fechaRescate"
+          pInputText
+          type="date"
+          formControlName="fechaRescate"
+          [attr.min]="minDate"
+          [attr.max]="todayISO"
+          class="w-full"
+        />
+        <small *ngIf="formRescate.get('fechaRescate')?.invalid" class="p-error">
+          Fecha requerida
+        </small>
+      </div>
+    </div>
+  </form>
+    <!-- Footer con botones -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-content-end gap-2">
+        <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
+                (click)="onCancel()"></button>
+        <button pButton type="submit" label="Confirmar" icon="pi pi-check" class="p-button-success"
+                [disabled]="formRescate.invalid"(click)="onConfirm()"></button>
+      </div>
+    </ng-template>
+
+</p-dialog>
