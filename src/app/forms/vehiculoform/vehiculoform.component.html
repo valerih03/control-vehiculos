@@ -84,7 +84,10 @@
         [yearNavigator]="true"
         [yearRange]="'1990:' + (currentYear + 1)"
         [maxDate]="maxAnio"
+        [showIcon]="true"
+        inputId="yearInput"
         class="w-full"
+        [ngClass]="{'p-invalid': vehiculoForm.get('anio')?.invalid && vehiculoForm.get('anio')?.touched}"
       ></p-calendar>
       <div class="p-error mt-1" *ngIf="vehiculoForm.get('anio')?.touched && vehiculoForm.get('anio')?.invalid">
         <small class="text-sm">El año debe estar entre 1990 y {{currentYear + 1}}</small>
@@ -112,33 +115,12 @@
       <input pInputText id="color" formControlName="color" class="w-full"/>
     </div>
   </div>
+
+  <!-- Observaciones -->
   <div class="field grid mb-4">
     <label for="observaciones" class="col-12 md:col-2 font-bold">Observaciones</label>
-    <textarea id="observaciones"pInputTextarea formControlName="observaciones" class="w-full" rows="5">
-</textarea>
-
+    <textarea id="observaciones"pInputTextarea formControlName="observaciones" class="w-full" rows="5"></textarea>
   </div>
-  <!-- RESCATE
-  <div class="flex items-center gap-4 mb-4">
-    <label class="font-semibold w-24">Realizar rescate</label>
-    <p-checkbox formControlName="realizarRescate" [binary]="true"></p-checkbox>
-  </div>
-  <div class="flex items-center gap-4 mb-8">
-    <label for="fechares" class="font-semibold w-24">Fecha de rescate</label>
-    <input pInputText type="date" formControlName="fechares" class="flex-auto" [attr.max]="todayISO"/>
-  </div>-->
-
-  <!-- Dias abandono
-  <div class="flex items-center gap-4 mb-8">
-    <label for="abandono" class="font-semibold w-24">Abandono</label>
-    <input pInputText formControlName="abandono"  class="flex-auto"  />
-  </div>-->
-
-  <!-- despacho
-  <div class="flex items-center gap-4 mb-8">
-    <label for="despacho" class="font-semibold w-24">Despacho</label>
-    <input pInputText formControlName="despacho" class="flex-auto" />
-  </div>-->
 
  <div class="flex justify-end gap-2">
     <p-button label="Cancelar" severity="danger" (click)="onCancel()"></p-button>
