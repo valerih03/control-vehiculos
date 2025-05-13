@@ -29,6 +29,9 @@ import { RescateComponent } from '../rescate/rescate/rescate.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { formatDate } from '@angular/common';
+import { ExportColumn } from '../interfaces/export-column';
+import { PdfExportService } from '../services/pdf-export.service';
+import { ExcelExportService } from '../services/excel-export.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -87,6 +90,8 @@ blFiltradoActual = '';
     private despachoService: DespachoService,
     private rescateService: RescateService,
     private validacionService: ValidacionService,
+    private excelSvc: ExcelExportService,
+    private pdfSvc:   PdfExportService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -95,7 +100,6 @@ blFiltradoActual = '';
     this.cargarDatos();
     console.log('Vehículos cargados:', this.vehiculos);
   }
-
 
   private cargarDatos(): void {
     this.vehiculoService.actualizarEstadosAbandono(30);
@@ -217,135 +221,6 @@ blFiltradoActual = '';
 
       this.isFiltering = Object.keys(this.currentFilters).length > 0;
       this.updateSortedVehiculos();
-  }
-
-  // PARA PDF
-  exportarPDF() {
-    // Obtener los vehículos filtrados actualmente visibles en la tabla
-    const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
-
-    const vehiculosParaExportar =
-      Array.isArray(this.vehiculoSeleccionado) && this.vehiculoSeleccionado.length > 0
-        ? this.vehiculoSeleccionado
-        : this.selectedVehiculo
-          ? [this.selectedVehiculo]
-          : vehiculosFiltrados; // Usamos los filtrados en lugar de todos los vehículos
-
-    if (!vehiculosParaExportar || vehiculosParaExportar.length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'No hay vehículos para exportar'
-      });
-      return;
-    }
-
-    try {
-      import('jspdf').then((jsPDFModule) => {
-        import('jspdf-autotable').then((autoTableModule) => {
-          const { jsPDF } = jsPDFModule;
-          const doc = new jsPDF('p', 'mm', 'a4');
-
-          const fecha = new Date().toLocaleString();
-          const titulo = 'REPORTE DE VEHÍCULOS';
-          const pageWidth = doc.internal.pageSize.getWidth();
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'bold');
-          doc.text(titulo, pageWidth / 2, 15, { align: 'center' });
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Generado: ${fecha}`, pageWidth / 2, 20, { align: 'center' });
-
-          const headers = ['BL','VIN', 'Consignatario', 'NIT', 'Fecha', 'Marca', 'Observaciones', 'Estado'];
-          const data = vehiculosParaExportar.map(v => [
-            v.numeroBL || 'N/A',
-            v.vin || 'N/A',
-            v.consignatario || 'N/A',
-            v.nit || 'N/A',
-            v.fechaIngreso ? new Date(v.fechaIngreso).toLocaleDateString() : 'N/A',
-            v.marca || 'N/A',
-            v.observaciones || 'N/A',
-            v.estado || 'N/A'
-          ]);
-
-          autoTableModule.default(doc, {
-            head: [headers],
-            body: data,
-            startY: 25,
-            margin: { horizontal: 10 }, //margen
-            tableWidth: 'auto',
-            styles: {
-              fontSize: 7,
-              cellPadding: 1,
-              overflow: 'linebreak',
-              lineWidth: 0.1,
-              halign: 'center'
-            },
-            headStyles: {
-              fillColor: [13, 71, 161],
-              textColor: 255,
-              fontStyle: 'bold',
-              halign: 'center',
-              fontSize: 7
-            },
-            alternateRowStyles: {
-              fillColor: [240, 240, 240]
-            },
-            columnStyles: {
-              0: { cellWidth: 28 },
-              1: { cellWidth: 28 },
-              2: { cellWidth: 35 },
-              3: { cellWidth: 27 },
-              4: { cellWidth: 15 },
-              5: { cellWidth: 20 },
-              6: { cellWidth: 20 },
-              7: { cellWidth: 20 },
-              8: { cellWidth: 20 }
-            }
-          });
-
-          const pageCount = doc.getNumberOfPages();
-          for(let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(6);
-            doc.text(
-              `Página ${i} de ${pageCount}`,
-              pageWidth - 15,
-              doc.internal.pageSize.getHeight() - 5
-            );
-          }
-
-          const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0, 10)}.pdf`;
-          doc.save(fileName);
-
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Éxito',
-            detail: 'PDF generado correctamente'
-          });
-        }).catch((error: Error) => {
-          this.handlePdfError(error);
-        });
-      }).catch((error: Error) => {
-        this.handlePdfError(error);
-      });
-    } catch (error: unknown) {
-      this.handlePdfError(error instanceof Error ? error : new Error(String(error)));
-    }
-    console.log('Vehículos seleccionados para exportar:', vehiculosParaExportar);
-    this.clearAllFilters();
-
-  }
-  //mesaje de error
-  private handlePdfError(error: Error) {
-    console.error('Error al generar PDF:', error);
-    const errorMessage = error.message || 'Error desconocido al generar PDF';
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: `No se pudo generar el PDF: ${errorMessage}`
-    });
-
   }
 
     // Diálogo vehículo
@@ -585,52 +460,96 @@ blFiltradoActual = '';
     this.updateSortedVehiculos();
   }
 
-  //EXPORTAR A EXCEL
-  exportarExcel() {
-  const vehiculosFiltrados = this.vehiculos.filter(v => this.shouldDisplayRow(v));
-  const vehiculosParaExportar =
-    Array.isArray(this.selectedVehiculos) && this.selectedVehiculos.length > 0
-      ? this.selectedVehiculos
-      : this.selectedVehiculo
-        ? [this.selectedVehiculo]
-        : vehiculosFiltrados;
-  if (!vehiculosParaExportar.length) {
-    this.messageService.add({ severity:'warn', summary:'Advertencia', detail:'No hay vehículos para exportar' });
-    return;
+//EXPORTACIONES
+  private getVehiculosExportar(): Vehiculo[] {
+    const visibles = this.vehiculos.filter(v => this.shouldDisplayRow(v));
+    if (this.selectedVehiculos.length) return this.selectedVehiculos;
+    if (this.selectedVehiculo)      return [this.selectedVehiculo];
+    return visibles;
   }
 
-  // 1) Mapear a datos “planos”
-  const exportData = vehiculosParaExportar.map(v => ({
-    BL:           v.numeroBL,
-    VIN:          v.vin,
-    Consignatario:v.consignatario,
-    NIT:          v.nit,
-    FechaIngreso: typeof v.fechaIngreso === 'string'
-                     ? v.fechaIngreso
-                     : formatDate(v.fechaIngreso as Date, 'yyyy-MM-dd', 'en-US'),
-    Marca:        v.marca,
-    Observaciones:v.observaciones,
-    Estado:       v.estado
-  }));
-
-  // 2) Crear worksheet y workbook
-  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
-  // (Opcional) Ajustar anchos de columna:
-  ws['!cols'] = [
-    { wch: 15 }, { wch: 18 }, { wch: 25 },
-    { wch: 18 }, { wch: 15 }, { wch: 20 },
-    { wch: 30 }, { wch: 12 }
+//pdf
+  pdfColumns: ExportColumn<Vehiculo>[] = [
+    { header: 'BL',            field: 'numeroBL' },
+    { header: 'VIN',           field: 'vin' },
+    { header: 'Consignatario', field: 'consignatario' },
+    { header: 'NIT',           field: 'nit' },
+    { header: 'Fecha Ingreso', field: v =>
+        typeof v.fechaIngreso === 'string'
+          ? v.fechaIngreso
+          : formatDate(v.fechaIngreso as Date,'yyyy-MM-dd','en-US')
+    },
+    { header: 'Marca',         field: 'marca' },
+    { header: 'Observaciones', field: 'observaciones'   },
+    { header: 'Estado',        field: 'estado' }
   ];
-  const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Vehículos');
 
-  // 3) Escribir como array y descargar con FileSaver
-  const wbout: ArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([wbout], { type: 'application/octet-stream' });
-  const fileName = `reporte_vehiculos_${new Date().toISOString().slice(0,10)}.xlsx`;
-  saveAs(blob, fileName);
+  exportarPDF(): void {
+    const data = this.getVehiculosExportar();
+    if (!data.length) {
+      this.messageService.add({ severity:'warn', summary:'Advertencia', detail:'No hay datos para exportar' });
+      return;
+    }
+    this.pdfSvc.exportToPDF(data, this.pdfColumns, 'Reporte de Vehículos', 'vehiculos.pdf');
+    this.clearAllFilters();
+  }
 
-  this.messageService.add({ severity:'success', summary:'Éxito', detail:'Excel generado correctamente' });
-}
+//excel
+  excelColumns: ExportColumn<Vehiculo>[] = [
+    { header: 'Fecha Ingreso',   field: v =>
+        typeof v.fechaIngreso === 'string'
+          ? v.fechaIngreso
+          : formatDate(v.fechaIngreso as Date,'yyyy-MM-dd','en-US'),
+      width: 15
+    },
+    { header: 'BL',              field: 'numeroBL',      width: 15 },
+    { header: 'Tarja',           field: 'numeroTarja',   width: 15 },
+    { header: 'Consignatario',   field: 'consignatario', width: 25 },
+    { header: 'NIT',             field: 'nit',           width: 18 },
+    { header: 'Año',             field: v => (v.anio ?? '').toString(), width: 10 },
+    { header: 'Marca',           field: 'marca',         width: 20 },
+    { header: 'Estilo',          field: 'estilo',        width: 20 },
+    { header: 'Color',           field: 'color',         width: 15 },
+    { header: 'Observaciones',   field: 'observaciones', width: 30 },
+    { header: 'Estado',          field: 'estado',        width: 12 },
+    // Días transcurridos desde fechaIngreso
+    { header: 'Días Transcurridos', field: v => {
+        const hoy     = Date.now();
+        const ingreso = new Date(v.fechaIngreso).getTime();
+        return Math.floor((hoy - ingreso)/(1000*60*60*24)).toString();
+      },
+      width: 18
+    },
+    // Fecha de despacho
+    { header: 'Fecha Despacho', field: v => {
+        const d = this.despachoService.obtenerDespachoPorVin(v.vin);
+        if (!d) return '';
+        return typeof d.fechaDespacho === 'string'
+          ? d.fechaDespacho
+          : formatDate(d.fechaDespacho as Date,'yyyy-MM-dd','en-US');
+      },
+      width: 18
+    },
+    // Fecha de rescate
+    { header: 'Fecha Rescate',   field: v => {
+        const r = this.rescateService.obtenerRescatePorBL(v.numeroBL);
+        if (!r) return '';
+        return typeof r.fechaRescate === 'string'
+          ? r.fechaRescate
+          : formatDate(r.fechaRescate as Date,'yyyy-MM-dd','en-US');
+      },
+      width: 18
+    },
+  ];
+
+  exportarExcel(): void {
+    const data = this.getVehiculosExportar();
+    if (!data.length) {
+      this.messageService.add({ severity:'warn', summary:'Advertencia', detail:'No hay datos para exportar' });
+      return;
+    }
+    this.excelSvc.exportToExcel(data, this.excelColumns, 'vehiculos.xlsx');
+    this.clearAllFilters();
+  }
 
 }
