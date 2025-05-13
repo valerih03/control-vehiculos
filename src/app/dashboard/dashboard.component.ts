@@ -550,6 +550,6 @@ blFiltradoActual = '';
     }
     this.excelSvc.exportToExcel(data, this.excelColumns, 'vehiculos.xlsx');
     this.clearAllFilters();
-  }
+}
 
 }
