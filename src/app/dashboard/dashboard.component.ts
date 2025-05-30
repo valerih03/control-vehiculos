@@ -237,6 +237,9 @@ blFiltradoActual = '';
     console.log('Vehículo a editar:', this.vehiculoActual);
   }
   handleGuardar(registro: Vehiculo): void {
+    if(registro.anio){
+      registro.anio=typeof registro.anio==='string' ? parseInt(registro.anio, 10) : registro.anio;
+    }
     // 'registro' ya contiene todas las propiedades de Vehiculo
     if (this.modoFormulario === 'crear') {
       this.vehiculoService.agregarVehiculo(registro);

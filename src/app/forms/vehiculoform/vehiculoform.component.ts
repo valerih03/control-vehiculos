@@ -33,7 +33,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   @Output() cancelar = new EventEmitter<void>();
 
 
-  vehiculoForm!: FormGroup;
+  vehiculoForm!: FormGroup ;
 
   constructor(
     private fb: FormBuilder,
@@ -63,6 +63,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         nit:          '',
         vin:          '',
         anio:         null,
+        anioDate:     null, // para manejo de año
         marca:        '',
         estilo:       '',
         color:        '',
@@ -82,24 +83,18 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       }
 
       // Año: acepta number o ISO-string
-        let anioDate: Date | null = null;
+      let anioValue = null;
+      let anioDateValue = null;
 
-        if (v.anio !== null && v.anio !== undefined) {
-          // Intenta convertir a fecha directamente
-          try {
-            const potentialDate = new Date(v.anio);
-            if (!isNaN(potentialDate.getTime())) {
-              anioDate = new Date(potentialDate.getFullYear(), 0, 1);
-            }
-          } catch (e) {
-            // Si falla, verifica si es un número o string de año
-            if (typeof v.anio === 'number') {
-              anioDate = new Date(v.anio, 0, 1);
-            } else if (typeof v.anio === 'string' && /^\d{4}$/.test(v.anio)) {
-              anioDate = new Date(parseInt(v.anio, 10), 0, 1);
-            }
-          }
+      if (v.anio !== null && v.anio !== undefined) {
+        if (typeof v.anio === 'number') {
+          anioValue = v.anio;
+          anioDateValue = new Date(v.anio, 0, 1);
+        } else if (typeof v.anio === 'string' && /^\d{4}$/.test(v.anio)) {
+          anioValue = parseInt(v.anio, 10);
+          anioDateValue = new Date(anioValue, 0, 1);
         }
+      }
 
       this.vehiculoForm.reset({
         fechaIngreso: fechaIngresoISO,
@@ -108,7 +103,8 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         consignatario:v.consignatario ?? '',
         nit:          v.nit           ?? '',
         vin:          v.vin           ?? '',
-        anio:         anioDate,
+        anio:         anioValue,
+        anioDate:     anioDateValue,
         marca:        v.marca         ?? '',
         estilo:       v.estilo        ?? '',
         color:        v.color         ?? '',
@@ -127,12 +123,44 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         nit:          ['', this.validacionService.getValidators('nit')],
         vin:          ['', this.validacionService.getValidators('vin')],
         anio:         [null, [Validators.required]],
+        anioDate:     [null], //para manejo de año
         marca:        ['', Validators.required],
         estilo:       ['', Validators.required],
         color:        ['', Validators.required],
         observaciones:['']
       });
+      if (this.vehiculoForm) {
+      this.syncYearFields();
+      }
   }
+
+  private syncYearFields(): void {
+  // Cuando cambia anioDate (selección en calendario)
+  if (!this.vehiculoForm) return;
+
+  const anioDateControl = this.vehiculoForm.get('anioDate');
+  const anioControl = this.vehiculoForm.get('anio');
+
+  if (!anioDateControl || !anioControl) return;
+
+  anioDateControl.valueChanges.subscribe(date => {
+    if (date) {
+      const year = new Date(date).getFullYear();
+      anioControl.setValue(year, { emitEvent: false });
+    } else {
+      anioControl.setValue(null, { emitEvent: false });
+    }
+  });
+
+  anioControl.valueChanges.subscribe(year => {
+    if (year) {
+      const date = new Date(year, 0, 1);
+      anioDateControl.setValue(date, { emitEvent: false });
+    } else {
+      anioDateControl.setValue(null, { emitEvent: false });
+    }
+  });
+}
   //para los mensajes de error
   getErrores(campo: string): string[] {
     const ctrl = this.vehiculoForm.get(campo);
@@ -146,7 +174,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
     this.vehiculoForm.markAllAsTouched();
     if (this.vehiculoForm.invalid) {
       Object.entries(this.vehiculoForm.controls).forEach(([name, ctrl]) => {
-        if (ctrl.invalid) {
+        if (ctrl.invalid && name!== 'anioDate') {
           this.validacionService
             .getErrorMessages(name as any, ctrl)
             .forEach(msg =>
@@ -156,10 +184,12 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       });
       return;
     }
+    const formValue = this.vehiculoForm.getRawValue();
+    delete formValue.anioDate; // eliminar campo auxiliar antes de emitir
     this.guardar.emit(this.vehiculoForm.getRawValue() as Vehiculo);
     console.log('Vehículo guardado:', this.vehiculoForm.getRawValue());
   }
- onCancel() {
+  onCancel() {
     this.cancelar.emit();
   }
 }
