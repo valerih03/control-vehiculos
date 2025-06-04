@@ -2,10 +2,12 @@ import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { routes } from './app.routes';
-
+import { HttpClientModule } from '@angular/common/http';
+import { importProvidersFrom } from '@angular/core';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideAnimationsAsync(),
-    provideRouter(routes)
+    provideRouter(routes),
+    importProvidersFrom(HttpClientModule)
   ]
 };
