@@ -1,59 +1,100 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Rescate } from '../interfaces/rescate';
+import { environment } from '../../enviroments/enviroment';
 @Injectable({
   providedIn: 'root'
 })
 export class RescateService {
-  private readonly STORAGE_KEY = 'rescates_registrados';
-  private rescates: Rescate[] = [];
+ private readonly baseUrl = `${environment.baseUrl}/rescates`;
+  private http = inject(HttpClient);
 
-  constructor() {
-    this.cargarDesdeLocalStorage();
+  /**
+   * GET: /api/rescates
+   * Devuelve todos los rescates registrados
+   */
+  getRescates(): Observable<Rescate[]> {
+    return this.http.get<Rescate[]>(this.baseUrl)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  private cargarDesdeLocalStorage(): void {
-    const datos = localStorage.getItem(this.STORAGE_KEY);
-    this.rescates = datos ? JSON.parse(datos) : [];
+  /**
+   * GET: /api/rescates/{idRescate}
+   * Obtiene un rescate por su ID
+   */
+  getRescatePorId(idRescate: number): Observable<Rescate> {
+    const url = `${this.baseUrl}/${idRescate}`;
+    return this.http.get<Rescate>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  private guardarEnLocalStorage(): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.rescates));
+  /**
+   * GET: /api/rescates/bybl/{numeroBL}
+   * Obtiene todos los rescates asociados a un númeroBL
+   */
+  getRescatesPorBL(numeroBL: string): Observable<Rescate[]> {
+    const url = `${this.baseUrl}/bybl/${encodeURIComponent(numeroBL)}`;
+    return this.http.get<Rescate[]>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
- //Agrega un nuevo rescate al almacenamiento
-  agregarRescate(rescate: Rescate): void {
-    this.rescates.push({ ...rescate });
-    this.guardarEnLocalStorage();
+  /**
+   * POST: /api/rescates
+   * Agrega un nuevo rescate.
+   * El backend espera un objeto Rescate completo en el body.
+   */
+  agregarRescate(rescate: Rescate): Observable<Rescate> {
+    return this.http.post<Rescate>(this.baseUrl, rescate)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  //Devuelve un rescate por su ID
-  obtenerRescatePorId(idRescate: number): Rescate | undefined {
-    return this.rescates.find(r => r.idRescate === idRescate);
+  /**
+   * PUT: /api/rescates/{idRescate}
+   * Actualiza un rescate existente.
+   * El ID en la URL y el idRescate en el body deben coincidir.
+   */
+  actualizarRescate(rescate: Rescate): Observable<void> {
+    const url = `${this.baseUrl}/${rescate.idRescate}`;
+    return this.http.put<void>(url, rescate)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
- //Devuelve la lista completa de rescates
-  obtenerRescates(): Rescate[] {
-    return [...this.rescates];
+  /**
+   * DELETE: /api/rescates/{idRescate}
+   * Elimina un rescate por su ID
+   */
+  eliminarRescate(idRescate: number): Observable<void> {
+    const url = `${this.baseUrl}/${idRescate}`;
+    return this.http.delete<void>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  //Actualiza un rescate existente
-  actualizarRescate(rescateActualizado: Rescate): boolean {
-    const index = this.rescates.findIndex(r => r.idRescate === rescateActualizado.idRescate);
-    if (index !== -1) {
-      this.rescates[index] = { ...rescateActualizado };
-      this.guardarEnLocalStorage();
-      return true;
+  /** Manejo básico de errores HTTP */
+  private handleError(error: HttpErrorResponse) {
+    console.error('Error en RescateService:', error);
+    let mensaje = 'Ocurrió un error en la petición.';
+    if (error.status === 0) {
+      mensaje = 'No se pudo conectar con el servidor.';
+    } else if (error.status === 404) {
+      mensaje = 'Recurso no encontrado.';
+    } else if (error.status === 400) {
+      // El backend envía BadRequest("No existe vehículo con ese NúmeroBL.") en caso de FK violado
+      mensaje = error.error ?? 'Solicitud inválida.';
     }
-    return false;
-  }
-
-  // Busca un rescate por su número de bl
-  obtenerRescatePorBL(numerobl: string): Rescate | undefined {
-    return this.rescates.find(r => r.numerobl === numerobl);
-  }
-
-  //Devuelve todos los rescates con un número BL dado
-  obtenerRescatesPorBL(numerobl: string): Rescate[] {
-    return this.rescates.filter(r => r.numerobl === numerobl);
+    return throwError(() => new Error(mensaje));
   }
 }

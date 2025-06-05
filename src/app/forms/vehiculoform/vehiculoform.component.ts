@@ -58,7 +58,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       this.vehiculoForm.reset({
         fechaIngreso: null,
         numeroBL:     '',
-        numeroTarja:  '',
+        tarja:  '',
         consignatario:'',
         nit:          '',
         vin:          '',
@@ -99,7 +99,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       this.vehiculoForm.reset({
         fechaIngreso: fechaIngresoISO,
         numeroBL:     v.numeroBL      ?? '',
-        numeroTarja:  v.numeroTarja   ?? '',
+        tarja:  v.tarja   ?? '',
         consignatario:v.consignatario ?? '',
         nit:          v.nit           ?? '',
         vin:          v.vin           ?? '',
@@ -118,7 +118,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
       this.vehiculoForm = this.fb.group({
         fechaIngreso: [null, Validators.required],
         numeroBL:     ['', Validators.required],
-        numeroTarja:  ['', Validators.required],
+        tarja:  ['', Validators.required],
         consignatario:['', Validators.required],
         nit:          ['', this.validacionService.getValidators('nit')],
         vin:          ['', this.validacionService.getValidators('vin')],

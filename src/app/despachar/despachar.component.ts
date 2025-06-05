@@ -40,6 +40,7 @@ export class DespacharComponent implements OnInit {
   despachoForm!: FormGroup;
   todayISO = formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
   vinFiltrados: Vehiculo[] = [];
+  despachosRegistrados: Despacho[] = [];
 
   tiposDespacho: { name: string; value: 'DM' | 'TRANSITO' }[] = [
   { name: 'DM',       value: 'DM'      },
@@ -54,6 +55,7 @@ export class DespacharComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // 1) Inicializas el form
     this.despachoForm = this.fb.group({
       fechaDespacho: ['', Validators.required],
       vin:           ['', Validators.required],
@@ -64,6 +66,7 @@ export class DespacharComponent implements OnInit {
       observaciones: ['']
     });
 
+    // 2) Si es modo visualización, parcheas los valores…
     if (this.modoVisualizacion && this.vehiculoParaMostrar) {
       const d = this.vehiculoParaMostrar;
       this.despachoForm.patchValue({
@@ -77,6 +80,16 @@ export class DespacharComponent implements OnInit {
       });
       this.despachoForm.disable();
     }
+
+    // 3) Trae todos los despachos desde el backend y guárdalos en despachosRegistrados
+    this.despachoService.getDespachos().subscribe({
+      next: (lista) => {
+        this.despachosRegistrados = lista;
+      },
+      error: (err) => {
+        console.error('Error al cargar despachos:', err);
+      }
+    });
 
   }
 
@@ -97,17 +110,41 @@ export class DespacharComponent implements OnInit {
   }
 
   filtrarVins(event: { query: string }) {
-    const q = event.query.toLowerCase();
-    this.vinFiltrados = this.vehiculoService.obtenerVehiculos()
-      .filter(v =>
-        !this.despachoService.obtenerDespachoPorVin(v.vin) &&
-        (v.estado === 'Disponible' || v.estado === 'Rescatado')
-      )
-      .filter(v => v.vin.toLowerCase().includes(q));
-  }
+  const q = event.query.toLowerCase();
+
+  // 1) Trae la lista de vehículos del backend
+  this.vehiculoService.getVehiculos().subscribe({
+    next: (vehiculos: Vehiculo[]) => {
+      // 2) Filtra aquellos vehículos cuyo VIN no esté en despacho y cumplan estado
+      //    a) Primero filtro por “no exista despacho con ese VIN”
+      //    b) Luego filtro por “estado sea 'Disponible' o 'Rescatado'”
+      //    c) Finalmente filtro por coincidencia de texto en el query
+      this.vinFiltrados = vehiculos
+        .filter((v: Vehiculo) => {
+          // Si en despachosRegistrados ya existe un despacho con este VIN, lo descarto
+          const yaHayDespacho = this.despachosRegistrados.some(
+            (d: Despacho) => d.vin === v.vin
+          );
+          return !yaHayDespacho;
+        })
+        .filter((v: Vehiculo) =>
+          // Solo dejo los que estén en estado 'Disponible' o 'Rescatado'
+          v.estado === 'Disponible' || v.estado === 'Rescatado'
+        )
+        .filter((v: Vehiculo) =>
+          // Por último, busco coincidencia en texto (sin diferenciar mayúsculas/minúsculas)
+          v.vin.toLowerCase().includes(q)
+        );
+    },
+    error: (err) => {
+      console.error('Error al filtrar vehículos:', err);
+      this.vinFiltrados = [];
+    }
+  });
+}
 
   seleccionarVin(event: { originalEvent: Event; value: Vehiculo }) {
-  const v = event.value;
+  const v: Vehiculo = event.value;
   this.despachoForm.get('vin')!.setValue(v.vin);
 }
 
