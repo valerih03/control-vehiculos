@@ -62,7 +62,7 @@ export class DespacharComponent implements OnInit {
       tipoSalida:    [null as 'DM' | 'TRANSITO' | null, Validators.required],
       duca:          ['', Validators.required],
       motorista:     ['', Validators.required],
-      notaLevante:   [''],
+      notaDeLevante:   [''],
       observaciones: ['']
     });
 
@@ -75,7 +75,7 @@ export class DespacharComponent implements OnInit {
         tipoSalida:    d.tipoSalida,
         duca:          d.duca,
         motorista:     d.motorista,
-        notaLevante:   d.notadelevante,
+        notaDeLevante:   d.notaDeLevante,
         observaciones: d.observaciones
       });
       this.despachoForm.disable();
@@ -101,7 +101,7 @@ export class DespacharComponent implements OnInit {
         tipoSalida:    null,
         duca:          '',
         motorista:     '',
-        notaLevante:   '',
+        notaDeLevante:   '',
         observaciones: ''
       });
       this.despachoForm.markAsPristine();
@@ -112,13 +112,9 @@ export class DespacharComponent implements OnInit {
   filtrarVins(event: { query: string }) {
   const q = event.query.toLowerCase();
 
-  // 1) Trae la lista de vehículos del backend
+
   this.vehiculoService.getVehiculos().subscribe({
     next: (vehiculos: Vehiculo[]) => {
-      // 2) Filtra aquellos vehículos cuyo VIN no esté en despacho y cumplan estado
-      //    a) Primero filtro por “no exista despacho con ese VIN”
-      //    b) Luego filtro por “estado sea 'Disponible' o 'Rescatado'”
-      //    c) Finalmente filtro por coincidencia de texto en el query
       this.vinFiltrados = vehiculos
         .filter((v: Vehiculo) => {
           // Si en despachosRegistrados ya existe un despacho con este VIN, lo descarto
@@ -129,7 +125,7 @@ export class DespacharComponent implements OnInit {
         })
         .filter((v: Vehiculo) =>
           // Solo dejo los que estén en estado 'Disponible' o 'Rescatado'
-          v.estado === 'Disponible' || v.estado === 'Rescatado'
+          v.estado === 'Disponible'
         )
         .filter((v: Vehiculo) =>
           // Por último, busco coincidencia en texto (sin diferenciar mayúsculas/minúsculas)
@@ -165,7 +161,7 @@ export class DespacharComponent implements OnInit {
       tipoSalida:    f.tipoSalida,
       duca:          f.duca,
       motorista:     f.motorista,
-      notadelevante: f.notaLevante,
+      notaDeLevante: f.notaLevante,
       observaciones: f.observaciones
     };
     this.guardarDespacho.emit(nuevo);

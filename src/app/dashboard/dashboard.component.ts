@@ -290,7 +290,7 @@ export class DashboardComponent implements OnInit {
       next: (creado) => {
         // 2) Marcar localmente cada vehículo como 'Rescatado'
         this.vehiculosParaRescate.forEach(v => {
-          v.estado = 'Rescatado';
+          v.estado = 'Disponible'; // Cambiamos a 'Disponible' para que no aparezca en abandonos
           this.vehiculoService.actualizarVehiculo(v).subscribe(); // sincronizamos con backend
         });
 

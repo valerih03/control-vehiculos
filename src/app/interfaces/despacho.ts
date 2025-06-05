@@ -5,6 +5,6 @@ export interface Despacho {
   tipoSalida: string;
   duca: string;
   motorista: string;
-  notadelevante: string;
+  notaDeLevante: string;
   observaciones: string;
 }
