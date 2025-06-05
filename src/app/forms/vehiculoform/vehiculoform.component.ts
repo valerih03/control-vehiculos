@@ -96,20 +96,20 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         }
       }
 
-      this.vehiculoForm.reset({
-        fechaIngreso: fechaIngresoISO,
-        numeroBL:     v.numeroBL      ?? '',
-        tarja:  v.tarja   ?? '',
-        consignatario:v.consignatario ?? '',
-        nit:          v.nit           ?? '',
-        vin:          v.vin           ?? '',
-        anio:         anioValue,
-        anioDate:     anioDateValue,
-        marca:        v.marca         ?? '',
-        estilo:       v.estilo        ?? '',
-        color:        v.color         ?? '',
-        observaciones:v.observaciones ?? ''
-      });
+      this.vehiculoForm.patchValue({
+          fechaIngreso: fechaIngresoISO,
+          numeroBL: v.numeroBL || '',
+          tarja: v.tarja || '',
+          consignatario: v.consignatario || '',
+          nit: v.nit || '',
+          vin: v.vin || '',
+          anio: anioValue,
+          anioDate: anioDateValue,
+          marca: v.marca || '',
+          estilo: v.estilo || '',
+          color: v.color || '',
+          observaciones: v.observaciones || ''
+        });
     }
   }
 }
@@ -129,9 +129,7 @@ export class VehiculoformComponent implements OnInit, OnChanges {
         color:        ['', Validators.required],
         observaciones:['']
       });
-      if (this.vehiculoForm) {
       this.syncYearFields();
-      }
   }
 
   private syncYearFields(): void {
@@ -170,25 +168,48 @@ export class VehiculoformComponent implements OnInit, OnChanges {
   }
 
   confirmSave() {
+    console.log('confirmSave() llamado en VehiculoformComponent. Form válido:',this.vehiculoForm.valid);
+
     this.messageService.clear();
     this.vehiculoForm.markAllAsTouched();
     if (this.vehiculoForm.invalid) {
       Object.entries(this.vehiculoForm.controls).forEach(([name, ctrl]) => {
-        if (ctrl.invalid && name!== 'anioDate') {
+        if (ctrl.invalid && name !== 'anioDate') {
           this.validacionService
             .getErrorMessages(name as any, ctrl)
-            .forEach(msg =>
-              this.messageService.add({ severity: 'error', summary: 'Error', detail: msg })
+            .forEach((msg) =>
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: msg,
+              })
             );
         }
       });
       return;
     }
-    const formValue = this.vehiculoForm.getRawValue();
-    delete formValue.anioDate; // eliminar campo auxiliar antes de emitir
-    this.guardar.emit(this.vehiculoForm.getRawValue() as Vehiculo);
-    console.log('Vehículo guardado:', this.vehiculoForm.getRawValue());
+    const raw = this.vehiculoForm.getRawValue();
+    const paraEmitir: Vehiculo = {
+      idVehiculo: this.vehiculo!.idVehiculo!,
+      fechaIngreso: raw.fechaIngreso!,
+      tarja: raw.tarja!,
+      numeroBL: raw.numeroBL!,
+      consignatario: raw.consignatario!,
+      nit: raw.nit!,
+      vin: raw.vin!,
+      anio: raw.anio!,
+      marca: raw.marca!,
+      estilo: raw.estilo!,
+      color: raw.color!,
+      estado: this.vehiculo!.estado!,  
+      observaciones: raw.observaciones!,
+    };
+
+    // 3) Emito ese objeto
+    this.guardar.emit(paraEmitir);
+    console.log('Vehículo guardado (emit):', paraEmitir);
   }
+
   onCancel() {
     this.cancelar.emit();
   }

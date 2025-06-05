@@ -43,13 +43,12 @@ export class VehiculoService {
     );
   }
 
-  /** Actualiza un vehículo existente (PUT) */
+  /** Actualiza usando IdVehiculo en la URL */
   actualizarVehiculo(vehiculo: Vehiculo): Observable<void> {
-    const url = `${this.baseUrl}/${encodeURIComponent(vehiculo.vin)}`;
+    const id = vehiculo.idVehiculo;
+    const url = `${this.baseUrl}/${id}`;
     return this.http.put<void>(url, vehiculo).pipe(
-      tap(() => {
-        console.log(`Vehículo con VIN ${vehiculo.vin} actualizado.`);
-      }),
+      tap(() => console.log(`Vehículo con ID ${id} actualizado.`)),
       catchError(this.handleError)
     );
   }

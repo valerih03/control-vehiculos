@@ -1,5 +1,5 @@
 export interface Vehiculo {
-  id: number;
+  idVehiculo: number;
   fechaIngreso: Date | string;
   tarja: string;
   numeroBL: string;
