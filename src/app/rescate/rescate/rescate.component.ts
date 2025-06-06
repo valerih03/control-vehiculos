@@ -82,11 +82,10 @@ export class RescateComponent implements OnInit, OnChanges {
     const fecha = new Date(this.formRescate.value.fechaRescate);
     const nuevo: Rescate = {
       idRescate:    Date.now(),
-      numerobl:     this.numerobl,
+      numeroBL:     this.numerobl,
       fechaRescate: fecha
     };
-    // guarda en el servicio
-    this.svc.agregarRescate(nuevo);
+
     // emite el rescate creado
     this.rescateCreado.emit(nuevo);
     this.visibleChange.emit(false);

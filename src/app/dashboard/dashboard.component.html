@@ -189,8 +189,9 @@
 
 <!-- Componente de rescate -->
 <app-rescate
+  *ngIf="dialogRescateVisible"
   [visible]="dialogRescateVisible"
   [vehiculos]="vehiculosParaRescate"
   (visibleChange)="dialogRescateVisible = $event"
-  (rescateCreado)="procesarRescate($event)">
-</app-rescate>
+  (rescateCreado)="procesarRescate($event)"
+></app-rescate>

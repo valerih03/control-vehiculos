@@ -1,6 +1,6 @@
 export interface Rescate {
   idRescate: number;
-  numerobl: string;
+  numeroBL: string;
   fechaRescate: Date | string;
 }
 

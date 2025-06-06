@@ -123,66 +123,66 @@ export class DashboardComponent implements OnInit {
 
   /**
    * Carga simultáneamente Vehículos, Despachos y Rescates desde el backend.
-   * Luego calcula el estado de cada vehículo (Disponible, Despachado, Rescatado o Abandono).
    */
   private cargarDatos(): void {
-    // Primero, actualizar en el backend los estados de abandono:
-    this.vehiculoService.actualizarEstadosAbandono(30).subscribe({
-      next: () => {
-        // Una vez hecho el PUT /api/vehiculos/actualizar-abandono, traemos todo
-        forkJoin({
-          vehiculos: this.vehiculoService.getVehiculos(),
-          despachos: this.despachoService.getDespachos(),
-          rescates: this.rescateService.getRescates()
+  forkJoin({
+    vehiculos: this.vehiculoService.getVehiculos(),
+    despachos: this.despachoService.getDespachos(),
+    rescates:  this.rescateService.getRescates()
+  }).subscribe({
+    next: ({ vehiculos, despachos, rescates }) => {
+      this.despachos = despachos;
+      this.rescates = rescates;
 
-        }).subscribe({
-          next: ({ vehiculos, despachos, rescates }) => {
-            // 1) Guardar los arrays en memoria
-            this.despachos = despachos;
-            this.rescates = rescates;
+      const hoyMs = new Date().getTime();
+      const umbralDias = 30;
 
-            // 2) Calcular estado para cada vehículo
-            this.vehiculos = vehiculos.map((v: Vehiculo) => {
-              // Si existe un rescate con el mismo numeroBL → "Rescatado"
-              const existeRescate = this.rescates.find(r => r.numerobl === v.numeroBL);
-              if (existeRescate) {
-                v.estado = 'Rescatado';
-                return v;
-              }
+      this.vehiculos = vehiculos.map((v: Vehiculo) => {
 
-              // Si existe un despacho con el mismo VIN → "Despachado"
-              const existeDespacho = this.despachos.find(d => d.vin === v.vin);
-              if (existeDespacho) {
-                v.estado = 'Despachado';
-                return v;
-              }
+        // Si hay despacho para su vin → Despachado
+        if (despachos.some(d => d.vin === v.vin)) {
+          v.estado = 'Despachado';
+          return v;
+        }
 
-              // Si ya venía marcado como "Abandono", lo dejamos así
-              if (v.estado === 'Abandono') {
-                return v;
-              }
-
-              // En caso contrario → "Disponible"
-              v.estado = 'Disponible';
-              return v;
-            });
-
-            // 3) Inicializar filtros y sorted arrays
-            this.filteredVehiculos = [...this.vehiculos];
-            this.updateSortedVehiculos();
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error al traer datos combinados:', err);
+        // Si tiene fechaIngreso y supera umbral → Abandono
+        if (v.fechaIngreso) {
+          const ingresoMs = new Date(v.fechaIngreso).getTime();
+          const diasTranscurridos = Math.floor((hoyMs - ingresoMs) / (1000 * 60 * 60 * 24));
+          if (diasTranscurridos > umbralDias) {
+            v.estado = 'Abandono';
+            return v;
           }
-        });
-      },
-      error: (err) => {
-        console.error('Error al actualizar estados de abandono:', err);
-      }
-    });
+        }
 
-  }
+        //En otro caso → Disponible
+        v.estado = 'Disponible';
+        return v;
+      });
+
+       this.vehiculos
+        .filter(v => v.estado === 'Abandono')
+        .forEach(v => {
+          // Llamo al PUT /api/vehiculos/{idVehiculo} para que el backend grabe estado="Abandono"
+          this.vehiculoService.actualizarVehiculo(v).subscribe({
+            next: () => {
+              /* (opcional) si quieres, puedes registrar en consola
+                 console.log(`Persistido abandono para ID ${v.idVehiculo}`);
+              */
+            },
+            error: err => console.error(`Error al persistir abandono de ID ${v.idVehiculo}:`, err)
+          });
+        });
+
+      this.filteredVehiculos = [...this.vehiculos];
+      this.updateSortedVehiculos();
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error al traer datos combinados:', err);
+    }
+  });
+}
 
   // ——————————— Funciones de filtrado y resaltado en la tabla ———————————
 
@@ -288,10 +288,11 @@ export class DashboardComponent implements OnInit {
     // 1) Llamada al backend para guardar el rescate
     this.rescateService.agregarRescate(rescate).subscribe({
       next: (creado) => {
-        // 2) Marcar localmente cada vehículo como 'Rescatado'
+        // 2) Marcar localmente cada vehículo como 'Disponible'
         this.vehiculosParaRescate.forEach(v => {
-          v.estado = 'Disponible'; // Cambiamos a 'Disponible' para que no aparezca en abandonos
-          this.vehiculoService.actualizarVehiculo(v).subscribe(); // sincronizamos con backend
+          v.estado = 'Disponible';
+          // 3) Sincronizar con backend el cambio de estado
+          this.vehiculoService.actualizarVehiculo(v).subscribe();
         });
 
         this.messageService.add({
@@ -300,12 +301,17 @@ export class DashboardComponent implements OnInit {
           detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como rescatados.`
         });
 
-        // 3) Volvemos a recargar todo para actualizar tablas
+        // 4) Cerrar el diálogo y recargar datos
         this.dialogRescateVisible = false;
         this.cargarDatos();
       },
       error: (err) => {
         console.error('Error al guardar rescate:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el rescate.'
+        });
       }
     });
   }
@@ -441,36 +447,37 @@ export class DashboardComponent implements OnInit {
   // ——————————— TOOLTIP DINÁMICO de Estado ———————————
 
   getTooltipEstado(vehiculo: Vehiculo): string {
-    const hoy = new Date();
-    const ingreso = new Date(vehiculo.fechaIngreso as string);
-    const diffMs = hoy.getTime() - ingreso.getTime();
-    const diasTranscurridos = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const hoy = new Date().getTime();
+  const ingresoMs = new Date(vehiculo.fechaIngreso as string).getTime();
+  const diasTranscurridos = Math.floor((hoy - ingresoMs) / (1000 * 60 * 60 * 24));
 
-    switch (vehiculo.estado) {
-      case 'Despachado': {
-        const desp = this.despachos.find(d => d.vin === vehiculo.vin);
-        const tipo = desp?.tipoSalida ?? 'general';
-        return `Despachado como ${tipo}`;
+  switch (vehiculo.estado) {
+    case 'Despachado': {
+      const desp = this.despachos.find(d => d.vin === vehiculo.vin);
+      const tipo = desp?.tipoSalida ?? 'general';
+      return `Despachado como ${tipo}`;
+    }
+    case 'Abandono': {
+      const diasAbandono = Math.max(0, diasTranscurridos - 20);
+      return `En abandono desde hace ${diasAbandono} día(s)`;
+    }
+    case 'Disponible': {
+      // Si existe un rescate, mostramos la fecha de rescate
+      const r = this.rescates.find(r => r.numeroBL === vehiculo.numeroBL);
+      if (r) {
+        const fechaRes = new Date(r.fechaRescate as string);
+        return `Rescatado el ${fechaRes.toLocaleDateString()}`;
       }
-      case 'Abandono': {
-        const diasAbandono = Math.max(0, diasTranscurridos - 20);
-        return `En abandono desde hace ${diasAbandono} día(s)`;
-      }
-      case 'Rescatado': {
-        const r = this.rescates.find(r => r.numerobl === vehiculo.numeroBL);
-        if (r) {
-          const fechaRes = new Date(r.fechaRescate as string);
-          return `Fue rescatado el ${fechaRes.toLocaleDateString()}`;
-        }
-        return 'Rescatado';
-      }
-      default: {
-        const diasRestantes = Math.max(0, 20 - diasTranscurridos);
-        return `Disponible (${diasRestantes} día(s) restantes)`;
-      }
+      // En otro caso, mostramos días restantes antes de abandono
+      const diasRestantes = Math.max(0, 20 - diasTranscurridos);
+      return `Disponible (${diasRestantes} día(s) restantes)`;
+    }
+    default: {
+      // Para cualquier otro estado inesperado, fallback genérico
+      return vehiculo.estado;
     }
   }
-
+}
   // ——————————— AUTOCOMPLETE de búsqueda general ———————————
 
   search(event: { query: string }) {
@@ -597,7 +604,7 @@ export class DashboardComponent implements OnInit {
     {
       header: 'Fecha Rescate',
       field: v => {
-        const r = this.rescates.find(r => r.numerobl === v.numeroBL);
+        const r = this.rescates.find(r => r.numeroBL === v.numeroBL);
         if (!r) return '';
         return typeof r.fechaRescate === 'string'
           ? r.fechaRescate

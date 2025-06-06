@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { Rescate } from '../interfaces/rescate';
 import { environment } from '../../enviroments/enviroment';
 @Injectable({
@@ -16,10 +16,10 @@ export class RescateService {
    * Devuelve todos los rescates registrados
    */
   getRescates(): Observable<Rescate[]> {
-    return this.http.get<Rescate[]>(this.baseUrl)
-      .pipe(
-        catchError(this.handleError)
-      );
+    return this.http.get<Rescate[]>(this.baseUrl).pipe(
+      tap(lista => console.log('Rescates recibidos:', lista)),
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -38,12 +38,12 @@ export class RescateService {
    * GET: /api/rescates/bybl/{numeroBL}
    * Obtiene todos los rescates asociados a un númeroBL
    */
-  getRescatesPorBL(numeroBL: string): Observable<Rescate[]> {
-    const url = `${this.baseUrl}/bybl/${encodeURIComponent(numeroBL)}`;
-    return this.http.get<Rescate[]>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
+  getRescatesPorBL(numerobl: string): Observable<Rescate[]> {
+    const url = `${this.baseUrl}/bybl/${encodeURIComponent(numerobl)}`;
+    return this.http.get<Rescate[]>(url).pipe(
+      tap(l => console.log(`Rescates para BL ${numerobl}:`, l)),
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -51,11 +51,11 @@ export class RescateService {
    * Agrega un nuevo rescate.
    * El backend espera un objeto Rescate completo en el body.
    */
-  agregarRescate(rescate: Rescate): Observable<Rescate> {
-    return this.http.post<Rescate>(this.baseUrl, rescate)
-      .pipe(
-        catchError(this.handleError)
-      );
+   agregarRescate(rescate: Rescate): Observable<Rescate> {
+    return this.http.post<Rescate>(this.baseUrl, rescate).pipe(
+      tap(nuevo => console.log('Rescate creado en backend:', nuevo)),
+      catchError(this.handleError)
+    );
   }
 
   /**
