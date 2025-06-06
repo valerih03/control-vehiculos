@@ -85,16 +85,30 @@ export class RescateService {
 
   /** Manejo básico de errores HTTP */
   private handleError(error: HttpErrorResponse) {
-    console.error('Error en RescateService:', error);
-    let mensaje = 'Ocurrió un error en la petición.';
-    if (error.status === 0) {
-      mensaje = 'No se pudo conectar con el servidor.';
-    } else if (error.status === 404) {
-      mensaje = 'Recurso no encontrado.';
-    } else if (error.status === 400) {
-      // El backend envía BadRequest("No existe vehículo con ese NúmeroBL.") en caso de FK violado
-      mensaje = error.error ?? 'Solicitud inválida.';
+  console.error('Error en RescateService:', error);
+
+  // Intentamos extraer un mensaje legible:
+  let mensaje = 'Ocurrió un error en la petición de rescates.';
+  if (error.status === 0) {
+    mensaje = 'No se pudo conectar con el servidor.';
+  } else if (error.status === 400) {
+    // si el servidor devolvió un string o un JSON con propiedades de error:
+    if (typeof error.error === 'string') {
+      mensaje = error.error;
+    } else if (error.error && typeof error.error === 'object') {
+      // si el error.error es un JSON, quizás tenga 'message' o similar:
+      if ((error.error as any).message) {
+        mensaje = (error.error as any).message;
+      } else {
+        mensaje = JSON.stringify(error.error);
+      }
+    } else {
+      mensaje = 'Datos inválidos.';
     }
-    return throwError(() => new Error(mensaje));
+  } else if (error.status === 404) {
+    mensaje = 'Recurso no encontrado.';
   }
+
+  return throwError(() => new Error(mensaje));
+}
 }

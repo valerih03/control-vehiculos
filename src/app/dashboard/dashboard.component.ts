@@ -138,14 +138,20 @@ export class DashboardComponent implements OnInit {
       const umbralDias = 30;
 
       this.vehiculos = vehiculos.map((v: Vehiculo) => {
-
-        // Si hay despacho para su vin → Despachado
+        // 1) Si tiene despacho → “Despachado” (prioridad máxima)
         if (despachos.some(d => d.vin === v.vin)) {
           v.estado = 'Despachado';
           return v;
         }
 
-        // Si tiene fechaIngreso y supera umbral → Abandono
+        // 2) Si existe un rescate para este BL → “Disponible”
+        //    (porque ya se rescató; no entra en abandono mientras tenga rescate)
+        if (rescates.some(r => r.numeroBL === v.numeroBL)) {
+          v.estado = 'Disponible';
+          return v;
+        }
+
+        // 3) Si sobrepasa umbral de días sin rescate ni despacho → “Abandono”
         if (v.fechaIngreso) {
           const ingresoMs = new Date(v.fechaIngreso).getTime();
           const diasTranscurridos = Math.floor((hoyMs - ingresoMs) / (1000 * 60 * 60 * 24));
@@ -155,32 +161,17 @@ export class DashboardComponent implements OnInit {
           }
         }
 
-        //En otro caso → Disponible
+        // 4) En cualquier otro caso → “Disponible”
         v.estado = 'Disponible';
         return v;
       });
 
-       this.vehiculos
-        .filter(v => v.estado === 'Abandono')
-        .forEach(v => {
-          // Llamo al PUT /api/vehiculos/{idVehiculo} para que el backend grabe estado="Abandono"
-          this.vehiculoService.actualizarVehiculo(v).subscribe({
-            next: () => {
-              /* (opcional) si quieres, puedes registrar en consola
-                 console.log(`Persistido abandono para ID ${v.idVehiculo}`);
-              */
-            },
-            error: err => console.error(`Error al persistir abandono de ID ${v.idVehiculo}:`, err)
-          });
-        });
-
+      // 5) Inicializar filtros y tabla
       this.filteredVehiculos = [...this.vehiculos];
       this.updateSortedVehiculos();
       this.cdr.detectChanges();
     },
-    error: (err) => {
-      console.error('Error al traer datos combinados:', err);
-    }
+    error: (err) => console.error('Error al traer datos combinados:', err)
   });
 }
 
@@ -285,37 +276,38 @@ export class DashboardComponent implements OnInit {
   }
 
   procesarRescate(rescate: Rescate): void {
-    // 1) Llamada al backend para guardar el rescate
-    this.rescateService.agregarRescate(rescate).subscribe({
-      next: (creado) => {
-        // 2) Marcar localmente cada vehículo como 'Disponible'
-        this.vehiculosParaRescate.forEach(v => {
-          v.estado = 'Disponible';
-          // 3) Sincronizar con backend el cambio de estado
-          this.vehiculoService.actualizarVehiculo(v).subscribe();
+  this.rescateService.agregarRescate(rescate).subscribe({
+    next: (creado) => {
+      // Marcar cada vehículo con ese BL a “Disponible” y persistir en BD:
+      this.vehiculosParaRescate.forEach(v => {
+        v.estado = 'Disponible';
+        this.vehiculoService.actualizarVehiculo(v).subscribe({
+          next: () => {
+            console.log(`Vehículo ID ${v.idVehiculo} marcado como Disponible.`);
+          },
+          error: err => console.error(`Error actualizando estado de ${v.idVehiculo}:`, err)
         });
+      });
 
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Rescate exitoso',
-          detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como rescatados.`
-        });
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Rescate exitoso',
+        detail: `${this.vehiculosParaRescate.length} vehículo(s) marcados como disponibles.`
+      });
 
-        // 4) Cerrar el diálogo y recargar datos
-        this.dialogRescateVisible = false;
-        this.cargarDatos();
-      },
-      error: (err) => {
-        console.error('Error al guardar rescate:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo guardar el rescate.'
-        });
-      }
-    });
-  }
-
+      this.dialogRescateVisible = false;
+      this.cargarDatos();
+    },
+    error: (err) => {
+      console.error('Error al guardar rescate:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error al rescatar',
+        detail: err.message  // gracias a handleError, aquí sale un string significativo
+      });
+    }
+  });
+}
   // ——————————— DETALLE y REGISTRO DE DESPACHO ———————————
 
   tieneDespacho(vin: string): boolean {
