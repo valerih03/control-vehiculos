@@ -155,13 +155,12 @@ export class DespacharComponent implements OnInit {
     }
     const f = this.despachoForm.value;
     const nuevo: Despacho = {
-      idDespacho:    Date.now(),
       fechaDespacho: f.fechaDespacho,
       vin:           f.vin,
       tipoSalida:    f.tipoSalida,
       duca:          f.duca,
       motorista:     f.motorista,
-      notaDeLevante: f.notaLevante,
+      notaDeLevante: f.notaDeLevante,
       observaciones: f.observaciones
     };
     this.guardarDespacho.emit(nuevo);

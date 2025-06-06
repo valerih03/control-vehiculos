@@ -1,5 +1,5 @@
 export interface Despacho {
-  idDespacho: number;
+  idDespacho?: number;
   fechaDespacho: Date | string;       // ISO format
   vin: string;             // Relación con Vehiculo
   tipoSalida: string;

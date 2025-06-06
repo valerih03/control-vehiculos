@@ -1,5 +1,5 @@
 export interface Rescate {
-  idRescate: number;
+  idRescate?: number;
   numeroBL: string;
   fechaRescate: Date | string;
 }

@@ -7,21 +7,6 @@
   [style]="{ width: '50vw' }">
 
   <form [formGroup]="despachoForm" class="p-fluid formgrid grid">
-    <!-- Tipo de Salida -->
-    <div class="field col-12">
-      <label>Tipo de Despacho</label>
-      <p-selectButton
-        formControlName="tipoSalida"
-        [options]="tiposDespacho"
-        optionLabel="name"
-        optionValue="value"
-        class="w-full">
-      </p-selectButton>
-      <small *ngIf="despachoForm.get('tipoSalida')?.invalid && despachoForm.get('tipoSalida')?.touched"
-             class="p-error">
-        Debes seleccionar DM o TRANSITO
-      </small>
-    </div>
 
     <!-- Autocomplete VIN -->
     <div class="field col-12">
@@ -39,6 +24,21 @@
       <small *ngIf="despachoForm.get('vin')?.invalid && despachoForm.get('vin')?.touched"
              class="p-error">
         VIN obligatorio
+      </small>
+    </div>
+    <!-- Tipo de Salida -->
+    <div class="field col-12">
+      <label>Tipo de Despacho</label>
+      <p-selectButton
+        formControlName="tipoSalida"
+        [options]="tiposDespacho"
+        optionLabel="name"
+        optionValue="value"
+        class="w-full">
+      </p-selectButton>
+      <small *ngIf="despachoForm.get('tipoSalida')?.invalid && despachoForm.get('tipoSalida')?.touched"
+             class="p-error">
+        Debes seleccionar DM o TRANSITO
       </small>
     </div>
 

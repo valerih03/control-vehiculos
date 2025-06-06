@@ -81,7 +81,6 @@ export class RescateComponent implements OnInit, OnChanges {
     }
     const fecha = new Date(this.formRescate.value.fechaRescate);
     const nuevo: Rescate = {
-      idRescate:  0, // el backend asignará un ID
       numeroBL:     this.numerobl,
       fechaRescate: fecha
     };
