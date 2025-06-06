@@ -125,53 +125,103 @@ export class DashboardComponent implements OnInit {
    * Carga simultáneamente Vehículos, Despachos y Rescates desde el backend.
    */
   private cargarDatos(): void {
-  forkJoin({
-    vehiculos: this.vehiculoService.getVehiculos(),
-    despachos: this.despachoService.getDespachos(),
-    rescates:  this.rescateService.getRescates()
-  }).subscribe({
-    next: ({ vehiculos, despachos, rescates }) => {
-      this.despachos = despachos;
-      this.rescates = rescates;
+  const umbralDias = 30;
 
-      const hoyMs = new Date().getTime();
-      const umbralDias = 30;
+  // 1) Primero llamamos al endpoint que marca en la base de datos los vehículos en "Abandono"
+  this.vehiculoService.actualizarEstadosAbandono(umbralDias).subscribe({
+    next: () => {
+      // 2) Una vez que el backend terminó de poner "Abandono" en BD, traemos todo el resto de datos:
+      forkJoin({
+        vehiculos: this.vehiculoService.getVehiculos(),
+        despachos: this.despachoService.getDespachos(),
+        rescates:  this.rescateService.getRescates()
+      }).subscribe({
+        next: ({ vehiculos, despachos, rescates }) => {
+          this.despachos = despachos;
+          this.rescates  = rescates;
 
-      this.vehiculos = vehiculos.map((v: Vehiculo) => {
-        // 1) Si tiene despacho → “Despachado” (prioridad máxima)
-        if (despachos.some(d => d.vin === v.vin)) {
-          v.estado = 'Despachado';
-          return v;
-        }
+          const hoyMs = new Date().getTime();
 
-        // 2) Si existe un rescate para este BL → “Disponible”
-        //    (porque ya se rescató; no entra en abandono mientras tenga rescate)
-        if (rescates.some(r => r.numeroBL === v.numeroBL)) {
-          v.estado = 'Disponible';
-          return v;
-        }
+          // 3) Ahora recalculemos cada estado localmente, teniendo en cuenta
+          //    que los que realmente superaban el umbral estarán ya guardados en BD como "Abandono"
+          this.vehiculos = vehiculos.map((v: Vehiculo) => {
+            // a) Si tiene despacho → “Despachado” (prioridad máxima)
+            if (despachos.some(d => d.vin === v.vin)) {
+              v.estado = 'Despachado';
+              return v;
+            }
 
-        // 3) Si sobrepasa umbral de días sin rescate ni despacho → “Abandono”
-        if (v.fechaIngreso) {
-          const ingresoMs = new Date(v.fechaIngreso).getTime();
-          const diasTranscurridos = Math.floor((hoyMs - ingresoMs) / (1000 * 60 * 60 * 24));
-          if (diasTranscurridos > umbralDias) {
-            v.estado = 'Abandono';
+            // b) Si existe un rescate para este BL → “Disponible”
+            if (rescates.some(r => r.numeroBL === v.numeroBL)) {
+              v.estado = 'Disponible';
+              return v;
+            }
+
+            // c) Si en BD ya figura “Abandono”, mantenemos eso
+            if (v.estado === 'Abandono') {
+              return v;
+            }
+
+            // d) En caso contrario (no despacho, no rescate, no “Abandono” en BD)
+            //    → “Disponible”
+            v.estado = 'Disponible';
             return v;
-          }
+          });
+
+          // 4) Inicializar filtros y refrescar la tabla
+          this.filteredVehiculos = [...this.vehiculos];
+          this.updateSortedVehiculos();
+          this.cdr.detectChanges();
+        },
+        error: err => {
+          console.error('Error al traer datos combinados:', err);
         }
-
-        // 4) En cualquier otro caso → “Disponible”
-        v.estado = 'Disponible';
-        return v;
       });
-
-      // 5) Inicializar filtros y tabla
-      this.filteredVehiculos = [...this.vehiculos];
-      this.updateSortedVehiculos();
-      this.cdr.detectChanges();
     },
-    error: (err) => console.error('Error al traer datos combinados:', err)
+    error: err => {
+      console.error('Error al actualizar estados de abandono:', err);
+      // Si falla al marcar en BD, aun así intentamos traer la lista “tal cual”
+      forkJoin({
+        vehiculos: this.vehiculoService.getVehiculos(),
+        despachos: this.despachoService.getDespachos(),
+        rescates:  this.rescateService.getRescates()
+      }).subscribe({
+        next: ({ vehiculos, despachos, rescates }) => {
+          this.despachos = despachos;
+          this.rescates  = rescates;
+
+          // Repetimos el mismo cálculo local, sin confiar en BD:
+          const hoyMs = new Date().getTime();
+          this.vehiculos = vehiculos.map((v: Vehiculo) => {
+            if (despachos.some(d => d.vin === v.vin)) {
+              v.estado = 'Despachado';
+              return v;
+            }
+            if (rescates.some(r => r.numeroBL === v.numeroBL)) {
+              v.estado = 'Disponible';
+              return v;
+            }
+            if (v.fechaIngreso) {
+              const ingresoMs = new Date(v.fechaIngreso).getTime();
+              const diasTranscurridos = Math.floor((hoyMs - ingresoMs) / (1000 * 60 * 60 * 24));
+              if (diasTranscurridos > umbralDias) {
+                v.estado = 'Abandono';
+                return v;
+              }
+            }
+            v.estado = 'Disponible';
+            return v;
+          });
+
+          this.filteredVehiculos = [...this.vehiculos];
+          this.updateSortedVehiculos();
+          this.cdr.detectChanges();
+        },
+        error: err2 => {
+          console.error('Error al traer datos tras fallo de abandono:', err2);
+        }
+      });
+    }
   });
 }
 
@@ -409,9 +459,17 @@ export class DashboardComponent implements OnInit {
           this.dialogVehiculoVisible = false;
           this.cargarDatos();
         },
-        error: (err) => console.error('Error al crear vehículo:', err)
+        error: (err) => {
+          // Aquí capturamos el 409 y mostramos la alerta
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error al crear vehículo',
+            detail: err.message // vendrá: "Ya existe un vehículo con VIN 'XXX'."
+          });
+        }
       });
     } else {
+      // Modo edición
       this.vehiculoService.actualizarVehiculo(registro).subscribe({
         next: () => {
           this.messageService.add({
@@ -422,7 +480,13 @@ export class DashboardComponent implements OnInit {
           this.dialogVehiculoVisible = false;
           this.cargarDatos();
         },
-        error: (err) => console.error('Error al actualizar vehículo:', err)
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error al actualizar vehículo',
+            detail: err.message
+          });
+        }
       });
     }
   }
